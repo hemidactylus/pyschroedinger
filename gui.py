@@ -27,6 +27,7 @@ def doPlot(xs,psis,pots,title='',replotting=None):
         physXs=[i*xSize/xSteps for i in xs]
         maxPots=max(pots) if max(pots)>0 else 1.0
         scalePots=[p*0.2/maxPots for p in pots]
+        plotZero = ax.plot(physXs,[0]*xSteps,'-',color='#c0c0c0')
         plotPot, = ax.plot(physXs,scalePots, 'b-',lineWidth=3)
         plotMod2, = ax.plot(physXs, mod2(psis), 'k-',lineWidth=3)
         plotRe, = ax.plot(physXs, re(psis), 'r-',lineWidth=1)

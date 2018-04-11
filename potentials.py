@@ -12,11 +12,11 @@ def freeParticle():
     '''
     return [0]*xSteps
 
-def harmonic(pPos,weight):
+def harmonicPotential(pPos,weight):
     '''
         generates a potential for 'harmonic'
     '''
-    center=pPos*n
+    center=pPos*xSteps
     return [
         weight*(ni-center)**2
         for ni in range(xSteps)

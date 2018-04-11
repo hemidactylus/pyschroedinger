@@ -40,7 +40,7 @@ from wfunctions import (
 
 from potentials import (
     freeParticle,
-    harmonic,
+    harmonicPotential,
     stepPotential,
     exponentialWall,
 )
@@ -52,13 +52,14 @@ from gui import (
 def initPsi():
     return combineWFunctions(
         # wGaussian(0.6,0.1,1.0),
-        # wGaussianPacket(0.2,0.05,100,0.5),
-        wPlaneWave(10,0.5)
+        # wGaussianPacket(0.45,0.1,5*math.PI,0.5),
+        wPlaneWave(10*math.pi,0.5)
     )
 
 def initPot():
     return combinePotentials(
         freeParticle(),
+        # harmonicPotential(0.5,0.000001),
     )
 
 if __name__=='__main__':
@@ -73,5 +74,5 @@ if __name__=='__main__':
     #
     for i in itertools.count():
         for k in range(drawFreq):
-          psi,normDev=integrate(psi,pot,deltaT)
+            psi,normDev=integrate(psi,pot,deltaT)
         doPlot(xvalues,psi,pot,'t=%8.4f, normdev %8.4f' % (i*drawFreq*deltaT,normDev), replottable)
