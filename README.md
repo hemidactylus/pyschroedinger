@@ -29,7 +29,7 @@ But even in this case, when using wave numbers to define plane waves
 or wave packets, we enforce continuity with the requirement that
 
 <img
-  src="https://latex.codecogs.com/svg.latex?e^{k}=1\Rightarrow%20k=n\cdot\pi,n\in{N}"
+  src="https://latex.codecogs.com/svg.latex?e^{ik}=1\Rightarrow%20k=2n\cdot\pi,n\in{N}"
 />
 
 The way this requirement is stated is is going to change as the
