@@ -3,12 +3,12 @@
 '''
 
 xSize=10.0
-xSteps=400
-deltaT=0.002
-hbar=0.0003
+xSteps=100
+deltaT=0.005
+hbar=0.003
 m=1.0
 
 periodicBC=True
 
 # graphics options
-drawFreq=30
+drawFreq=100
