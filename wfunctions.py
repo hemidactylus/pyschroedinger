@@ -7,7 +7,7 @@ from settings import (
     Nx,
 )
 
-def wGaussianPacket(pPos,pWidth,pk,phase,weight=1):
+def wGaussianPacket(pPos,pWidth,pk,phase=0.0,weight=1):
     '''
         a Gaussian wave packet with wavenumber k
     '''
@@ -18,7 +18,7 @@ def wGaussianPacket(pPos,pWidth,pk,phase,weight=1):
         for ni in range(Nx)
     ]
 
-def wPlaneWave(pk,phase,weight=1):
+def wPlaneWave(pk,phase=0.0,weight=1):
     return [
         weight*complex(math.cos(phase+pk*ni/Nx),math.sin(phase+pk*ni/Nx))
         for ni in range(Nx)

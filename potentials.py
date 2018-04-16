@@ -2,6 +2,8 @@
     potentials.py : generation of potentials
 '''
 
+import math
+
 from settings import (
     Nx,
 )
@@ -22,29 +24,17 @@ def harmonicPotential(pPos,weight):
         for ni in range(Nx)
     ]
 
+def stepPotential(pPos,pThickness,vLeft,vRight):
     '''
-#
-potCenter=0.7
-potAmplitude=0#0.1
-potWidth=0.001
-#
-potStep=0.3
-potHeight=0.05
-potStepThickness=0.03
+        A step with finite thickness
     '''
-
-def stepPotential():
-    '''
-        generates a potential for 'stepPotential'
-    '''
-    pass
-    # a step on the left
-    # potStepLocation=potStep*n
-    # potStepWidth=potStepThickness*n
-    # unsubPot = [
-    #     potHeight*((1+math.tanh((potStepLocation-ni)/potStepWidth))/2)
-    #     for ni in range(n)
-    # ]
+    center=pPos*Nx
+    thickness=pThickness*Nx
+    unsubPot = [
+        vLeft+(vRight-vLeft)*((1+math.tanh((center-ni)/thickness))/2)
+        for ni in range(Nx)
+    ]
+    return unsubPot
 
 def exponentialWall():
     '''

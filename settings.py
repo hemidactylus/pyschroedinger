@@ -6,10 +6,10 @@
 #   in units of (the appropriate power of)
 #   the electron mass m_e = 0.5 MeV/c^2
 Lambda = 10
-Nx = 500
-DeltaTau = 0.000002
+Nx = 200
+DeltaTau = 0.00001
 Mu = 0.5
-PotV = 1.0
+PotV = 0.03
 # quantities derived from the above
 DeltaLambda=float(Lambda)/float(Nx)
 DeltaLambda2=DeltaLambda**2

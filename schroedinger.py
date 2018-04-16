@@ -10,9 +10,11 @@ import math
 import itertools
 
 from settings import (
+    Lambda,
     Nx,
     DeltaTau,
     drawFreq,
+    PotV,
 )
 
 from dynamics import (
@@ -41,14 +43,19 @@ from potentials import (
     exponentialWall,
 )
 
+from units import (
+    toLength_fm,
+    toTime_fs,
+)
+
 from gui import (
     doPlot,
 )
 
 def initPsi():
     return combineWFunctions(
-        wGaussian(0.5,0.04,1.0),
-        # wGaussianPacket(0.45,0.02,20*math.pi,0.5),
+        # wGaussian(0.5,0.04,1.0),
+        wGaussianPacket(0.5,0.1,-20*math.pi,0.5),
         # wPlaneWave(10*math.pi,0.2,weight=0.2),
         # wPlaneWave(-4*math.pi,0.5,weight=1.0),
     )
@@ -56,12 +63,17 @@ def initPsi():
 def initPot():
     return combinePotentials(
         #freeParticle(),
-        harmonicPotential(0.5,0.01),
+        #harmonicPotential(0.5,PotV),
+        stepPotential(0.1,0.02,0,1000),
+        stepPotential(0.9,0.02,1000,0)
     )
 
 if __name__=='__main__':
     #
-    print('Init')
+    print('Init [L=%f fm, DeltaT=%f fs]' % (
+        toLength_fm(Lambda),
+        toTime_fs(DeltaTau),
+    ))
     #
     xvalues=list(range(Nx))
     psi=initPsi()
