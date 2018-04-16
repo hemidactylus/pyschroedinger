@@ -34,6 +34,7 @@ from wfunctions import (
     wGaussianPacket,
     wGaussian,
     wPlaneWave,
+    roundWaveNumber,
 )
 
 from potentials import (
@@ -54,23 +55,30 @@ from gui import (
 
 def initPsi():
     return combineWFunctions(
-        # wGaussian(0.5,0.04,1.0),
-        wGaussianPacket(0.5,0.1,-20*math.pi,0.5),
-        # wPlaneWave(10*math.pi,0.2,weight=0.2),
-        # wPlaneWave(-4*math.pi,0.5,weight=1.0),
+        # 1 tunnel:
+        # wGaussianPacket(0.5,0.1,-11.3095,0.5),
+        # # 2 double interfering tunnel (w/ spurious)
+        # wGaussianPacket(0.7,0.07,+11.3095,0.5),
+        # wGaussianPacket(0.3,0.07,-11.3095,0.5),
+        # 3 oscillation between two minima
+        wGaussian(0.4,0.1)        
     )
 
 def initPot():
     return combinePotentials(
-        #freeParticle(),
-        #harmonicPotential(0.5,PotV),
-        stepPotential(0.1,0.02,0,100),
-        stepPotential(0.9,0.02,100,0)
+        # rounded square potential (for 1, 2)
+        # stepPotential(0.1,0.02,0,1000),
+        # stepPotential(0.9,0.02,1000,0)
+        # two-hole well (for 3)
+        stepPotential(0.25,0.02,0,1000),
+        stepPotential(0.75,0.02,1000,0),
+        stepPotential(0.55,0.02,0,100),
+        stepPotential(0.45,0.02,100,000),
     )
 
 if __name__=='__main__':
     #
-    print('Init [L=%f fm, DeltaT=%f fs]' % (
+    print('Init [L=%f fm, DeltaT=%.2E fs]' % (
         toLength_fm(Lambda),
         toTime_fs(DeltaTau),
     ))

@@ -27,7 +27,7 @@ def doPlot(xs,phis,pots,title='',replotting=None):
         physXs=[i*Lambda/Nx for i in xs]
         #
         phimod2=mod2(phis)
-        phimax=max(phimod2)
+        phimax=max(max(phimod2),max(re(phis)),max(im(phis)))
         maxPots=max(pots) if max(pots)>0 else 1.0
         scalePots=[p*phimax/maxPots for p in pots]
         #
