@@ -47,8 +47,8 @@ from gui import (
 
 def initPsi():
     return combineWFunctions(
-        # wGaussian(0.6,0.1,1.0),
-        wGaussianPacket(0.45,0.02,20*math.pi,0.5),
+        wGaussian(0.5,0.04,1.0),
+        # wGaussianPacket(0.45,0.02,20*math.pi,0.5),
         # wPlaneWave(10*math.pi,0.2,weight=0.2),
         # wPlaneWave(-4*math.pi,0.5,weight=1.0),
     )
