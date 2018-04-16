@@ -6,8 +6,8 @@
 #   in units of (the appropriate power of)
 #   the electron mass m_e = 0.5 MeV/c^2
 Lambda = 10
-Nx = 200
-DeltaTau = 0.00001
+Nx = 350
+DeltaTau = 0.000005
 Mu = 0.5
 PotV = 0.03
 # quantities derived from the above
