@@ -1,12 +1,19 @@
 '''
-    settings.py : physical parameters
+    settings.py : parameters,
 '''
 
-xSize=10.0
-xSteps=100
-deltaT=0.05
-hbar=0.003
-m=1.0
+# PHYSICAL PARAMETERS
+#   in units of (the appropriate power of)
+#   the electron mass m_e = 0.5 MeV/c^2
+Lambda = 10
+Nx = 500
+DeltaTau = 0.000002
+Mu = 0.5
+PotV = 1.0
+# quantities derived from the above
+DeltaLambda=float(Lambda)/float(Nx)
+DeltaLambda2=DeltaLambda**2
+KineticFactor=-1.0/(2.0*float(Mu))
 
 periodicBC=True
 

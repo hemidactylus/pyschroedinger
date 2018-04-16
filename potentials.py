@@ -3,23 +3,23 @@
 '''
 
 from settings import (
-    xSteps,
+    Nx,
 )
 
 def freeParticle():
     '''
         generates a potential for 'freeParticle'
     '''
-    return [0]*xSteps
+    return [0]*Nx
 
 def harmonicPotential(pPos,weight):
     '''
         generates a potential for 'harmonic'
     '''
-    center=pPos*xSteps
+    center=pPos*Nx
     return [
         weight*(ni-center)**2
-        for ni in range(xSteps)
+        for ni in range(Nx)
     ]
 
     '''

@@ -4,24 +4,24 @@
 '''
 import math
 from settings import (
-    xSteps,
+    Nx,
 )
 
 def wGaussianPacket(pPos,pWidth,pk,phase,weight=1):
     '''
         a Gaussian wave packet with wavenumber k
     '''
-    center=pPos*xSteps
-    width=pWidth*xSteps
+    center=pPos*Nx
+    width=pWidth*Nx
     return [
-        weight*complex(math.exp(-(((ni-center)/width)**2)))*complex(math.cos(phase-pk*ni/xSteps),math.sin(phase-pk*ni/xSteps))
-        for ni in range(xSteps)
+        weight*complex(math.exp(-(((ni-center)/width)**2)))*complex(math.cos(phase-pk*ni/Nx),math.sin(phase-pk*ni/Nx))
+        for ni in range(Nx)
     ]
 
 def wPlaneWave(pk,phase,weight=1):
     return [
-        weight*complex(math.cos(phase+pk*ni/xSteps),math.sin(phase+pk*ni/xSteps))
-        for ni in range(xSteps)
+        weight*complex(math.cos(phase+pk*ni/Nx),math.sin(phase+pk*ni/Nx))
+        for ni in range(Nx)
     ]
 
 def wGaussian(pPos,pWidth,weight=1):

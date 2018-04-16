@@ -10,12 +10,8 @@ import math
 import itertools
 
 from settings import (
-    xSize,
-    xSteps,
-    deltaT,
-    hbar,
-    m,
-    periodicBC,
+    Nx,
+    DeltaTau,
     drawFreq,
 )
 
@@ -52,28 +48,29 @@ from gui import (
 def initPsi():
     return combineWFunctions(
         # wGaussian(0.6,0.1,1.0),
-        # wGaussianPacket(0.45,0.1,5*math.PI,0.5),
-        # wPlaneWave(10*math.pi,0.5),
-        wPlaneWave(-4*math.pi,0.5),
+        wGaussianPacket(0.45,0.02,20*math.pi,0.5),
+        # wPlaneWave(10*math.pi,0.2,weight=0.2),
+        # wPlaneWave(-4*math.pi,0.5,weight=1.0),
     )
 
 def initPot():
     return combinePotentials(
-        freeParticle(),
-        # harmonicPotential(0.5,0.000001),
+        #freeParticle(),
+        harmonicPotential(0.5,0.01),
     )
 
 if __name__=='__main__':
     #
     print('Init')
     #
-    xvalues=list(range(xSteps))
+    xvalues=list(range(Nx))
     psi=initPsi()
     pot=initPot()
     #
     replottable=doPlot(xvalues,psi,pot)
     #
+    tau=0
     for i in itertools.count():
         for k in range(drawFreq):
-            psi,normDev=integrate(psi,pot,deltaT)
-        doPlot(xvalues,psi,pot,'t=%8.4f, normdev %8.4f' % (i*drawFreq*deltaT,normDev), replottable)
+            psi,normDev,tau=integrate(psi,pot,DeltaTau,tau)
+        doPlot(xvalues,psi,pot,'tau=%8.4f, normdev %8.4f' % (tau,normDev), replottable)

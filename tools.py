@@ -2,6 +2,9 @@
     tools.py : wavefunction handling tools
 '''
 from functools import reduce
+from settings import (
+    DeltaLambda,
+)
 
 def mod2(psi):
     return [
@@ -10,7 +13,7 @@ def mod2(psi):
     ]
 
 def norm(psi):
-    return sum(mod2(psi))**0.5
+    return (sum(mod2(psi))*DeltaLambda)**0.5
 
 def re(psi):
     return [p.real for p in psi]

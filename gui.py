@@ -6,8 +6,8 @@
 import matplotlib.pyplot as plt
 
 from settings import (
-    xSize,
-    xSteps,
+    Lambda,
+    Nx,
 )
 from tools import (
     mod2,
@@ -15,7 +15,7 @@ from tools import (
     im,
 )
 
-def doPlot(xs,psis,pots,title='',replotting=None):
+def doPlot(xs,phis,pots,title='',replotting=None):
     '''
         if replotting is None: creates the plot window.
         Else: refreshes the plot interactively using the handles
@@ -24,15 +24,19 @@ def doPlot(xs,psis,pots,title='',replotting=None):
         plt.ion()
         fig = plt.figure()
         ax = fig.add_subplot(111)
-        physXs=[i*xSize/xSteps for i in xs]
+        physXs=[i*Lambda/Nx for i in xs]
+        #
+        phimod2=mod2(phis)
+        phimax=max(phimod2)
         maxPots=max(pots) if max(pots)>0 else 1.0
-        scalePots=[p*0.2/maxPots for p in pots]
-        plotZero = ax.plot(physXs,[0]*xSteps,'-',color='#c0c0c0')
+        scalePots=[p*phimax/maxPots for p in pots]
+        #
+        plotZero = ax.plot(physXs,[0]*Nx,'-',color='#c0c0c0')
         plotPot, = ax.plot(physXs,scalePots, 'b-',lineWidth=3)
-        plotMod2, = ax.plot(physXs, mod2(psis), 'k-',lineWidth=3)
-        plotRe, = ax.plot(physXs, re(psis), 'r-',lineWidth=1)
-        plotIm, = ax.plot(physXs, im(psis), 'g-',lineWidth=1)
-        plt.ylim((-0.24,0.24))
+        plotMod2, = ax.plot(physXs, mod2(phis), 'k-',lineWidth=3)
+        plotRe, = ax.plot(physXs, re(phis), 'r-',lineWidth=1)
+        plotIm, = ax.plot(physXs, im(phis), 'g-',lineWidth=1)
+        plt.ylim((-phimax,phimax))
         replotStruct={
             'fig' : fig,
             'ax'  : ax,
@@ -40,12 +44,15 @@ def doPlot(xs,psis,pots,title='',replotting=None):
             'im'  : plotIm,
             'mod2': plotMod2,
             'pot' : plotPot,
+            'phimax': phimax,
+            'maxpots': maxPots,
         }
         return replotStruct
     else:
-        replotting['re'].set_ydata(re(psis))
-        replotting['im'].set_ydata(im(psis))
-        replotting['mod2'].set_ydata(mod2(psis))
-        replotting['pot'].set_ydata(pots)
+        scalePots=[p*replotting['phimax']/replotting['maxpots'] for p in pots]
+        replotting['re'].set_ydata(re(phis))
+        replotting['im'].set_ydata(im(phis))
+        replotting['mod2'].set_ydata(mod2(phis))
+        replotting['pot'].set_ydata(scalePots)
         replotting['ax'].set_title(title)
         replotting['fig'].canvas.draw()
