@@ -7,14 +7,14 @@ from settings import (
     xSteps,
 )
 
-def wGaussianPacket(pPos,pWidth,pk,weight=1):
+def wGaussianPacket(pPos,pWidth,pk,phase,weight=1):
     '''
         a Gaussian wave packet with wavenumber k
     '''
     center=pPos*xSteps
     width=pWidth*xSteps
     return [
-        weight*complex(math.exp(-(((ni-center)/width)**2)))*complex(math.cos(pk*ni/xSteps),math.sin(pk*ni/xSteps))
+        weight*complex(math.exp(-(((ni-center)/width)**2)))*complex(math.cos(phase-pk*ni/xSteps),math.sin(phase-pk*ni/xSteps))
         for ni in range(xSteps)
     ]
 

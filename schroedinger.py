@@ -54,7 +54,7 @@ def initPsi():
         # wGaussian(0.6,0.1,1.0),
         # wGaussianPacket(0.45,0.1,5*math.PI,0.5),
         # wPlaneWave(10*math.pi,0.5),
-        wPlaneWave(-10*math.pi,0.5),
+        wPlaneWave(-4*math.pi,0.5),
     )
 
 def initPot():

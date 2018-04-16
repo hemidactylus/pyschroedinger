@@ -4,7 +4,7 @@
 
 xSize=10.0
 xSteps=100
-deltaT=0.005
+deltaT=0.05
 hbar=0.003
 m=1.0
 
