@@ -64,8 +64,8 @@ def initPot():
     return combinePotentials(
         #freeParticle(),
         #harmonicPotential(0.5,PotV),
-        stepPotential(0.1,0.02,0,1000),
-        stepPotential(0.9,0.02,1000,0)
+        stepPotential(0.1,0.02,0,100),
+        stepPotential(0.9,0.02,100,0)
     )
 
 if __name__=='__main__':
