@@ -15,6 +15,10 @@ from tools import (
     im,
 )
 
+from units import (
+    toLength_fm,
+)
+
 def doPlot(xs,phis,pots,title='',replotting=None):
     '''
         if replotting is None: creates the plot window.
@@ -24,7 +28,7 @@ def doPlot(xs,phis,pots,title='',replotting=None):
         plt.ion()
         fig = plt.figure()
         ax = fig.add_subplot(111)
-        physXs=[i*Lambda/Nx for i in xs]
+        physXs=[toLength_fm(i*Lambda/Nx) for i in xs]
         #
         phimod2=mod2(phis)
         phimax=max(max(phimod2),max(re(phis)),max(im(phis)))
@@ -36,6 +40,7 @@ def doPlot(xs,phis,pots,title='',replotting=None):
         plotMod2, = ax.plot(physXs, mod2(phis), 'k-',lineWidth=3)
         plotRe, = ax.plot(physXs, re(phis), 'r-',lineWidth=1)
         plotIm, = ax.plot(physXs, im(phis), 'g-',lineWidth=1)
+        plt.xlabel('fm')
         plt.ylim((-phimax,phimax))
         replotStruct={
             'fig' : fig,

@@ -9,7 +9,7 @@ import math
 #   the electron mass m_e = 0.5 MeV/c^2
 Lambda = 10
 Nx = 350
-DeltaTau = 0.000003
+DeltaTau = 0.000001
 Mu = 0.5
 PotV = 0.03
 # quantities derived from the above

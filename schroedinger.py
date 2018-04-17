@@ -59,22 +59,25 @@ def initPhi():
         # 1 tunnel:
         # wGaussianPacket(0.5,0.1,-11.3095,0.5),
         # # 2 double interfering tunnel (w/ spurious)
-        wGaussianPacket(0.7,0.07,+11.3095,0.5),
-        wGaussianPacket(0.3,0.07,-11.3095,0.5),
+        #wGaussianPacket(0.7,0.07,+11.3095,0.5),
+        #wGaussianPacket(0.3,0.07,-11.3095,0.5),
         # 3 oscillation between two minima
-        # wGaussian(0.36,0.07)        
+        wGaussian(0.36,0.07),
+        # 4. test centered gaussians
+        # wGaussian(0.35,0.1,weight=0.3),
+        # wGaussian(0.65,0.1,weight=0.7),
     )
 
 def initPot():
     return combinePotentials(
         # rounded square potential (for 1, 2)
-        stepPotential(0.1,0.02,0,1000),
-        stepPotential(0.9,0.02,1000,0)
+        # stepPotential(0.1,0.02,0,1000),
+        # stepPotential(0.9,0.02,1000,0)
         # two-hole well (for 3)
-        # stepPotential(0.25,0.02,0,1000),
-        # stepPotential(0.75,0.02,1000,0),
-        # stepPotential(0.55,0.02,0,100),
-        # stepPotential(0.45,0.02,100,000),
+        stepPotential(0.25,0.01,0,1000),
+        stepPotential(0.75,0.01,1000,0),
+        stepPotential(0.55,0.01,0,80),
+        stepPotential(0.45,0.01,80,000),
     )
 
 if __name__=='__main__':
@@ -99,8 +102,8 @@ if __name__=='__main__':
             xvalues,
             phi,
             pot,
-            'tau=%8.4f, normdev %8.4f, e=%8.4f' % (
-                tau,
+            't=%.4E fs, normdev %.4E, e=%.4E' % (
+                toTime_fs(tau),
                 normDev,
                 phiEnergy.real,
             ),
