@@ -19,7 +19,72 @@ def integrate(Phi,vPotential,DeltaTau, iniTau):
     '''
         returns the new Phi
     '''
-    miDeltaTau = complex(0,-DeltaTau)
+
+    newPhi = [
+      p+DeltaTau*dp
+      for p,dp in zip(Phi,evolutionOperator(Phi,vPotential))
+    ]
+    newNorm=norm(newPhi)
+    #
+    return [
+        p/newNorm
+        for p in newPhi
+    ], newNorm-1, iniTau+DeltaTau
+
+def integrateK4(Phi,vPotential,DeltaTau,iniTau):
+    '''
+        Attempt at Runge-Kutta of fourth order
+    '''
+    halfDT=DeltaTau*0.5
+    k1 = evolutionOperator(Phi,vPotential)
+    k2 = evolutionOperator(
+        [
+            p+p1*halfDT
+            for p,p1 in zip(Phi,k1)
+        ],
+        vPotential
+    )
+    k3=evolutionOperator(
+        [
+            p+p2*halfDT
+            for p,p2 in zip(Phi,k2)
+        ],
+        vPotential
+    )
+    k4=evolutionOperator(
+        [
+            p+p3*DeltaTau
+            for p,p3 in zip(Phi,k3)
+        ],
+        vPotential
+    )
+    npFactor=DeltaTau/6.0
+    newPhi=[
+        p+npFactor*(p1+2*p2+2*p3+p4)
+        for p,p1,p2,p3,p4 in zip (
+            Phi,
+            k1,
+            k2,
+            k3,
+            k4,
+        )
+    ]
+    #
+    newNorm=norm(newPhi)
+    #
+    return [
+        p/newNorm
+        for p in newPhi
+    ], newNorm-1, iniTau+DeltaTau
+
+def evolutionOperator(Phi,vPotential):
+    '''
+        given wf and potential, (and using mu and lambda),
+        evaluates F in
+            delta Phi/delta tau = F(lambda,phi)
+        i.e.
+            F = -i ( (/1(2mu)) delta2phi/deltalambda2 + v*phi )
+    '''
     if periodicBC:
         secondDerivative = [
             KineticFactor*(2*p-pl-pr)/DeltaLambda2
@@ -36,24 +101,16 @@ def integrate(Phi,vPotential,DeltaTau, iniTau):
             for pl,p,pr in zip(Phi[:-2],Phi[1:-1],Phi[2:])
         ] + [complex(0)]
     #
-    deltaPhi = [
-        miDeltaTau*(d2+v*p)
+    minusI = complex(0,-1)
+    F = [
+        minusI*(d2+v*p)
         for d2,v,p in zip(secondDerivative,vPotential,Phi)
     ]
-    newPhi = [
-      p+dp
-      for p,dp in zip(Phi,deltaPhi)
-    ]
-    newNorm=norm(newPhi)
-    #
-    return [
-        p/newNorm
-        for p in newPhi
-    ], newNorm-1, iniTau+DeltaTau
+    return F
 
 def energy(Phi,vPotential):
     '''
-        evaluates <phi|E|phi>, the adiimensional
+        evaluates <phi|E|phi>, the adimensional
         version of <psi|E|psi>
     '''
     if periodicBC:

@@ -36,14 +36,15 @@ def stepPotential(pPos,pThickness,vLeft,vRight):
     ]
     return unsubPot
 
-def exponentialWall():
+def exponentialWall(pPos,rate,amplitude):
     '''
-        generates a potential for 'exponentialWall'
+        exponentialWall potential: pPos must sensibly be > 1 or < 0,
+        then:
+            pot(x) = amplitude*exp(rate/(abs(pPos-x)))
     '''
-    pass
-    # # exp borders
-    # potThickness=potWidth*n
-    # unsubPot = [
-    #     pAmplitude*((math.exp((potThickness/(n-ni))+(potThickness/(ni+1)))))
-    #     for ni in range(n)
-    # ]
+    center=pPos*Nx-0.5
+    unsubPot = [
+        amplitude*((math.exp(rate/(abs(center-ni)))))
+        for ni in range(Nx)
+    ]
+    return unsubPot

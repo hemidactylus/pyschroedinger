@@ -8,8 +8,15 @@ import math
 #   in units of (the appropriate power of)
 #   the electron mass m_e = 0.5 MeV/c^2
 Lambda = 10
-Nx = 350
-DeltaTau = 0.000001
+
+# low-res
+Nx = 150
+DeltaTau = 0.00006
+
+# high-res
+# Nx = 350
+# DeltaTau = 0.000002
+
 Mu = 0.5
 PotV = 0.03
 # quantities derived from the above
@@ -21,4 +28,4 @@ waveNumber0 = 2*math.pi/Lambda
 periodicBC=True
 
 # graphics options
-drawFreq=100
+drawFreq=80
