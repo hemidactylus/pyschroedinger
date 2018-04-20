@@ -1,31 +1,28 @@
 '''
     tools.py : wavefunction handling tools
 '''
+
 from functools import reduce
+import numpy as np
+
 from settings import (
     DeltaLambda,
 )
 
 def mod2(psi):
-    return [
-        (p.conjugate()*p).real
-        for p in psi
-    ]
+    return (psi.conjugate()*psi).real
 
 def norm(psi):
     return (sum(mod2(psi))*DeltaLambda)**0.5
 
 def re(psi):
-    return [p.real for p in psi]
+    return psi.real
 
 def im(psi):
-    return [p.imag for p in psi]
+    return psi.imag
 
 def sumFunctions(wf1,wf2):
-    return [
-        p1+p2
-        for p1,p2 in zip(wf1,wf2)
-    ]
+    return wf1+wf2
 
 def combineWFunctions(*wflist,normalize=True):
     '''
@@ -34,10 +31,7 @@ def combineWFunctions(*wflist,normalize=True):
     unnormed = reduce(sumFunctions,wflist[1:],wflist[0])
     if normalize:
         psiNorm=norm(unnormed)
-        return [
-            p/psiNorm
-            for p in unnormed
-        ]
+        return unnormed/psiNorm
     else:
         return unnormed
 
@@ -49,9 +43,6 @@ def combinePotentials(*potlist,shift=True):
     unshifted = reduce(sumFunctions,potlist[1:],potlist[0])
     if shift:
         minPot=min(unshifted)
-        return [
-            v-minPot
-            for v in unshifted
-        ]
+        return unshifted-minPot
     else:
         return unshifted

@@ -10,12 +10,8 @@ import math
 Lambda = 10
 
 # low-res
-Nx = 150
-DeltaTau = 0.0005
-
-# high-res
-# Nx = 350
-# DeltaTau = 0.000002
+Nx = 250
+DeltaTau = 0.0003
 
 Mu = 0.5
 PotV = 0.03
@@ -25,7 +21,7 @@ DeltaLambda2=DeltaLambda**2
 KineticFactor=-1.0/(2.0*float(Mu))
 waveNumber0 = 2*math.pi/Lambda
 
-periodicBC=False
+periodicBC=True
 
 # graphics options
-drawFreq=40
+drawFreq=60

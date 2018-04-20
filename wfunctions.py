@@ -3,6 +3,8 @@
     generation tools
 '''
 import math
+import numpy as np
+
 from settings import (
     Nx,
     waveNumber0,
@@ -19,23 +21,23 @@ def wGaussianPacket(pPos,pWidth,ph0,phase=0.0,weight=1):
     ph=roundWaveNumber(ph0)
     center=pPos*Nx
     width=pWidth*Nx
-    return [
+    return np.array([
         weight*complex(math.exp(-(((ni-center)/width)**2)))*complex(
             math.cos(phase-ph*ni*DeltaLambda),
             math.sin(phase-ph*ni*DeltaLambda),
         )
         for ni in range(Nx)
-    ]
+    ])
 
 def wPlaneWave(ph0,phase=0.0,weight=1):
     ph=roundWaveNumber(ph0)
-    return [
+    return np.array([
         weight*complex(
             math.cos(phase+ph*ni*DeltaLambda),
             math.sin(phase+ph*ni*DeltaLambda),
         )
         for ni in range(Nx)
-    ]
+    ])
 
 def wGaussian(pPos,pWidth,weight=1):
     '''
