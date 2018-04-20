@@ -49,6 +49,7 @@ from potentials import (
 from units import (
     toLength_fm,
     toTime_fs,
+    toEnergy_Mev,
 )
 
 from gui import (
@@ -117,10 +118,10 @@ if __name__=='__main__':
             xvalues,
             phi,
             pot,
-            't=%.4E fs, normdev %.4E, e=%.4E' % (
+            't=%.4E fs, normdev %.4E, E=%.4E MeV' % (
                 toTime_fs(tau),
                 normDev,
-                phiEnergy.real,
+                toEnergy_Mev(phiEnergy.real),
             ),
             replottable,
         )

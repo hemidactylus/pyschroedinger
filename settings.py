@@ -11,7 +11,7 @@ Lambda = 10
 
 # low-res
 Nx = 150
-DeltaTau = 0.0001
+DeltaTau = 0.0005
 
 # high-res
 # Nx = 350
@@ -28,4 +28,4 @@ waveNumber0 = 2*math.pi/Lambda
 periodicBC=True
 
 # graphics options
-drawFreq=80
+drawFreq=40
