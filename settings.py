@@ -25,7 +25,7 @@ DeltaLambda2=DeltaLambda**2
 KineticFactor=-1.0/(2.0*float(Mu))
 waveNumber0 = 2*math.pi/Lambda
 
-periodicBC=True
+periodicBC=False
 
 # graphics options
 drawFreq=40
