@@ -11,7 +11,7 @@ Lambda = 10
 
 # low-res
 Nx = 150
-DeltaTau = 0.00006
+DeltaTau = 0.0001
 
 # high-res
 # Nx = 350

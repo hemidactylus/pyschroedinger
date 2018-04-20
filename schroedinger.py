@@ -58,10 +58,10 @@ from gui import (
 def initPhi():
     return combineWFunctions(
         # 1 tunnel:
-        # wGaussianPacket(0.5,0.1,5.65,0.5),
+        wGaussianPacket(0.5,0.1,5.65,0.5),
         # # 2 double interfering tunnel (w/ spurious)
-        wGaussianPacket(0.7,0.07,+11.3095,0.5),
-        wGaussianPacket(0.3,0.07,-11.3095,0.5),
+        # wGaussianPacket(0.7,0.07,+11.3095,0.5),
+        # wGaussianPacket(0.3,0.07,-11.3095,0.5),
         # 3 oscillation between two minima
         # wGaussian(0.36,0.07),
         # 4. test centered gaussians
@@ -77,8 +77,8 @@ def initPhi():
 def initPot():
     return combinePotentials(
         # rounded square potential (for 1, 2)
-        stepPotential(0.1,0.02,0,1000),
-        stepPotential(0.9,0.02,1000,0)
+        stepPotential(0.1,0.02,0,400),
+        stepPotential(0.9,0.02,400,0)
         # two-hole well (for 3)
         # stepPotential(0.25,0.01,0,1000),
         # stepPotential(0.75,0.01,1000,0),
