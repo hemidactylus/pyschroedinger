@@ -44,7 +44,7 @@ Now for the units of the potential V (in one dimension for brevity):
 means
 
 <img
-  src="https://latex.codecogs.com/svg.latex?\frac{\mathrm{MeV}\cdot\frac{fm}}{c}\cdot\frac{1}{\mathrm{fm/c}}\cdot\mathrm{MeV}^{d/2}=\frac{\mathrm{MeV}^2\mathrm{fm}^2}{c^2}\frac{c^2}{\mathrm{MeV}}\frac{\mathrm{MeV}^{d/2}}{\mathrm{fm}^2}+[V]\mathrm{MeV}^{d/2}"
+  src="https://latex.codecogs.com/svg.latex?\frac{\mathrm{MeV}\cdot{fm}}{c}\cdot\frac{1}{\mathrm{fm/c}}\cdot\mathrm{MeV}^{d/2}=\frac{\mathrm{MeV}^2\mathrm{fm}^2}{c^2}\frac{c^2}{\mathrm{MeV}}\frac{\mathrm{MeV}^{d/2}}{\mathrm{fm}^2}+[V]\mathrm{MeV}^{d/2}"
 />
 
 i.e.
@@ -114,13 +114,13 @@ Under the change to dimensionless variables,
 becomes then
 
 <img
-  src="https://latex.codecogs.com/svg.latex?i\frac{\Delta\phi}{\Delta\tau}=-frac{1}{2\mu}\frac{\Delta^2\phi}{\Delta\lambda^2}+v\phi"
+  src="https://latex.codecogs.com/svg.latex?i\frac{\Delta\phi}{\Delta\tau}=-\frac{1}{2\mu}\frac{\Delta^2\phi}{\Delta\lambda^2}+v\phi"
 />
 
 i.e.
 
 <img
-  src="https://latex.codecogs.com/svg.latex?\Delta\phi=-i\Delta{\tau}\left[1frac{1}{2\mu}\frac{\Delta^2\phi}{\Delta\lambda^2}+v\phi\right]"
+  src="https://latex.codecogs.com/svg.latex?\Delta\phi=-i\Delta{\tau}\left[-\frac{1}{2\mu}\frac{\Delta^2\phi}{\Delta\lambda^2}+v\phi\right]"
 />
 
 ## Frequencies, imposing periodicity
