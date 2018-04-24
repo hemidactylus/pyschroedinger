@@ -8,6 +8,8 @@ from settings import (
     DeltaLambda2,
     KineticFactor,
     periodicBC,
+    Nx,
+    Mu,
 )
 
 from tools import (
@@ -51,6 +53,43 @@ def integrateK4(Phi,vPotential,DeltaTau,iniTau):
     newNorm=norm(newPhi)
     #
     return newPhi/newNorm, newNorm-1, iniTau+DeltaTau
+
+####
+
+def MK4EvolutionMatrixH(vPotential,DeltaTau):
+    sF=DeltaTau*evolutionMatrixF(vPotential)
+    H=(sF+sF.dot(sF)/2.+sF.dot(sF).dot(sF)/6.+sF.dot(sF).dot(sF).dot(sF)/24.)
+    return H
+
+def evolutionMatrixF(vPotential):
+    '''
+        returns a Nx*Nx matrix with (i/2mu)(kinetic)-i(v)
+    '''
+    # the kinetic part
+    kinPart=np.diag(2*np.ones(Nx))
+    for i in range(Nx):
+        kinPart[i,(i+1)%Nx]=-1
+        kinPart[(i+1)%Nx,i]=-1
+    if not periodicBC:
+        kinPart[Nx-1,0]=0
+        kinPart[0,Nx-1]=0
+    # together with the potential is the final result
+    mKinFactor=complex(0,1.0/(2.0*float(Mu)))
+    return mKinFactor*kinPart+complex(0,-1)*np.diag(vPotential)
+
+def integrateMK4(Phi,evoH,_ignored_dt,iniTau):
+    '''
+        a matrix approach to RK4.
+        DeltaTau is IGNORED
+    '''
+    newPhi = evoH.dot(Phi)
+    # newPhi = Phi+evoH.dot(Phi)
+
+    newNorm=norm(newPhi)
+    #
+    return newPhi/newNorm, newNorm-1, iniTau+_ignored_dt
+
+####
 
 def evolutionOperator(Phi,vPotential):
     '''

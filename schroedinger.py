@@ -18,7 +18,9 @@ from settings import (
 
 from dynamics import (
     #integrate as integrate,
-    integrateK4 as integrate,
+    # integrateK4 as integrate,
+    integrateMK4 as integrate,
+    MK4EvolutionMatrixH,
     energy,
 )
 
@@ -60,10 +62,10 @@ def initPhi():
         # 1 tunnel:
         wGaussianPacket(0.5,0.1,5.65,0.5),
         # # 2 double interfering tunnel (w/ spurious)
-        # wGaussianPacket(0.7,0.07,+11.3095,0.5),
-        # wGaussianPacket(0.3,0.07,-11.3095,0.5),
+        wGaussianPacket(0.7,0.07,+11.3095,0.5),
+        wGaussianPacket(0.3,0.07,-11.3095,0.5),
         # 3 oscillation between two minima
-        # wGaussian(0.36,0.07),
+        wGaussian(0.36,0.07),
         # 4. test centered gaussians
         # wGaussian(0.35,0.1,weight=0.3),
         # wGaussian(0.65,0.1,weight=0.7),
@@ -76,9 +78,11 @@ def initPhi():
 
 def initPot():
     return combinePotentials(
+        # free particle
+        # stepPotential(0.5,0.1,0,0)
         # rounded square potential (for 1, 2)
-        stepPotential(0.1,0.02,0,400),
-        stepPotential(0.9,0.02,400,0)
+        stepPotential(0.1,0.02,0,5),
+        stepPotential(0.9,0.02,5,0)
         # two-hole well (for 3)
         # stepPotential(0.25,0.01,0,1000),
         # stepPotential(0.75,0.01,1000,0),
@@ -109,9 +113,15 @@ if __name__=='__main__':
     replottable=doPlot(xvalues,phi,pot)
     #
     tau=0
+    #
+    from scipy.sparse import csc_matrix
+    #evoH=csc_matrix(MK4EvolutionMatrixH(pot,DeltaTau))
+    import numpy as np
+    evoH=csc_matrix(np.linalg.matrix_power(MK4EvolutionMatrixH(pot,DeltaTau)+np.diag(np.ones(Nx)),200))
+    #
     for i in itertools.count():
         for k in range(drawFreq):
-            phi,normDev,tau=integrate(phi,pot,DeltaTau,tau)
+            phi,normDev,tau=integrate(phi,evoH,DeltaTau,tau)
         phiEnergy=energy(phi,pot)
         doPlot(
             xvalues,

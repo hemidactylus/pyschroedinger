@@ -10,8 +10,8 @@ import math
 Lambda = 10
 
 # low-res
-Nx = 250
-DeltaTau = 0.0003
+Nx = 250#250#250
+DeltaTau = 0.1# 0.0003
 
 Mu = 0.5
 PotV = 0.03
@@ -24,4 +24,4 @@ waveNumber0 = 2*math.pi/Lambda
 periodicBC=True
 
 # graphics options
-drawFreq=60
+drawFreq=1#50#60
