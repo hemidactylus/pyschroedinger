@@ -31,7 +31,7 @@ periodicBC=True
 # which integrator to compare
 integratorMap={
     'RKspa': SparseMatrixRK4Integrator,
-    'RKste': RK4StepByStepIntegrator,
+    # 'RKste': RK4StepByStepIntegrator,
 }
 # every drawFreq deltaTau updates is the screen refreshed
 drawFreq=100
