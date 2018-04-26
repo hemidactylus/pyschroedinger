@@ -4,8 +4,6 @@ A playground to learn something about numerical integration of the Schroedinger 
 
 ## TO DO
 
-adapt simple integration to the integrator-class interface
-
 better energy calculation
 
 timings properly
@@ -208,3 +206,32 @@ so that for the next update step the wave function has been incremented by
 <img
   src="https://latex.codecogs.com/svg.latex?\Delta\phi=\frac{\Delta\tau}{6}\left[k_1+2k_2+2k_3+k_4\right]"
 />
+
+### Matricial form of the RK scheme
+
+The Runge-Kutta approach above is linear in the wave function, so it can be
+recast in terms of the action of a matrix H acting on &phi; to produce the
+wavefunction for the next timestep.
+
+Moreover, if &phi; becomes 1+&Delta;&phi; in each single timestep, then
+one can perform N updates as one matrix operation after building
+
+<img
+  src="https://latex.codecogs.com/svg.latex?U=(1+H)^N"
+/>,
+
+so that the (N-fold) update reads &phi; ==> U&phi;. In turn, calling
+&Delta&tau; the "small" timestep, H is built as
+
+<img
+  src="https://latex.codecogs.com/svg.latex?H=(\mathcal{F}+\frac{\mathcal{F}^2}{2}+\frac{\mathcal{F}^3}{6}+\mathcal{F^4}{24})"
+/>,
+
+where
+<img
+  src="https://latex.codecogs.com/svg.latex?\mathcal{F}=\Delta\tau\cdot{F}"
+/>.
+
+_Note_: In cases where the potential is a function of time, however, all of this pre-processing is
+not very useful, probably, since most of the computation will need to be performed at each
+change of the potential (i.e. possibly at each draw operation or even time step).
