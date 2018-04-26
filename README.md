@@ -2,6 +2,18 @@
 
 A playground to learn something about numerical integration of the Schroedinger equation
 
+## TO DO
+
+remove lookup of global vars and make everything passed explicitly
+
+adapt simple integration to the integrator-class interface
+
+better energy calculation
+
+timings properly
+
+start thinking of 2d
+
 ## Units
 
 We choose natural units and set <img

@@ -190,7 +190,7 @@ def createEvolutionMatrixF(vPotential):
         kinPart[Nx-1,0]=0
         kinPart[0,Nx-1]=0
     # together with the potential is the final result
-    mKinFactor=complex(0,1.0/(2.0*float(Mu)))
+    mKinFactor=complex(0,1.0/(2.0*float(Mu)*deltaLambda2))
     return mKinFactor*kinPart+complex(0,-1)*np.diag(vPotential)
 
 # still check that this does not read globals

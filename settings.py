@@ -11,8 +11,8 @@ Lambda = 10
 Mu = 0.5
 
 # discretisation parameters
-Nx = 250
-deltaTau = 0.0045
+Nx = 150
+deltaTau = 0.0003
 
 # quantities derived from the above
 deltaLambda=float(Lambda)/float(Nx)
@@ -23,5 +23,5 @@ waveNumber0 = 2*math.pi/Lambda
 periodicBC=True
 
 # graphics/simulation options
-drawFreq=1#200#50 # every drawFreq updates (each = DeltaTau) is the screen refreshed
+drawFreq=100
 framesToDraw=None # None=forever

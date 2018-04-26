@@ -111,14 +111,22 @@ if __name__=='__main__':
     phi=initPhi()
     pot=initPot()
     #
-    replottable=doPlot(xvalues,phi,pot)
+    phiS=phi
+    phiR=phi
+    replottable=doPlot(xvalues,[phiS,phiR],pot)
     #
     tau=0
     #
     from scipy.sparse import csr_matrix
 
-    # integrator=SparseMatrixRK4Integrator(
-    integrator=RK4StepByStepIntegrator(
+    integratorS=SparseMatrixRK4Integrator(
+        Nx,
+        deltaTau,
+        drawFreq,
+        pot,
+    )
+
+    integratorR=RK4StepByStepIntegrator(
         Nx,
         deltaTau,
         drawFreq,
@@ -129,18 +137,23 @@ if __name__=='__main__':
     ini=time.time()
     for i in range(framesToDraw) if framesToDraw is not None else itertools.count():
 
-        phi,normDev,tauIncr=integrator.integrate(phi,drawFreq)
-        tau+=tauIncr
+        phiS,normDevS,tauIncrS=integratorS.integrate(phiS,drawFreq)
+        phiR,normDevR,tauIncrR=integratorR.integrate(phiR,drawFreq)
+        assert(tauIncrS==tauIncrR)
+        tau+=tauIncrR
 
-        phiEnergy=energy(phi,pot)
+        phiEnergyS=energy(phiS,pot)
+        phiEnergyR=energy(phiR,pot)
         doPlot(
             xvalues,
-            phi,
+            [phiS,phiR],
             pot,
-            't=%.4E fs, normdev %.4E, E=%.4E MeV' % (
+            't=%.3E fs, normdevS/R %.3E / %.3E,\nE S/R=%.3E / %.3E MeV' % (
                 toTime_fs(tau),
-                normDev,
-                toEnergy_Mev(phiEnergy.real),
+                normDevS,
+                normDevR,
+                toEnergy_Mev(phiEnergyS.real),
+                toEnergy_Mev(phiEnergyR.real),
             ),
             replottable,
         )
