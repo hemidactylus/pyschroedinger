@@ -151,10 +151,13 @@ if __name__=='__main__':
         assert(len(set(tauIncrMap.values()))==1)
         tau+=list(tauIncrMap.values())[0]
 
-        descText='t=%.3E fs\n%s' % (
+        descText='[f=%6i, stp=%6i] t=%.3E fs\n%s' % (
+            i,
+            i*drawFreq,
             toTime_fs(tau),
             '\n'.join(
-                'E=%.3E MeV (nd=%.3E)' % (
+                '%s: E=%+.3E MeV (nd=%+.3E)' % (
+                    k,
                     toEnergy_Mev(energyMap[k]),
                     normDevMap[k],
                 )

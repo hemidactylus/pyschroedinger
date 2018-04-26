@@ -19,9 +19,9 @@ from units import (
     toLength_fm,
 )
 
-reColorList=  ['#e71455','#9635fb']
-imColorList=  ['#b26700','#00dcff']
-mod2ColorList=['#FF0000','#0000ff']
+reColorList=  ['#e71455','#9635fb','#b7f935']
+imColorList=  ['#b26700','#00dcff','#73ccb2']
+mod2ColorList=['#FF0000','#0000ff','#00881d']
 potColor='#00C000'
 zeroColor='#c0c0c0'
 def doPlot(xs,phiMap,pots,title='',replotting=None):
@@ -52,7 +52,7 @@ def doPlot(xs,phiMap,pots,title='',replotting=None):
         for iphi,(phiName,phi) in enumerate(sorted(phiMap.items())):
             plotMod2[phiName], = ax.plot(physXs, mod2(phi), '-',color=mod2ColorList[iphi],lineWidth=3)
             plotRe[phiName], = ax.plot(physXs, re(phi), '-',color=reColorList[iphi],lineWidth=1)
-            plotIm[phiName], = ax.plot(physXs, im(phi), '-',color=imColorList[iphi],lineWidth=1)
+            plotIm[phiName], = ax.plot(physXs, im(phi), ':',color=imColorList[iphi],lineWidth=1)
         plt.xlabel('fm')
         plt.ylim((-totalPhimax,totalPhimax))
         replotStruct={
@@ -73,5 +73,5 @@ def doPlot(xs,phiMap,pots,title='',replotting=None):
             replotting['im'][phiName].set_ydata(im(phi))
             replotting['mod2'][phiName].set_ydata(mod2(phi))
         replotting['pot'].set_ydata(scalePots)
-        replotting['ax'].set_title(title)
+        replotting['ax'].set_title(title,fontsize=10,family='monospace')
         replotting['fig'].canvas.draw()

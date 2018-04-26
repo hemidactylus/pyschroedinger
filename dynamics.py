@@ -189,6 +189,74 @@ class RK4StepByStepIntegrator(WFIntegrator):
             self.deltaTau*nSteps,
         )
 
+class NaiveFiniteDifferenceIntegrator(WFIntegrator):
+    '''
+        Naive finite-difference integrator
+        uses the simple discretised (adimensional) Schroedinger eq.
+        one timestep at a time (internally, for phi->phi)
+    '''
+    def __init__(
+        self,
+        wfSize,
+        deltaTau,
+        deltaLambda,
+        nIntegrationSteps,
+        vPotential,
+        periodicBC,
+        mu,
+    ):
+        '''
+            nIntegrationSteps is discarded
+        '''
+        self.wfSize=wfSize
+        self.periodicBC=periodicBC
+        self.deltaTau=deltaTau
+        self.deltaLambda=deltaLambda
+        self.halfDeltaTau=0.5*self.deltaTau
+        self.vPotential=vPotential
+        self.mu=mu
+        # specials
+        self.kineticFactor=-1.0/(2.0*float(self.mu))
+        # not much else to do
+
+    def setPotential(self,vPotential):
+        self.vPotential=vPotential
+
+    def _performSingleIntegrationStep(self,phi):
+        '''
+            does what the function name says
+            and returns a new phi, over a single deltaTau.
+            No normalisation is performed
+        '''
+        return np.array([
+          p+self.deltaTau*dp
+          for p,dp in zip(
+                phi,
+                evolutionOperator(
+                    phi,
+                    self.vPotential,
+                    self.deltaLambda,
+                    self.kineticFactor,
+                    self.periodicBC,
+                ),
+            )
+        ])
+
+    def integrate(self,phi,nSteps):
+        '''
+            Implements a simple integration,
+            repeated nSteps times.
+        '''
+        newPhi=phi
+        for _ in range(nSteps):
+            newPhi=self._performSingleIntegrationStep(newPhi)
+        newNorm=norm(newPhi,self.deltaLambda)
+        return (
+            newPhi/newNorm,
+            newNorm-1,
+            self.deltaTau*nSteps,
+        )
+
 # general-purpose dynamic matrix utilities
 
 def createRK4StepMatrixH(vPotential,deltaTau,deltaLambda,wfSize,periodicBC,mu):

@@ -7,6 +7,7 @@ import math
 from dynamics import (
     SparseMatrixRK4Integrator,
     RK4StepByStepIntegrator,
+    NaiveFiniteDifferenceIntegrator,
 )
 
 # PHYSICAL PARAMETERS
@@ -17,7 +18,7 @@ Mu = 0.5
 
 # discretisation parameters
 Nx = 150
-deltaTau = 0.0003
+deltaTau = 0.00004
 
 # quantities derived from the above
 deltaLambda=float(Lambda)/float(Nx)
@@ -32,8 +33,9 @@ periodicBC=True
 integratorMap={
     'RKspa': SparseMatrixRK4Integrator,
     'RKste': RK4StepByStepIntegrator,
+    'Naive': NaiveFiniteDifferenceIntegrator,
 }
 # every drawFreq deltaTau updates is the screen refreshed
-drawFreq=100
+drawFreq=400
 # how many frames to draw before stopping (None = forever)
 framesToDraw=None
