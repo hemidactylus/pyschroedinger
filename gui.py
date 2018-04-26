@@ -24,7 +24,7 @@ imColorList=  ['#b26700','#00dcff']
 mod2ColorList=['#FF0000','#0000ff']
 potColor='#00C000'
 zeroColor='#c0c0c0'
-def doPlot(xs,phis,pots,title='',replotting=None):
+def doPlot(xs,phiMap,pots,title='',replotting=None):
     '''
         if replotting is None: creates the plot window.
         Else: refreshes the plot interactively using the handles
@@ -37,9 +37,9 @@ def doPlot(xs,phis,pots,title='',replotting=None):
         #
         phimod2={}
         phimax={}
-        for iphi,phi in enumerate(phis):
-            phimod2[iphi]=mod2(phi)
-            phimax[iphi]=max(max(phimod2[iphi]),max(re(phi)),max(im(phi)))
+        for iphi,(phiName,phi) in enumerate(sorted(phiMap.items())):
+            phimod2[phiName]=mod2(phi)
+            phimax[phiName]=max(max(phimod2[phiName]),max(re(phi)),max(im(phi)))
         maxPots=max(pots) if max(pots)>0 else 1.0
         totalPhimax=max(phimax.values())
         scalePots=[p*totalPhimax/maxPots for p in pots]
@@ -49,10 +49,10 @@ def doPlot(xs,phis,pots,title='',replotting=None):
         plotMod2={}
         plotRe={}
         plotIm={}
-        for iphi,phi in enumerate(phis):
-            plotMod2[iphi], = ax.plot(physXs, mod2(phi), '-',color=mod2ColorList[iphi],lineWidth=3)
-            plotRe[iphi], = ax.plot(physXs, re(phi), '-',color=reColorList[iphi],lineWidth=1)
-            plotIm[iphi], = ax.plot(physXs, im(phi), '-',color=imColorList[iphi],lineWidth=1)
+        for iphi,(phiName,phi) in enumerate(sorted(phiMap.items())):
+            plotMod2[phiName], = ax.plot(physXs, mod2(phi), '-',color=mod2ColorList[iphi],lineWidth=3)
+            plotRe[phiName], = ax.plot(physXs, re(phi), '-',color=reColorList[iphi],lineWidth=1)
+            plotIm[phiName], = ax.plot(physXs, im(phi), '-',color=imColorList[iphi],lineWidth=1)
         plt.xlabel('fm')
         plt.ylim((-totalPhimax,totalPhimax))
         replotStruct={
@@ -68,10 +68,10 @@ def doPlot(xs,phis,pots,title='',replotting=None):
         return replotStruct
     else:
         scalePots=[p*replotting['totalPhimax']/replotting['maxpots'] for p in pots]
-        for iphi,phi in enumerate(phis):
-            replotting['re'][iphi].set_ydata(re(phi))
-            replotting['im'][iphi].set_ydata(im(phi))
-            replotting['mod2'][iphi].set_ydata(mod2(phi))
+        for iphi,(phiName,phi) in enumerate(sorted(phiMap.items())):
+            replotting['re'][phiName].set_ydata(re(phi))
+            replotting['im'][phiName].set_ydata(im(phi))
+            replotting['mod2'][phiName].set_ydata(mod2(phi))
         replotting['pot'].set_ydata(scalePots)
         replotting['ax'].set_title(title)
         replotting['fig'].canvas.draw()

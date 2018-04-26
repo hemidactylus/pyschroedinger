@@ -19,11 +19,10 @@ from settings import (
     framesToDraw,
     periodicBC,
     Mu,
+    integratorMap,
 )
 
 from dynamics import (
-    SparseMatrixRK4Integrator,
-    RK4StepByStepIntegrator,
     energy,
 )
 
@@ -113,57 +112,56 @@ if __name__=='__main__':
     xvalues=list(range(Nx))
     phi=initPhi()
     pot=initPot()
-    #
-    phiS=phi
-    phiR=phi
-    replottable=doPlot(xvalues,[phiS,phiR],pot)
+    # now the map of evolutions
+    phiMap={
+        k: phi
+        for k in integratorMap.keys()
+    }
+    normDevMap={k: None for k in integratorMap.keys()}
+    tauIncrMap={k: None for k in integratorMap.keys()}
+    energyMap={k: None for k in integratorMap.keys()}
+    replottable=doPlot(xvalues,phiMap,pot)
     #
     tau=0
-    #
-    from scipy.sparse import csr_matrix
 
-    integratorS=SparseMatrixRK4Integrator(
-        wfSize=Nx,
-        deltaTau=deltaTau,
-        deltaLambda=deltaLambda,
-        nIntegrationSteps=drawFreq,
-        vPotential=pot,
-        periodicBC=periodicBC,
-        mu=Mu,
-    )
-
-    integratorR=RK4StepByStepIntegrator(
-        wfSize=Nx,
-        deltaTau=deltaTau,
-        deltaLambda=deltaLambda,
-        nIntegrationSteps=drawFreq,
-        vPotential=pot,
-        periodicBC=periodicBC,
-        mu=Mu,
-    )
+    integrators={
+        k: v(
+            wfSize=Nx,
+            deltaTau=deltaTau,
+            deltaLambda=deltaLambda,
+            nIntegrationSteps=drawFreq,
+            vPotential=pot,
+            periodicBC=periodicBC,
+            mu=Mu,
+        )
+        for k,v in integratorMap.items()
+    }
 
     import time
     ini=time.time()
     for i in range(framesToDraw) if framesToDraw is not None else itertools.count():
+        for k,v in integratorMap.items():
+            phiMap[k],normDevMap[k],tauIncrMap[k]=v.integrate(phiMap[k],drawFreq)
+            energyMap[k]=energy(phiMap[k],pot,periodicBC,deltaLambda,Mu)
+        assert(len(set(tauIncrMap.values()))==1)
+        tau+=tauIncrMap.values()[0]
 
-        phiS,normDevS,tauIncrS=integratorS.integrate(phiS,drawFreq)
-        phiR,normDevR,tauIncrR=integratorR.integrate(phiR,drawFreq)
-        assert(tauIncrS==tauIncrR)
-        tau+=tauIncrR
+        descText='t=%.3E fs\n%s' % (
+            toTime_fs(tau),
+            '\n'.join(
+                'E=%.3E MeV (nd=%.3E)' % (
+                    toEnergy_Mev(energyMap[k]),
+                    normDevMap[k],
+                )
+                for k in sorted(integratorMap.keys())
+            )
+        )
 
-        phiEnergyS=energy(phiS,pot,periodicBC,deltaLambda,Mu)
-        phiEnergyR=energy(phiR,pot,periodicBC,deltaLambda,Mu)
         doPlot(
             xvalues,
-            [phiS,phiR],
+            phiMap,
             pot,
-            't=%.3E fs, normdevS/R %.3E / %.3E,\nE S/R=%.3E / %.3E MeV' % (
-                toTime_fs(tau),
-                normDevS,
-                normDevR,
-                toEnergy_Mev(phiEnergyS.real),
-                toEnergy_Mev(phiEnergyR.real),
-            ),
+            descText,
             replottable,
         )
     print('done in %f seconds' % (time.time()-ini))
