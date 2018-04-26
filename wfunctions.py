@@ -8,7 +8,7 @@ import numpy as np
 from settings import (
     Nx,
     waveNumber0,
-    DeltaLambda,
+    deltaLambda,
 )
 
 def wGaussianPacket(pPos,pWidth,ph0,phase=0.0,weight=1):
@@ -23,8 +23,8 @@ def wGaussianPacket(pPos,pWidth,ph0,phase=0.0,weight=1):
     width=pWidth*Nx
     return np.array([
         weight*complex(math.exp(-(((ni-center)/width)**2)))*complex(
-            math.cos(phase-ph*ni*DeltaLambda),
-            math.sin(phase-ph*ni*DeltaLambda),
+            math.cos(phase-ph*ni*deltaLambda),
+            math.sin(phase-ph*ni*deltaLambda),
         )
         for ni in range(Nx)
     ])

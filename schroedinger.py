@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 '''
     schroedinger.py :
         one-d study of integration of Schroedinger equation
@@ -11,16 +13,14 @@ import itertools
 from settings import (
     Lambda,
     Nx,
-    DeltaTau,
+    deltaTau,
     drawFreq,
-    PotV,
+    framesToDraw,
 )
 
 from dynamics import (
-    #integrate as integrate,
-    # integrateK4 as integrate,
-    integrateMK4 as integrate,
-    MK4EvolutionMatrixH,
+    SparseMatrixRK4Integrator,
+    RK4StepByStepIntegrator,
     energy,
 )
 
@@ -61,11 +61,12 @@ def initPhi():
     return combineWFunctions(
         # 1 tunnel:
         wGaussianPacket(0.5,0.1,5.65,0.5),
+        # wGaussianPacket(0.9,0.05,-5.65,0.1),
         # # 2 double interfering tunnel (w/ spurious)
-        wGaussianPacket(0.7,0.07,+11.3095,0.5),
-        wGaussianPacket(0.3,0.07,-11.3095,0.5),
+        # wGaussianPacket(0.7,0.07,+11.3095,0.5),
+        # wGaussianPacket(0.3,0.07,-11.3095,0.5),
         # 3 oscillation between two minima
-        wGaussian(0.36,0.07),
+        # wGaussian(0.36,0.07),
         # 4. test centered gaussians
         # wGaussian(0.35,0.1,weight=0.3),
         # wGaussian(0.65,0.1,weight=0.7),
@@ -79,10 +80,10 @@ def initPhi():
 def initPot():
     return combinePotentials(
         # free particle
-        # stepPotential(0.5,0.1,0,0)
+        stepPotential(0.5,0.1,0,0),
         # rounded square potential (for 1, 2)
-        stepPotential(0.1,0.02,0,5),
-        stepPotential(0.9,0.02,5,0)
+        stepPotential(0.1,0.02,0,100),
+        stepPotential(0.9,0.02,100,0),
         # two-hole well (for 3)
         # stepPotential(0.25,0.01,0,1000),
         # stepPotential(0.75,0.01,1000,0),
@@ -103,7 +104,7 @@ if __name__=='__main__':
     #
     print('Init [L=%f fm, DeltaT=%.2E fs]' % (
         toLength_fm(Lambda),
-        toTime_fs(DeltaTau),
+        toTime_fs(deltaTau),
     ))
     #
     xvalues=list(range(Nx))
@@ -114,14 +115,23 @@ if __name__=='__main__':
     #
     tau=0
     #
-    from scipy.sparse import csc_matrix
-    #evoH=csc_matrix(MK4EvolutionMatrixH(pot,DeltaTau))
-    import numpy as np
-    evoH=csc_matrix(np.linalg.matrix_power(MK4EvolutionMatrixH(pot,DeltaTau)+np.diag(np.ones(Nx)),200))
-    #
-    for i in itertools.count():
-        for k in range(drawFreq):
-            phi,normDev,tau=integrate(phi,evoH,DeltaTau,tau)
+    from scipy.sparse import csr_matrix
+
+    # integrator=SparseMatrixRK4Integrator(
+    integrator=RK4StepByStepIntegrator(
+        Nx,
+        deltaTau,
+        drawFreq,
+        pot,
+    )
+
+    import time
+    ini=time.time()
+    for i in range(framesToDraw) if framesToDraw is not None else itertools.count():
+
+        phi,normDev,tauIncr=integrator.integrate(phi,drawFreq)
+        tau+=tauIncr
+
         phiEnergy=energy(phi,pot)
         doPlot(
             xvalues,
@@ -134,3 +144,4 @@ if __name__=='__main__':
             ),
             replottable,
         )
+    print('done in %f seconds' % (time.time()-ini))

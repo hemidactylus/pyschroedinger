@@ -3,67 +3,183 @@
 '''
 
 import numpy as np
+from scipy.sparse import csr_matrix
 
 from settings import (
-    DeltaLambda2,
-    KineticFactor,
+    deltaLambda2,
+    kineticFactor,
     periodicBC,
     Nx,
     Mu,
 )
 
 from tools import (
-  mod2,
-  norm,
-  re,
-  im,
+    mod2,
+    norm,
+    re,
+    im,
 )
 
-def integrate(Phi,vPotential,DeltaTau, iniTau):
-    '''
-        returns the new Phi after DeltaTau (and other things)
-    '''
+class WFIntegrator():
+    def __init__(
+        self,
+        wfSize,
+        deltaTau,
+        nIntegrationSteps,
+    ):
+        raise NotImplementedError
 
-    newPhi = Phi+DeltaTau*evolutionOperator(Phi,vPotential)
-    newNorm=norm(newPhi)
-    #
-    return newPhi/newNorm, newNorm-1, iniTau+DeltaTau
+    def setPotential(self,pot):
+        raise NotImplementedError
 
-def integrateK4(Phi,vPotential,DeltaTau,iniTau):
+    def integrate(self,phi,nSteps):
+        raise NotImplementedError
+
+class SparseMatrixRK4Integrator(WFIntegrator):
     '''
-        Runge-Kutta of fourth order
+        RK4
+        uses sparse matrices
+        uses U=(1+H)^n
+        does n timesteps at once
     '''
-    halfDT=DeltaTau*0.5
-    k1 = evolutionOperator(Phi,vPotential)
-    k2 = evolutionOperator(
-        Phi+k1*halfDT,
-        vPotential
-    )
-    k3=evolutionOperator(
-        Phi+k2*halfDT,
-        vPotential
-    )
-    k4=evolutionOperator(
-        Phi+DeltaTau*k3,
-        vPotential
-    )
-    npFactor=DeltaTau/6.0
-    newPhi=Phi+npFactor*(k1+2*k2+2*k3+k4)
-    #
-    newNorm=norm(newPhi)
-    #
-    return newPhi/newNorm, newNorm-1, iniTau+DeltaTau
+    def __init__(
+        self,
+        wfSize,
+        deltaTau,
+        nIntegrationSteps,
+        vPotential,
+    ):
+        '''
+            the evolution matrix U^nIntegrationSteps is prepared here
+            for later usage
+        '''
+        self.nIntegrationSteps=nIntegrationSteps
+        self.wfSize=wfSize
+        self.deltaTau=deltaTau
+        self.vPotential=vPotential
+        self.totalDeltaTau=self.nIntegrationSteps*self.deltaTau
+        self._refreshEvoU()
 
-####
+    def _refreshEvoU(self):
+        '''
+            calculates the nIntegrationSteps evolution matrix
+                U = (1+H)^nIntegrationSteps
+            such that the nIntSteps evolution is given by
+                phi -> U * phi
+        '''
+        self.evoU=csr_matrix(np.linalg.matrix_power(
+            createRK4StepMatrixH(self.vPotential,self.deltaTau)+np.diag(np.ones(self.wfSize)),
+            self.nIntegrationSteps,
+        ))
 
-def MK4EvolutionMatrixH(vPotential,DeltaTau):
-    sF=DeltaTau*evolutionMatrixF(vPotential)
+    def setPotential(self,vPotential):
+        self.vPotential=vPotential
+        self._refreshEvoU()
+
+    def integrate(self,phi,nSteps):
+        '''
+            NO CHECKS are made whether nSteps matches self.nIntegrationSteps
+            (it should!), for the sake of speed
+
+            Given phi and nSteps, a tuple is returned:
+                newPhi, normBias, timeIncrement
+        '''
+        newPhi=self.evoU.dot(phi)
+        newNorm=norm(newPhi)
+        return (
+            newPhi/newNorm,
+            newNorm-1,
+            self.totalDeltaTau,
+        )
+
+class RK4StepByStepIntegrator(WFIntegrator):
+    '''
+        RK4
+        does not use matrices
+        one timestep at a time (internally, for phi->phi)
+    '''
+    def __init__(
+        self,
+        wfSize,
+        deltaTau,
+        nIntegrationSteps,
+        vPotential,
+    ):
+        '''
+            the evolution matrix U^nIntegrationSteps is prepared here
+            for later usage
+
+            nIntegrationSteps is discarded
+        '''
+        self.wfSize=wfSize
+        self.deltaTau=deltaTau
+        self.halfDeltaTau=0.5*self.deltaTau
+        self.vPotential=vPotential
+        # not much else to do
+
+    def setPotential(self,vPotential):
+        self.vPotential=vPotential
+
+    def _performSingleRKStep(self,phi):
+        '''
+            does what the function name says
+            and returns a new phi.
+            No normalisation is performed
+        '''
+        k1 = evolutionOperator(
+            phi,
+            self.vPotential,
+        )
+        k2 = evolutionOperator(
+            phi+k1*self.halfDeltaTau,
+            self.vPotential,
+        )
+        k3=evolutionOperator(
+            phi+k2*self.halfDeltaTau,
+            self.vPotential,
+        )
+        k4=evolutionOperator(
+            phi+self.deltaTau*k3,
+            self.vPotential,
+        )
+        return phi+self.deltaTau*(k1+2*k2+2*k3+k4)/6.0
+
+    def integrate(self,phi,nSteps):
+        '''
+            Implements procedural RK4
+
+            nSteps is used (even though it should match nIntegrationSteps)
+            and the returned elapsedTime accordingly
+        '''
+        newPhi=phi
+        for _ in range(nSteps):
+            newPhi=self._performSingleRKStep(newPhi)
+        newNorm=norm(newPhi)
+        return (
+            newPhi/newNorm,
+            newNorm-1,
+            self.deltaTau*nSteps,
+        )
+
+# general-purpose dynamic matrix utilities
+
+def createRK4StepMatrixH(vPotential,deltaTau):
+    '''
+        Creates the matrix H, encoding the whole rk process.
+        H is such that for one deltaTau time step
+            phi -> phi + H*phi
+    '''
+    sF=deltaTau*createEvolutionMatrixF(vPotential)
     H=(sF+sF.dot(sF)/2.+sF.dot(sF).dot(sF)/6.+sF.dot(sF).dot(sF).dot(sF)/24.)
     return H
 
-def evolutionMatrixF(vPotential):
+def createEvolutionMatrixF(vPotential):
     '''
-        returns a Nx*Nx matrix with (i/2mu)(kinetic)-i(v)
+        returns a Nx*Nx matrix F,
+            F = (i/2mu)(kinetic part)-i(v)
+        defined so that the Schroedinger equation,
+        discretised, reads
+            d phi / d tau = F[phi]
     '''
     # the kinetic part
     kinPart=np.diag(2*np.ones(Nx))
@@ -77,41 +193,40 @@ def evolutionMatrixF(vPotential):
     mKinFactor=complex(0,1.0/(2.0*float(Mu)))
     return mKinFactor*kinPart+complex(0,-1)*np.diag(vPotential)
 
-def integrateMK4(Phi,evoH,_ignored_dt,iniTau):
-    '''
-        a matrix approach to RK4.
-        DeltaTau is IGNORED
-    '''
-    newPhi = evoH.dot(Phi)
-    # newPhi = Phi+evoH.dot(Phi)
-
-    newNorm=norm(newPhi)
-    #
-    return newPhi/newNorm, newNorm-1, iniTau+_ignored_dt
-
-####
-
+# still check that this does not read globals
 def evolutionOperator(Phi,vPotential):
     '''
         given wf and potential, (and using mu and lambda),
-        evaluates F in
-            delta Phi/delta tau = F(lambda,phi)
+        evaluates F[phi] in
+            delta phi/delta tau = F[phi]
         i.e.
-            F = -i ( (/1(2mu)) delta2phi/deltalambda2 + v*phi )
+            F = -i ( (/1(2mu)) delta2phi/deltaLambda2 + v*phi )
     '''
     if periodicBC:
         enlargedPhi=np.hstack([Phi[-1:],Phi,Phi[:1]])
-        secondDerivative=KineticFactor*(2*Phi-enlargedPhi[:-2]-enlargedPhi[2:])/DeltaLambda2
+        secondDerivative=kineticFactor*(2*Phi-enlargedPhi[:-2]-enlargedPhi[2:])/deltaLambda2
     else:
         secondDerivative=np.hstack([
             complex(0),
-            KineticFactor*(2*Phi[1:-1]-Phi[:-2]-Phi[2:])/DeltaLambda2,
+            kineticFactor*(2*Phi[1:-1]-Phi[:-2]-Phi[2:])/deltaLambda2,
             complex(0),
         ])
     #
     minusI = complex(0,-1)
     F = minusI*(secondDerivative+vPotential*Phi)
     return F
+
+# legacy stuff to refactor
+
+# def integrate(Phi,vPotential,DeltaTau, iniTau):
+#     '''
+#         returns the new Phi after DeltaTau (and other things)
+#     '''
+
+#     newPhi = Phi+DeltaTau*evolutionOperator(Phi,vPotential)
+#     newNorm=norm(newPhi)
+#     #
+#     return newPhi/newNorm, newNorm-1, iniTau+DeltaTau
 
 def energy(Phi,vPotential):
     '''
@@ -120,11 +235,11 @@ def energy(Phi,vPotential):
     '''
     if periodicBC:
         enlargedPhi=np.hstack([Phi[-1:],Phi,Phi[:1]])
-        secondDerivative=KineticFactor*(2*Phi-enlargedPhi[:-2]-enlargedPhi[2:])/DeltaLambda2
+        secondDerivative=kineticFactor*(2*Phi-enlargedPhi[:-2]-enlargedPhi[2:])/deltaLambda2
     else:
         secondDerivative=np.hstack([
             complex(0),
-            KineticFactor*(2*Phi[1:-1]-Phi[:-2]-Phi[2:])/DeltaLambda2,
+            kineticFactor*(2*Phi[1:-1]-Phi[:-2]-Phi[2:])/deltaLambda2,
             complex(0),
         ])
     #

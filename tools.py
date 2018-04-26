@@ -6,14 +6,14 @@ from functools import reduce
 import numpy as np
 
 from settings import (
-    DeltaLambda,
+    deltaLambda,
 )
 
 def mod2(psi):
     return (psi.conjugate()*psi).real
 
 def norm(psi):
-    return (sum(mod2(psi))*DeltaLambda)**0.5
+    return (sum(mod2(psi))*deltaLambda)**0.5
 
 def re(psi):
     return psi.real
