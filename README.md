@@ -220,11 +220,11 @@ one can perform N updates as one matrix operation after building
   src="https://latex.codecogs.com/svg.latex?U=(1+H)^N"
 />,
 
-so that the (N-fold) update reads &phi; ==> U&phi;. In turn, calling
-&Delta&tau; the "small" timestep, H is built as
+so that the (N-fold) update reads &phi; &#x2192; U&phi;. In turn, calling
+&Delta;&tau; the "small" timestep, H is built as
 
 <img
-  src="https://latex.codecogs.com/svg.latex?H=(\mathcal{F}+\frac{\mathcal{F}^2}{2}+\frac{\mathcal{F}^3}{6}+\mathcal{F^4}{24})"
+  src="https://latex.codecogs.com/svg.latex?H=(\mathcal{F}+\frac{\mathcal{F}^2}{2}+\frac{\mathcal{F}^3}{6}+\frac{\mathcal{F}^4}{24})"
 />,
 
 where
