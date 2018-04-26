@@ -93,7 +93,7 @@ class SparseMatrixRK4Integrator(WFIntegrator):
                 newPhi, normBias, timeIncrement
         '''
         newPhi=self.evoU.dot(phi)
-        newNorm=norm(newPhi)
+        newNorm=norm(newPhi,self.deltaLambda)
         return (
             newPhi/newNorm,
             newNorm-1,
@@ -182,7 +182,7 @@ class RK4StepByStepIntegrator(WFIntegrator):
         newPhi=phi
         for _ in range(nSteps):
             newPhi=self._performSingleRKStep(newPhi)
-        newNorm=norm(newPhi)
+        newNorm=norm(newPhi,self.deltaLambda)
         return (
             newPhi/newNorm,
             newNorm-1,

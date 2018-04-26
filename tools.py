@@ -5,14 +5,10 @@
 from functools import reduce
 import numpy as np
 
-from settings import (
-    deltaLambda,
-)
-
 def mod2(psi):
     return (psi.conjugate()*psi).real
 
-def norm(psi):
+def norm(psi,deltaLambda):
     return (sum(mod2(psi))*deltaLambda)**0.5
 
 def re(psi):
@@ -24,18 +20,18 @@ def im(psi):
 def sumFunctions(wf1,wf2):
     return wf1+wf2
 
-def combineWFunctions(*wflist,normalize=True):
+def combineWFunctions(wflist,deltaLambda,normalize=True):
     '''
         combines wave functions and optionally normalizes them
     '''
     unnormed = reduce(sumFunctions,wflist[1:],wflist[0])
     if normalize:
-        psiNorm=norm(unnormed)
+        psiNorm=norm(unnormed,deltaLambda)
         return unnormed/psiNorm
     else:
         return unnormed
 
-def combinePotentials(*potlist,shift=True):
+def combinePotentials(potlist,shift=True):
     '''
         sums the provided potentials and optionally
         brings the minimum to zero
