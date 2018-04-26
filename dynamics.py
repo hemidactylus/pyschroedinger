@@ -5,14 +5,6 @@
 import numpy as np
 from scipy.sparse import csr_matrix
 
-from settings import (
-    deltaLambda2,
-    kineticFactor,
-    periodicBC,
-    Nx,
-    Mu,
-)
-
 from tools import (
     mod2,
     norm,
@@ -25,7 +17,10 @@ class WFIntegrator():
         self,
         wfSize,
         deltaTau,
+        deltaLambda,
         nIntegrationSteps,
+        periodicBC,
+        mu,
     ):
         raise NotImplementedError
 
@@ -46,8 +41,11 @@ class SparseMatrixRK4Integrator(WFIntegrator):
         self,
         wfSize,
         deltaTau,
+        deltaLambda,
         nIntegrationSteps,
         vPotential,
+        periodicBC,
+        mu,
     ):
         '''
             the evolution matrix U^nIntegrationSteps is prepared here
@@ -55,8 +53,11 @@ class SparseMatrixRK4Integrator(WFIntegrator):
         '''
         self.nIntegrationSteps=nIntegrationSteps
         self.wfSize=wfSize
+        self.periodicBC=periodicBC
         self.deltaTau=deltaTau
+        self.deltaLambda=deltaLambda
         self.vPotential=vPotential
+        self.mu=mu
         self.totalDeltaTau=self.nIntegrationSteps*self.deltaTau
         self._refreshEvoU()
 
@@ -68,7 +69,14 @@ class SparseMatrixRK4Integrator(WFIntegrator):
                 phi -> U * phi
         '''
         self.evoU=csr_matrix(np.linalg.matrix_power(
-            createRK4StepMatrixH(self.vPotential,self.deltaTau)+np.diag(np.ones(self.wfSize)),
+            createRK4StepMatrixH(
+                self.vPotential,
+                self.deltaTau,
+                self.deltaLambda,
+                self.wfSize,
+                self.periodicBC,
+                self.mu
+            )+np.diag(np.ones(self.wfSize)),
             self.nIntegrationSteps,
         ))
 
@@ -102,8 +110,11 @@ class RK4StepByStepIntegrator(WFIntegrator):
         self,
         wfSize,
         deltaTau,
+        deltaLambda,
         nIntegrationSteps,
         vPotential,
+        periodicBC,
+        mu,
     ):
         '''
             the evolution matrix U^nIntegrationSteps is prepared here
@@ -112,9 +123,14 @@ class RK4StepByStepIntegrator(WFIntegrator):
             nIntegrationSteps is discarded
         '''
         self.wfSize=wfSize
+        self.periodicBC=periodicBC
         self.deltaTau=deltaTau
+        self.deltaLambda=deltaLambda
         self.halfDeltaTau=0.5*self.deltaTau
         self.vPotential=vPotential
+        self.mu=mu
+        # specials
+        self.kineticFactor=-1.0/(2.0*float(self.mu))
         # not much else to do
 
     def setPotential(self,vPotential):
@@ -129,18 +145,30 @@ class RK4StepByStepIntegrator(WFIntegrator):
         k1 = evolutionOperator(
             phi,
             self.vPotential,
+            self.deltaLambda,
+            self.kineticFactor,
+            self.periodicBC,
         )
         k2 = evolutionOperator(
             phi+k1*self.halfDeltaTau,
             self.vPotential,
+            self.deltaLambda,
+            self.kineticFactor,
+            self.periodicBC,
         )
         k3=evolutionOperator(
             phi+k2*self.halfDeltaTau,
             self.vPotential,
+            self.deltaLambda,
+            self.kineticFactor,
+            self.periodicBC,
         )
         k4=evolutionOperator(
             phi+self.deltaTau*k3,
             self.vPotential,
+            self.deltaLambda,
+            self.kineticFactor,
+            self.periodicBC,
         )
         return phi+self.deltaTau*(k1+2*k2+2*k3+k4)/6.0
 
@@ -163,38 +191,37 @@ class RK4StepByStepIntegrator(WFIntegrator):
 
 # general-purpose dynamic matrix utilities
 
-def createRK4StepMatrixH(vPotential,deltaTau):
+def createRK4StepMatrixH(vPotential,deltaTau,deltaLambda,wfSize,periodicBC,mu):
     '''
         Creates the matrix H, encoding the whole rk process.
         H is such that for one deltaTau time step
             phi -> phi + H*phi
     '''
-    sF=deltaTau*createEvolutionMatrixF(vPotential)
+    sF=deltaTau*createEvolutionMatrixF(vPotential,wfSize,deltaLambda,periodicBC,mu)
     H=(sF+sF.dot(sF)/2.+sF.dot(sF).dot(sF)/6.+sF.dot(sF).dot(sF).dot(sF)/24.)
     return H
 
-def createEvolutionMatrixF(vPotential):
+def createEvolutionMatrixF(vPotential,wfSize,deltaLambda,periodicBC,mu):
     '''
-        returns a Nx*Nx matrix F,
+        returns a wfSize*wfSize matrix F,
             F = (i/2mu)(kinetic part)-i(v)
         defined so that the Schroedinger equation,
         discretised, reads
             d phi / d tau = F[phi]
     '''
     # the kinetic part
-    kinPart=np.diag(2*np.ones(Nx))
-    for i in range(Nx):
-        kinPart[i,(i+1)%Nx]=-1
-        kinPart[(i+1)%Nx,i]=-1
+    kinPart=np.diag(2*np.ones(wfSize))
+    for i in range(wfSize):
+        kinPart[i,(i+1)%wfSize]=-1
+        kinPart[(i+1)%wfSize,i]=-1
     if not periodicBC:
-        kinPart[Nx-1,0]=0
-        kinPart[0,Nx-1]=0
+        kinPart[wfSize-1,0]=0
+        kinPart[0,wfSize-1]=0
     # together with the potential is the final result
-    mKinFactor=complex(0,1.0/(2.0*float(Mu)*deltaLambda2))
+    mKinFactor=complex(0,1.0/(2.0*float(mu)*(deltaLambda**2)))
     return mKinFactor*kinPart+complex(0,-1)*np.diag(vPotential)
 
-# still check that this does not read globals
-def evolutionOperator(Phi,vPotential):
+def evolutionOperator(Phi,vPotential,deltaLambda,kineticFactor,periodicBC):
     '''
         given wf and potential, (and using mu and lambda),
         evaluates F[phi] in
@@ -204,11 +231,11 @@ def evolutionOperator(Phi,vPotential):
     '''
     if periodicBC:
         enlargedPhi=np.hstack([Phi[-1:],Phi,Phi[:1]])
-        secondDerivative=kineticFactor*(2*Phi-enlargedPhi[:-2]-enlargedPhi[2:])/deltaLambda2
+        secondDerivative=kineticFactor*(2*Phi-enlargedPhi[:-2]-enlargedPhi[2:])/(deltaLambda**2)
     else:
         secondDerivative=np.hstack([
             complex(0),
-            kineticFactor*(2*Phi[1:-1]-Phi[:-2]-Phi[2:])/deltaLambda2,
+            kineticFactor*(2*Phi[1:-1]-Phi[:-2]-Phi[2:])/(deltaLambda**2),
             complex(0),
         ])
     #
@@ -216,30 +243,19 @@ def evolutionOperator(Phi,vPotential):
     F = minusI*(secondDerivative+vPotential*Phi)
     return F
 
-# legacy stuff to refactor
-
-# def integrate(Phi,vPotential,DeltaTau, iniTau):
-#     '''
-#         returns the new Phi after DeltaTau (and other things)
-#     '''
-
-#     newPhi = Phi+DeltaTau*evolutionOperator(Phi,vPotential)
-#     newNorm=norm(newPhi)
-#     #
-#     return newPhi/newNorm, newNorm-1, iniTau+DeltaTau
-
-def energy(Phi,vPotential):
+def energy(Phi,vPotential,periodicBC,deltaLambda,mu):
     '''
         evaluates <phi|E|phi>, the adimensional
         version of <psi|E|psi>
     '''
+    kineticFactor=-1.0/(2.0*float(mu))
     if periodicBC:
         enlargedPhi=np.hstack([Phi[-1:],Phi,Phi[:1]])
-        secondDerivative=kineticFactor*(2*Phi-enlargedPhi[:-2]-enlargedPhi[2:])/deltaLambda2
+        secondDerivative=kineticFactor*(2*Phi-enlargedPhi[:-2]-enlargedPhi[2:])/(deltaLambda**2)
     else:
         secondDerivative=np.hstack([
             complex(0),
-            kineticFactor*(2*Phi[1:-1]-Phi[:-2]-Phi[2:])/deltaLambda2,
+            kineticFactor*(2*Phi[1:-1]-Phi[:-2]-Phi[2:])/(deltaLambda**2),
             complex(0),
         ])
     #

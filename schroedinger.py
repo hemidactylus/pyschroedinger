@@ -14,8 +14,11 @@ from settings import (
     Lambda,
     Nx,
     deltaTau,
+    deltaLambda,
     drawFreq,
     framesToDraw,
+    periodicBC,
+    Mu,
 )
 
 from dynamics import (
@@ -120,17 +123,23 @@ if __name__=='__main__':
     from scipy.sparse import csr_matrix
 
     integratorS=SparseMatrixRK4Integrator(
-        Nx,
-        deltaTau,
-        drawFreq,
-        pot,
+        wfSize=Nx,
+        deltaTau=deltaTau,
+        deltaLambda=deltaLambda,
+        nIntegrationSteps=drawFreq,
+        vPotential=pot,
+        periodicBC=periodicBC,
+        mu=Mu,
     )
 
     integratorR=RK4StepByStepIntegrator(
-        Nx,
-        deltaTau,
-        drawFreq,
-        pot,
+        wfSize=Nx,
+        deltaTau=deltaTau,
+        deltaLambda=deltaLambda,
+        nIntegrationSteps=drawFreq,
+        vPotential=pot,
+        periodicBC=periodicBC,
+        mu=Mu,
     )
 
     import time
@@ -142,8 +151,8 @@ if __name__=='__main__':
         assert(tauIncrS==tauIncrR)
         tau+=tauIncrR
 
-        phiEnergyS=energy(phiS,pot)
-        phiEnergyR=energy(phiR,pot)
+        phiEnergyS=energy(phiS,pot,periodicBC,deltaLambda,Mu)
+        phiEnergyR=energy(phiR,pot,periodicBC,deltaLambda,Mu)
         doPlot(
             xvalues,
             [phiS,phiR],

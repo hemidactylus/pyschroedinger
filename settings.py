@@ -17,11 +17,13 @@ deltaTau = 0.0003
 # quantities derived from the above
 deltaLambda=float(Lambda)/float(Nx)
 deltaLambda2=deltaLambda**2
-kineticFactor=-1.0/(2.0*float(Mu))
 waveNumber0 = 2*math.pi/Lambda
 
 periodicBC=True
 
 # graphics/simulation options
+
+# every drawFreq deltaTau updates is the screen refreshed
 drawFreq=100
-framesToDraw=None # None=forever
+# how many frames to draw before stopping (None = forever)
+framesToDraw=None

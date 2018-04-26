@@ -4,8 +4,6 @@ A playground to learn something about numerical integration of the Schroedinger 
 
 ## TO DO
 
-remove lookup of global vars and make everything passed explicitly
-
 adapt simple integration to the integrator-class interface
 
 better energy calculation
