@@ -17,8 +17,8 @@ Lambda = 10
 Mu = 0.5
 
 # discretisation parameters
-Nx = 150
-deltaTau = 0.00004
+Nx = 250
+deltaTau = 0.001
 
 # quantities derived from the above
 deltaLambda=float(Lambda)/float(Nx)
@@ -32,10 +32,10 @@ periodicBC=True
 # which integrator to compare
 integratorMap={
     'RKspa': SparseMatrixRK4Integrator,
-    'RKste': RK4StepByStepIntegrator,
-    'Naive': NaiveFiniteDifferenceIntegrator,
+    # 'RKste': RK4StepByStepIntegrator,
+    #'Naive': NaiveFiniteDifferenceIntegrator,
 }
 # every drawFreq deltaTau updates is the screen refreshed
-drawFreq=400
+drawFreq=800
 # how many frames to draw before stopping (None = forever)
-framesToDraw=None
+framesToDraw=250

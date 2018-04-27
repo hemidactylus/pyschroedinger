@@ -11,7 +11,7 @@ if __name__=='__main__':
 
     print('INIT')
 
-    f=lambda xy: np.exp(-(x-0.5)**2)*np.cos(15*y**2+9*x**2)
+    f=lambda xy: np.exp(-(x-0.5)**2)*abs(np.cos(15*y**2+9*x**2))
     N=20
     a1=np.zeros((N,N))
     for i in range(N):
@@ -21,8 +21,7 @@ if __name__=='__main__':
             a1[i][j]=f((x,y))
 
     def evolve(a):
-        b=a.transpose()
-        return (np.vstack((b[1:],[b[0]]))).transpose()
+        return a*a
 
     plt.ion()
     fig=plt.figure(figsize=(10,10))
@@ -39,4 +38,4 @@ if __name__=='__main__':
 
         hmap.set_array(a1)
         fig.canvas.draw() 
-        # time.sleep(0.05)
+        time.sleep(0.05)
