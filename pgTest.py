@@ -7,6 +7,9 @@
       https://www.pygame.org/docs/ref/surface.html
     and perhaps
       https://stackoverflow.com/questions/36750306/using-python-how-can-i-display-a-matrix-of-rgb-values-in-a-window
+
+    for the fast nparray to surface copying:
+        https://stackoverflow.com/questions/30818367/how-to-present-numpy-array-into-pygame-surface#30970504
 '''
 
 import pygame,sys
@@ -14,7 +17,7 @@ import numpy as np
 import time
 from pygame.locals import *
 
-TILESIZE=6
+TILESIZE=1
 MAPWIDTH=100
 MAPHEIGHT=80
 
@@ -55,6 +58,8 @@ def evolve(a):
 
 mkCol=lambda n: int(n*255.9)
 
+pixl_arr = (255*a1).astype(int)
+old_surf = pygame.pixelcopy.make_surface(pixl_arr)
 for i in range(1000):
     for event in pygame.event.get():
         if event.type==QUIT:
@@ -62,16 +67,7 @@ for i in range(1000):
             sys.exit()
     a1=evolve(a1)
     #
-    for row in range(MAPHEIGHT):
-        for col in range(MAPWIDTH):
-            pygame.draw.rect(
-                SURF,
-                mkCol(a1[col][row]),
-                (
-                    col*TILESIZE,
-                    row*TILESIZE,
-                    TILESIZE,
-                    TILESIZE,
-                )
-            )
+    pixl_arr = (255*a1).astype(int)
+    pygame.pixelcopy.array_to_surface(SURF, pixl_arr)
+    SURF.blit(SURF, (0, 0))
     pygame.display.update()
