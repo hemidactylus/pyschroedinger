@@ -61,16 +61,19 @@ for i in range(1000):
             pygame.quit()
             sys.exit()
     a1=evolve(a1)
-    for row in range(MAPHEIGHT):
-        for col in range(MAPWIDTH):
-            pygame.draw.rect(
-                SURF,
-                mkCol(a1[col][row]),
-                (
-                    col*TILESIZE,
-                    row*TILESIZE,
-                    TILESIZE,
-                    TILESIZE,
-                )
-            )
+    #
+    pygame.surfarray.blit_array(SURF,a1)
+    #
+    # for row in range(MAPHEIGHT):
+    #     for col in range(MAPWIDTH):
+    #         pygame.draw.rect(
+    #             SURF,
+    #             mkCol(a1[col][row]),
+    #             (
+    #                 col*TILESIZE,
+    #                 row*TILESIZE,
+    #                 TILESIZE,
+    #                 TILESIZE,
+    #             )
+    #         )
     pygame.display.update()
