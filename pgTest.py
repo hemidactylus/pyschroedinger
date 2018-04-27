@@ -40,7 +40,7 @@ SURF=pygame.display.set_mode(
 
 pygame.display.set_palette(myPalette(256))
 
-f=lambda xy: np.exp(-(x-0.5)**2)*abs(np.cos(15*y**2+9*x**2))
+f=lambda xy: abs(np.sin(((x-0.5)**2+(y-0.5)**2)*np.pi))
 N=20
 a1=np.zeros((MAPWIDTH,MAPHEIGHT))
 for i in range(MAPWIDTH):
@@ -59,6 +59,7 @@ def evolve(a):
 mkCol=lambda n: int(n*255.9)
 
 pixl_arr = (255*a1).astype(int)
+#SURF = pygame.transform.scale(SURF,(2*MAPWIDTH,2*MAPHEIGHT))
 old_surf = pygame.pixelcopy.make_surface(pixl_arr)
 for i in range(1000):
     for event in pygame.event.get():
@@ -68,6 +69,6 @@ for i in range(1000):
     a1=evolve(a1)
     #
     pixl_arr = (255*a1).astype(int)
-    pygame.pixelcopy.array_to_surface(SURF, pixl_arr)
-    SURF.blit(SURF, (0, 0))
+    pygame.pixelcopy.array_to_surface(old_surf, pixl_arr)
+    SURF.blit(old_surf, (0, 0))
     pygame.display.update()
