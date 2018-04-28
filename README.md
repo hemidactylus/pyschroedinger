@@ -2,6 +2,16 @@
 
 A playground to learn something about numerical integration of the Schroedinger equation
 
+### Practicalities
+
+Clone the repo, create the virtualenv
+(with python3) and set the repo's root
+dir into the path of the virtualenv.
+
+Then for instance go to oneD and type
+
+    ./pyschroedinger.py
+
 ## TO DO
 
 better energy calculation
