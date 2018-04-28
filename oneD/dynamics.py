@@ -5,7 +5,7 @@
 import numpy as np
 from scipy.sparse import csr_matrix
 
-from tools import (
+from oneD.tools import (
     mod2,
     norm,
     re,

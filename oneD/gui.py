@@ -5,17 +5,17 @@
 
 import matplotlib.pyplot as plt
 
-from settings import (
+from oneD.settings import (
     Lambda,
     Nx,
 )
-from tools import (
+from oneD.tools import (
     mod2,
     re,
     im,
 )
 
-from units import (
+from utils.units import (
     toLength_fm,
 )
 

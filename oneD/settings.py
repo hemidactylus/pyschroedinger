@@ -4,7 +4,7 @@
 
 import math
 
-from dynamics import (
+from oneD.dynamics import (
     SparseMatrixRK4Integrator,
     RK4StepByStepIntegrator,
     NaiveFiniteDifferenceIntegrator,

@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import math
 import itertools
 
-from settings import (
+from oneD.settings import (
     Lambda,
     Nx,
     deltaTau,
@@ -22,11 +22,11 @@ from settings import (
     integratorMap,
 )
 
-from dynamics import (
+from oneD.dynamics import (
     energy,
 )
 
-from tools import (
+from oneD.tools import (
     mod2,
     norm,
     re,
@@ -35,27 +35,27 @@ from tools import (
     combinePotentials,
 )
 
-from wfunctions import (
+from oneD.wfunctions import (
     wGaussianPacket,
     wGaussian,
     wPlaneWave,
     roundWaveNumber,
 )
 
-from potentials import (
+from oneD.potentials import (
     freeParticle,
     harmonicPotential,
     stepPotential,
     exponentialWall,
 )
 
-from units import (
+from utils.units import (
     toLength_fm,
     toTime_fs,
     toEnergy_Mev,
 )
 
-from gui import (
+from oneD.gui import (
     doPlot,
 )
 

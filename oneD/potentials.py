@@ -5,7 +5,7 @@
 import math
 import numpy as np
 
-from settings import (
+from oneD.settings import (
     Nx,
 )
 
