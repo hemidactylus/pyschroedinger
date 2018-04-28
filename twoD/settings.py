@@ -8,9 +8,9 @@
 '''
 
 # discretisation parameters
-Nx=30
-Ny=60
+Nx=90
+Ny=90
 
 # display parameters
-tileX=6
-tileY=3
+tileX=4
+tileY=4
