@@ -60,7 +60,7 @@ def integerize(wfunction,maxMod2):
     '''
     return (0.5+(mod2(wfunction)*255/maxMod2)).astype(int)
 
-def doPlot(wfunction,replotting=None):
+def doPlot(wfunction,replotting=None,title=None):
     '''
         all information on the x,y-scale
         is implicit.
@@ -79,6 +79,9 @@ def doPlot(wfunction,replotting=None):
 
     # refresh the plotting window
     # (including responding to events)
+    # 0. cosmetics (title, etc)
+    if title is not None:
+            pygame.display.set_caption(title)
     # 1. recalculate the integer wf
     intMod2=integerize(wfunction,replotting['maxMod2'])
 

@@ -12,25 +12,38 @@ import sys
 from twoD.settings import (
     Nx,
     Ny,
+    deltaLambdaX,
+    deltaLambdaY,
 )
 
 from twoD.gui import (
     doPlot,
 )
 
+from twoD.wfunctions import (
+    makeFakePhi,
+)
+
+from twoD.tools import (
+    combineWFunctions,
+    norm,
+)
+
+from twoD.dynamics import (
+    evolve,
+)
+
 import numpy as np
 
-def initPhi(cx=0,cy=0,sigma2=0.2):
+def initPhi():
     # very fake for now
-    # (Phi is the *complex* quantity)
-    phi=np.zeros((Nx,Ny),dtype=complex)
-    for x in range(Nx):
-        for y in range(Ny):
-            _x=(x/Nx)-0.5
-            _y=(y/Ny)-0.5
-            amp=np.exp(-((_x-cx)**2+(_y-cy)**2)/sigma2)
-            pha=np.pi*_x
-            phi[x][y]=complex(amp*np.cos(pha),amp*np.sin(pha))
+    phi=combineWFunctions(
+        [
+            makeFakePhi(Nx,Ny,0.25,0.75,0.2,amplitude=0.4),
+            makeFakePhi(Nx,Ny,0.75,0.25,0.1,amplitude=0.8),
+        ],
+        deltaLambdaXY=deltaLambdaX*deltaLambdaY,
+    )
     return phi
 
 if __name__=='__main__':
@@ -39,17 +52,6 @@ if __name__=='__main__':
     replotting=doPlot(phi)
 
     for i in count():
-        #
-        print('Round %i ... ' % i, end='')
-        sys.stdout.flush()
-        #
-        r=0.2+0.15*np.cos(i/7)
-        phi=initPhi(
-            sigma2=0.02+0.1*(np.cos(i/5)**2),
-            cx=r*np.cos(i/10),
-            cy=r*np.sin(i/10),
-        )
-        doPlot(phi,replotting)
-        #
-        print('done.')
-        sys.stdout.flush()
+        n=norm(phi,deltaLambdaX*deltaLambdaY)
+        phi=evolve(phi)
+        doPlot(phi,replotting,title='Iter %06i, ND=%.4E (click to close)' % (i,n-1))
