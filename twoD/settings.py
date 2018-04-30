@@ -12,10 +12,15 @@ import math
 # Physical parameters
 LambdaX = 10
 LambdaY = 10
+Mu = 0.5
 
 # discretisation parameters
-Nx=90
+Nx=30
 Ny=90
+deltaTau = 0.00005
+
+periodicBCX=True
+periodicBCY=True
 
 # quantities derived from the above
 deltaLambdaX=float(LambdaX)/float(Nx)
@@ -28,3 +33,4 @@ waveNumberY0 = 2*math.pi/LambdaY
 # display parameters
 tileX=6
 tileY=6
+drawFreq=10

@@ -23,9 +23,10 @@ from twoD.tools import (
 )
 
 def makePalette():
-    # FIXME
+    import matplotlib.pyplot as plt
+    cmap=plt.get_cmap('magma')
     return [
-        [int(i*255./256.+0.5)]*3
+        [int(comp*256) for comp in cmap(((i+4.5)/255.)**0.3)[:3]]
         for i in range(256)
     ]
 
@@ -58,7 +59,12 @@ def integerize(wfunction,maxMod2):
         into an array of integers 0-255
         rescaling the mod2 according to maxMod2
     '''
-    return (0.5+(mod2(wfunction)*255/maxMod2)).astype(int)
+    return (0.5+(mod2(wfunction)*254/maxMod2)).astype(int)
+    # the slower, bounds-checking form would be:
+    # nMat=(0.5+(mod2(wfunction)*254/maxMod2)).astype(int)
+    # nMat[nMat>255]=255
+    # nMat[nMat<0]=0
+    # return nMat
 
 def doPlot(wfunction,replotting=None,title=None):
     '''
