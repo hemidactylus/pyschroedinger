@@ -9,6 +9,7 @@ import pygame
 from pygame.locals import (
     QUIT as pgQuit,
     MOUSEBUTTONDOWN as pgMouseDown,
+    KEYDOWN as pgKeyDown,
 )
 
 from twoD.settings import (
@@ -26,7 +27,7 @@ def makePalette():
     import matplotlib.pyplot as plt
     cmap=plt.get_cmap('magma')
     return [
-        [int(comp*256) for comp in cmap(((i+4.5)/255.)**0.3)[:3]]
+        [int(comp*256) for comp in cmap(((i/255.)))[:3]]
         for i in range(256)
     ]
 
@@ -82,6 +83,7 @@ def doPlot(wfunction,replotting=None,title=None):
             'maxMod2': maxMod2,
         }
         replotting['pygame']=initPyGame()
+        replotting['keyqueue']=[]
 
     # refresh the plotting window
     # (including responding to events)
@@ -89,7 +91,9 @@ def doPlot(wfunction,replotting=None,title=None):
     if title is not None:
             pygame.display.set_caption(title)
     # 1. recalculate the integer wf
-    intMod2=integerize(wfunction,replotting['maxMod2'])
+    # intMod2=integerize(wfunction,replotting['maxMod2'])
+    maxMod2=mod2(wfunction).max()
+    intMod2=integerize(wfunction,maxMod2)
 
     # actual on-screen plotting through pygame
     pygame.pixelcopy.array_to_surface(
@@ -114,5 +118,7 @@ def doPlot(wfunction,replotting=None,title=None):
         if event.type in {pgQuit, pgMouseDown}:
             pygame.quit()
             sys.exit()
+        if event.type in {pgKeyDown} and event.unicode=='p':
+            replotting['keyqueue'].append('p')
     # all done
     return replotting

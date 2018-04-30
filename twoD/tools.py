@@ -31,3 +31,15 @@ def combineWFunctions(wflist,deltaLambdaXY,normalize=True):
         return unnormed/psiNorm
     else:
         return unnormed
+
+def combinePotentials(potlist,shift=True):
+    '''
+        sums the provided potentials and optionally
+        brings the minimum to zero
+    '''
+    unshifted = reduce(sumFunctions,potlist[1:],potlist[0])
+    if shift:
+        minPot=unshifted.min()
+        return unshifted-minPot
+    else:
+        return unshifted

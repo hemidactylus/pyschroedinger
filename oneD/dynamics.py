@@ -117,9 +117,6 @@ class RK4StepByStepIntegrator(WFIntegrator):
         mu,
     ):
         '''
-            the evolution matrix U^nIntegrationSteps is prepared here
-            for later usage
-
             nIntegrationSteps is discarded
         '''
         self.wfSize=wfSize

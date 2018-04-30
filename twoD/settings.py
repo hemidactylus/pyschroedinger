@@ -15,9 +15,9 @@ LambdaY = 10
 Mu = 0.5
 
 # discretisation parameters
-Nx=30
-Ny=90
-deltaTau = 0.00005
+Nx=150
+Ny=150
+deltaTau = 0.0002
 
 periodicBCX=True
 periodicBCY=True
@@ -27,10 +27,9 @@ deltaLambdaX=float(LambdaX)/float(Nx)
 deltaLambdaY=float(LambdaY)/float(Ny)
 deltaLambdaX2=deltaLambdaX**2
 deltaLambdaY2=deltaLambdaY**2
-waveNumberX0 = 2*math.pi/LambdaX
-waveNumberY0 = 2*math.pi/LambdaY
+waveNumber0=(2*math.pi/LambdaX,2*math.pi/LambdaY)
 
 # display parameters
-tileX=6
-tileY=6
-drawFreq=10
+tileX=3
+tileY=3
+drawFreq=20
