@@ -2,23 +2,34 @@
 
 A playground to learn something about numerical integration of the Schroedinger equation
 
-### Practicalities
+## Get it running
 
 Clone the repo, create the virtualenv
 (with python3) and set the repo's root
 dir into the path of the virtualenv.
 
-Then for instance go to oneD and type
+Then go to either `oneD` or `twoD` directories, start
 
-    ./pyschroedinger.py
+    ./schroedinger.py
 
-## TO DO
+and enjoy the show.
 
-better energy calculation
+You can alter the initial wavefunction/potential by playing with the `initPhi`
+and `initPot` functions in `schroedinger.py`, and you can tweak more fundamental
+settings (time interval, grid size, boundary conditions, and so on) in `settings.py`.
 
-timings properly
+### Examples
 
-start thinking of 2d
+__Tunnel effect__: A Gaussian wave packet hits a finite potential barrier and tunnels through it (with periodic B.C.):
+
+<img src="images/tunnel_oned.gif" alt="Unidimensional tunnel effect" style="width: 80%;"/>
+
+
+__Two-slit experiment__: TODO
+
+## To do
+
+Better calculation of the particle energy
 
 ## Units
 

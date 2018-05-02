@@ -24,7 +24,7 @@ imColorList=  ['#b26700','#00dcff','#73ccb2']
 mod2ColorList=['#FF0000','#0000ff','#00881d']
 potColor='#00C000'
 zeroColor='#c0c0c0'
-def doPlot(xs,phiMap,pots,title='',replotting=None):
+def doPlot(xs,phiMap,pots,title='',replotting=None,photoIndex=None):
     '''
         if replotting is None: creates the plot window.
         Else: refreshes the plot interactively using the handles
@@ -55,6 +55,7 @@ def doPlot(xs,phiMap,pots,title='',replotting=None):
             plotIm[phiName], = ax.plot(physXs, im(phi), ':',color=imColorList[iphi],lineWidth=1)
         plt.xlabel('fm')
         plt.ylim((-totalPhimax,totalPhimax))
+        ax.set_title(title,fontsize=10,family='monospace')
         replotStruct={
             'fig' : fig,
             'ax'  : ax,
@@ -65,6 +66,10 @@ def doPlot(xs,phiMap,pots,title='',replotting=None):
             'totalPhimax': totalPhimax,
             'maxpots': maxPots,
         }
+        if photoIndex is not None:
+            print('saving %i' % photoIndex)
+            replotStruct['fig'].set_size_inches(4,2.8)
+            replotStruct['fig'].savefig('frame_%06i.png' % photoIndex,bbox_inches='tight')
         return replotStruct
     else:
         scalePots=[p*replotting['totalPhimax']/replotting['maxpots'] for p in pots]
@@ -75,3 +80,7 @@ def doPlot(xs,phiMap,pots,title='',replotting=None):
         replotting['pot'].set_ydata(scalePots)
         replotting['ax'].set_title(title,fontsize=10,family='monospace')
         replotting['fig'].canvas.draw()
+        if photoIndex is not None:
+            print('saving %i' % photoIndex)
+            replotting['fig'].set_size_inches(4,2.8)
+            replotting['fig'].savefig('frame_%06i.png' % photoIndex,bbox_inches='tight')

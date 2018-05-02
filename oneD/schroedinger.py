@@ -171,5 +171,6 @@ if __name__=='__main__':
             pot,
             descText,
             replottable,
+            # photoIndex=i,
         )
     print('done in %f seconds' % (time.time()-ini))
