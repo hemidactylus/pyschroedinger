@@ -62,8 +62,8 @@ from oneD.gui import (
 def initPhi():
     return combineWFunctions(
         [
-            # 1 tunnel:
-            wGaussianPacket(0.5,0.1,5.65,0.5),
+            # 1 tunnel (with periodic BC):
+            wGaussianPacket(0.2,0.1,5.65,0.5),
             # wGaussianPacket(0.9,0.05,-5.65,0.1),
             # # 2 double interfering tunnel (w/ spurious)
             # wGaussianPacket(0.7,0.07,+11.3095,0.5),
@@ -88,8 +88,8 @@ def initPot():
             # free particle
             stepPotential(0.5,0.1,0,0),
             # rounded square potential (for 1, 2)
-            stepPotential(0.1,0.02,0,100),
-            stepPotential(0.9,0.02,100,0),
+            stepPotential(0.4,0.02,280,0),
+            stepPotential(0.6,0.02,0,280),
             # two-hole well (for 3)
             # stepPotential(0.25,0.01,0,1000),
             # stepPotential(0.75,0.01,1000,0),

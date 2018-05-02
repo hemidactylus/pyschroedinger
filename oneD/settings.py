@@ -18,7 +18,7 @@ Mu = 0.5
 
 # discretisation parameters
 Nx = 250
-deltaTau = 0.001
+deltaTau = 0.00001
 
 # quantities derived from the above
 deltaLambda=float(Lambda)/float(Nx)
@@ -38,4 +38,4 @@ integratorMap={
 # every drawFreq deltaTau updates is the screen refreshed
 drawFreq=800
 # how many frames to draw before stopping (None = forever)
-framesToDraw=250
+framesToDraw=180
