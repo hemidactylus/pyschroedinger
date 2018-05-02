@@ -15,12 +15,12 @@ LambdaY = 10
 Mu = 0.5
 
 # discretisation parameters
-Nx=150
-Ny=150
+Nx=80
+Ny=80
 deltaTau = 0.0002
 
-periodicBCX=True
-periodicBCY=True
+periodicBCX=False
+periodicBCY=False
 
 # quantities derived from the above
 deltaLambdaX=float(LambdaX)/float(Nx)

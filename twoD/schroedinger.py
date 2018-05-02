@@ -58,10 +58,15 @@ def initPhi():
     # very fake for now
     phi=combineWFunctions(
         [
-            makeFakePhi(Nx,Ny,c=(0.25,0.5),ph0=(+5,0),sigma2=(0.004,0.004),weight=1),
-            makeFakePhi(Nx,Ny,c=(0.75,0.5),ph0=(-5,0),sigma2=(0.004,0.004),weight=1),
-            makeFakePhi(Nx,Ny,c=(0.5,0.2),ph0=(0,+3),sigma2=(0.001,0.001),weight=0.8),
-            makeFakePhi(Nx,Ny,c=(0.5,0.8),ph0=(0,-3),sigma2=(0.001,0.001),weight=0.8),
+            # 1. some interference
+            # makeFakePhi(Nx,Ny,c=(0.25,0.5),ph0=(+5,0),sigma2=(0.004,0.004),weight=1),
+            # makeFakePhi(Nx,Ny,c=(0.75,0.5),ph0=(-5,0),sigma2=(0.004,0.004),weight=1),
+            # makeFakePhi(Nx,Ny,c=(0.5,0.2),ph0=(0,+3),sigma2=(0.001,0.001),weight=0.8),
+            # makeFakePhi(Nx,Ny,c=(0.5,0.8),ph0=(0,-3),sigma2=(0.001,0.001),weight=0.8),
+            # 2. a "plane wave"
+            makeFakePhi(Nx,Ny,c=(0.9,0.5),ph0=(8,0),sigma2=(0.001,0.1),weight=0.8),
+
+            # makeFakePhi(Nx,Ny,c=(0.3,0.7),ph0=(-6,+3),sigma2=(0.003,0.001),weight=0.8),
         ],
         deltaLambdaXY=deltaLambdaX*deltaLambdaY,
     )
@@ -71,20 +76,46 @@ def initPot():
     return combinePotentials(
         [
             freeParticlePotential(Nx,Ny),
+            # 1. an arena within a box
+            # rectangularHolePotential(
+            #     Nx,
+            #     Ny,
+            #     pPos=(0.1,0.1,0.8,0.8),
+            #     pThickness=(0.0004,0.0004),
+            #     vIn=0,
+            #     vOut=2000,
+            # ),
+            # rectangularHolePotential(
+            #     Nx,
+            #     Ny,
+            #     pPos=(0.4,0.4,0.2,0.2),
+            #     pThickness=(0.0003,0.0003),
+            #     vIn=800,
+            #     vOut=0,
+            # ),
+            # 2. a "double slit" for 2. Better with fixed BC
             rectangularHolePotential(
                 Nx,
                 Ny,
-                pPos=(0.05,0.05,0.9,0.9),
-                pThickness=(0.0004,0.0004),
-                vIn=0,
-                vOut=2000,
+                pPos=(0.8,0.0,0.02,0.3),
+                pThickness=(0.00013,0.00013),
+                vIn=5000,
+                vOut=0,
             ),
             rectangularHolePotential(
                 Nx,
                 Ny,
-                pPos=(0.4,0.4,0.2,0.2),
-                pThickness=(0.0001,0.0001),
-                vIn=2000,
+                pPos=(0.8,0.43,0.02,0.14),
+                pThickness=(0.00013,0.00013),
+                vIn=5000,
+                vOut=0,
+            ),
+            rectangularHolePotential(
+                Nx,
+                Ny,
+                pPos=(0.8,0.7,0.02,0.3),
+                pThickness=(0.00013,0.00013),
+                vIn=5000,
                 vOut=0,
             ),
         ]
@@ -114,19 +145,28 @@ if __name__=='__main__':
     phLenX,phLenY=toLength_fm(LambdaX),toLength_fm(LambdaY)
     print('Lengths: LX=%4.3E, LY=%4.3E' % (phLenX,phLenY))
 
+    plotTarget=0
+
     for i in count():
-        phi,normDev,tauIncr=integrator.integrate(phi,drawFreq)
-        tau+=tauIncr
-        doPlot(phi,replotting,title='Iter %06i, t=%4.3E fs, nDev=%.4E' % (
-            i,
-            toTime_fs(tau),
-            normDev,
-        ))
+        if plotTarget==0:
+            phi,normDev,tauIncr=integrator.integrate(phi,drawFreq)
+            tau+=tauIncr
+            doPlot(
+                phi,
+                replotting,
+                title='Iter %06i, t=%4.3E fs, nDev=%.4E' % (
+                    i,
+                    toTime_fs(tau),
+                    normDev,
+                ),
+                palette=0,
+            )
+        else:
+            doPlot(pot.astype(complex),replotting,title='Potential (p to resume)',palette=1)
+            time.sleep(0.1)
         #
         if replotting['keyqueue']==['p']:
-            # switch to potential mode for one second
-            doPlot(pot.astype(complex),title='Potential, 1 sec...')
-            time.sleep(1)
+            plotTarget=1-plotTarget
             #
             replotting['keyqueue']=[]
         #

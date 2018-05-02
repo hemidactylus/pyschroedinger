@@ -23,15 +23,15 @@ from twoD.tools import (
     mod2,
 )
 
-def makePalette():
+def makePalette(pIndex=0):
     import matplotlib.pyplot as plt
-    cmap=plt.get_cmap('magma')
+    cmap=plt.get_cmap(['magma','GnBu'][pIndex])
     return [
         [int(comp*256) for comp in cmap(((i/255.)))[:3]]
         for i in range(256)
     ]
 
-def initPyGame():
+def initPyGame(pIndex=0):
     pygame.init()
     pygame.display.set_caption('Pyschroedinger 2D. Click to close')
     window=pygame.display.set_mode(
@@ -42,8 +42,9 @@ def initPyGame():
         pygame.DOUBLEBUF,
         8,
     )
-    palette=makePalette()
-    pygame.display.set_palette(palette)
+    setDrawPalette(pIndex)
+    # palette=makePalette()
+    # pygame.display.set_palette(palette)
     startnparray=np.zeros((Nx*tileX,Ny*tileY)).astype(int)
     screen = pygame.surfarray.make_surface(startnparray).convert()
     startnparray=np.zeros((Nx,Ny)).astype(int)
@@ -53,6 +54,10 @@ def initPyGame():
         'window': window,
         'bufferSurf': bufferSurf,
     }
+
+def setDrawPalette(pIndex=0):
+    palette=makePalette(pIndex)
+    pygame.display.set_palette(palette)
 
 def integerize(wfunction,maxMod2):
     '''
@@ -67,7 +72,7 @@ def integerize(wfunction,maxMod2):
     # nMat[nMat<0]=0
     # return nMat
 
-def doPlot(wfunction,replotting=None,title=None):
+def doPlot(wfunction,replotting=None,title=None,palette=0):
     '''
         all information on the x,y-scale
         is implicit.
@@ -82,8 +87,13 @@ def doPlot(wfunction,replotting=None,title=None):
         replotting={
             'maxMod2': maxMod2,
         }
-        replotting['pygame']=initPyGame()
+        replotting['pygame']=initPyGame(palette)
+        replotting['palette']=palette
         replotting['keyqueue']=[]
+
+    if palette!=replotting['palette']:
+        setDrawPalette(palette)
+        replotting['palette']=palette
 
     # refresh the plotting window
     # (including responding to events)
@@ -116,6 +126,9 @@ def doPlot(wfunction,replotting=None,title=None):
     # 2. respond to events
     for event in pygame.event.get():
         if event.type in {pgQuit, pgMouseDown}:
+            pygame.quit()
+            sys.exit()
+        if event.type in {pgKeyDown} and event.unicode=='q':
             pygame.quit()
             sys.exit()
         if event.type in {pgKeyDown} and event.unicode=='p':

@@ -48,5 +48,4 @@ def rectangularHolePotential(Nx,Ny,pPos,pThickness,vIn,vOut):
                 ],
             )
             unsubPot[x][y]=vOut+(vIn-vOut)*((1+math.tanh(leadDistance))/2)
-    print(unsubPot.min())
     return unsubPot
