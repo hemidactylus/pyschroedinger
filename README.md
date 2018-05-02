@@ -28,7 +28,7 @@ hits a finite potential barrier and tunnels through it (with periodic B.C.):
 __Two-slit experiment__: A two-dimensional "almost-plane wave" hits a very steep potential wall with two slits
 and the portion of wave that goes through produces the famous interference pattern on the other side of the field.
 With a particle of half the mass of the electron and a field roughly of side 4000 fm, the scene depicted here
-spans about 0.0000001 fs.
+spans about 0.000001 fs.
 (After a while the motion of the wavefunction gets very messy: this is because, with fixed
 boundary conditions in both directions, the borders reflect back the wave, which then starts interfering
 with itself.)
