@@ -32,5 +32,5 @@ waveNumber0=(2*math.pi/LambdaX,2*math.pi/LambdaY)
 # display parameters
 tileX=2
 tileY=2
-drawFreq=80
-framesToDraw=200 # None => forever
+drawFreq=160
+framesToDraw=80 # None => forever

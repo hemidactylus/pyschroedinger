@@ -152,7 +152,6 @@ if __name__=='__main__':
         if plotTarget==0:
             phi,normDev,tauIncr=integrator.integrate(phi,drawFreq)
             tau+=tauIncr
-            print(toTime_fs(200*tauIncr))
             doPlot(
                 phi,
                 replotting,
