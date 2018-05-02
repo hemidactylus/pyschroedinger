@@ -21,6 +21,7 @@ from twoD.settings import (
     drawFreq,
     LambdaX,
     LambdaY,
+    framesToDraw,
 )
 
 from twoD.gui import (
@@ -97,24 +98,24 @@ def initPot():
             rectangularHolePotential(
                 Nx,
                 Ny,
-                pPos=(0.8,0.0,0.02,0.3),
-                pThickness=(0.00013,0.00013),
+                pPos=(0.5,0.0,0.02,0.4),
+                pThickness=(0.00004,0.00004),
                 vIn=5000,
                 vOut=0,
             ),
             rectangularHolePotential(
                 Nx,
                 Ny,
-                pPos=(0.8,0.43,0.02,0.14),
-                pThickness=(0.00013,0.00013),
+                pPos=(0.5,0.46,0.02,0.08),
+                pThickness=(0.00004,0.00004),
                 vIn=5000,
                 vOut=0,
             ),
             rectangularHolePotential(
                 Nx,
                 Ny,
-                pPos=(0.8,0.7,0.02,0.3),
-                pThickness=(0.00013,0.00013),
+                pPos=(0.5,0.6,0.02,0.4),
+                pThickness=(0.00004,0.00004),
                 vIn=5000,
                 vOut=0,
             ),
@@ -139,7 +140,7 @@ if __name__=='__main__':
 
     phi=initPhi()
     tau=0
-    replotting=doPlot(phi)
+    replotting=doPlot(phi,saveImage=True,potential=pot)
 
     # some info
     phLenX,phLenY=toLength_fm(LambdaX),toLength_fm(LambdaY)
@@ -147,10 +148,11 @@ if __name__=='__main__':
 
     plotTarget=0
 
-    for i in count():
+    for i in count() if framesToDraw is None else range(framesToDraw):
         if plotTarget==0:
             phi,normDev,tauIncr=integrator.integrate(phi,drawFreq)
             tau+=tauIncr
+            print(toTime_fs(200*tauIncr))
             doPlot(
                 phi,
                 replotting,
@@ -160,6 +162,7 @@ if __name__=='__main__':
                     normDev,
                 ),
                 palette=0,
+                photoIndex=i,
             )
         else:
             doPlot(pot.astype(complex),replotting,title='Potential (p to resume)',palette=1)
