@@ -33,7 +33,7 @@ spans about 0.0000001 fs.
 boundary conditions in both directions, the borders reflect back the wave, which then starts interfering
 with itself.)
 
-<img src="images/images/double_slit_twod_1e-6fs.gif" alt="Two-dimensional double slit" style="width: 80%;"/>
+<img src="images/double_slit_twod_1e-6fs.gif" alt="Two-dimensional double slit" style="width: 80%;"/>
 
 (_Note_: to generate the frames for this example, the program was tweaked to display both the potential and
 the wavefunction; even more crucial, due to my incomplete knowledge of `pygame`, was the choice to make without
