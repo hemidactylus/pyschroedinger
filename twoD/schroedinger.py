@@ -60,14 +60,12 @@ def initPhi():
     phi=combineWFunctions(
         [
             # 1. some interference
-            # makeFakePhi(Nx,Ny,c=(0.25,0.5),ph0=(+5,0),sigma2=(0.004,0.004),weight=1),
+            makeFakePhi(Nx,Ny,c=(0.25,0.25),ph0=(0,0),sigma2=(0.002,0.002),weight=1),
             # makeFakePhi(Nx,Ny,c=(0.75,0.5),ph0=(-5,0),sigma2=(0.004,0.004),weight=1),
             # makeFakePhi(Nx,Ny,c=(0.5,0.2),ph0=(0,+3),sigma2=(0.001,0.001),weight=0.8),
             # makeFakePhi(Nx,Ny,c=(0.5,0.8),ph0=(0,-3),sigma2=(0.001,0.001),weight=0.8),
             # 2. a "plane wave"
-            makeFakePhi(Nx,Ny,c=(0.9,0.5),ph0=(8,0),sigma2=(0.001,0.1),weight=0.8),
-
-            # makeFakePhi(Nx,Ny,c=(0.3,0.7),ph0=(-6,+3),sigma2=(0.003,0.001),weight=0.8),
+            # makeFakePhi(Nx,Ny,c=(0.9,0.5),ph0=(8,0),sigma2=(0.001,0.1),weight=0.8),
         ],
         deltaLambdaXY=deltaLambdaX*deltaLambdaY,
     )
@@ -78,47 +76,47 @@ def initPot():
         [
             freeParticlePotential(Nx,Ny),
             # 1. an arena within a box
+            rectangularHolePotential(
+                Nx,
+                Ny,
+                pPos=(0.1,0.1,0.8,0.8),
+                pThickness=(0.0004,0.0004),
+                vIn=0,
+                vOut=2000,
+            ),
+            rectangularHolePotential(
+                Nx,
+                Ny,
+                pPos=(0.4,0.4,0.2,0.2),
+                pThickness=(0.0004,0.0004),
+                vIn=1600,
+                vOut=0,
+            ),
+            # 2. a "double slit" for 2. Better with fixed BC
             # rectangularHolePotential(
             #     Nx,
             #     Ny,
-            #     pPos=(0.1,0.1,0.8,0.8),
-            #     pThickness=(0.0004,0.0004),
-            #     vIn=0,
-            #     vOut=2000,
-            # ),
-            # rectangularHolePotential(
-            #     Nx,
-            #     Ny,
-            #     pPos=(0.4,0.4,0.2,0.2),
-            #     pThickness=(0.0003,0.0003),
-            #     vIn=800,
+            #     pPos=(0.5,0.0,0.02,0.4),
+            #     pThickness=(0.00004,0.00004),
+            #     vIn=5000,
             #     vOut=0,
             # ),
-            # 2. a "double slit" for 2. Better with fixed BC
-            rectangularHolePotential(
-                Nx,
-                Ny,
-                pPos=(0.5,0.0,0.02,0.4),
-                pThickness=(0.00004,0.00004),
-                vIn=5000,
-                vOut=0,
-            ),
-            rectangularHolePotential(
-                Nx,
-                Ny,
-                pPos=(0.5,0.46,0.02,0.08),
-                pThickness=(0.00004,0.00004),
-                vIn=5000,
-                vOut=0,
-            ),
-            rectangularHolePotential(
-                Nx,
-                Ny,
-                pPos=(0.5,0.6,0.02,0.4),
-                pThickness=(0.00004,0.00004),
-                vIn=5000,
-                vOut=0,
-            ),
+            # rectangularHolePotential(
+            #     Nx,
+            #     Ny,
+            #     pPos=(0.5,0.46,0.02,0.08),
+            #     pThickness=(0.00004,0.00004),
+            #     vIn=5000,
+            #     vOut=0,
+            # ),
+            # rectangularHolePotential(
+            #     Nx,
+            #     Ny,
+            #     pPos=(0.5,0.6,0.02,0.4),
+            #     pThickness=(0.00004,0.00004),
+            #     vIn=5000,
+            #     vOut=0,
+            # ),
         ]
     )
 
@@ -140,7 +138,7 @@ if __name__=='__main__':
 
     phi=initPhi()
     tau=0
-    replotting=doPlot(phi,saveImage=True,potential=pot)
+    replotting=doPlot(phi)
 
     # some info
     phLenX,phLenY=toLength_fm(LambdaX),toLength_fm(LambdaY)
@@ -161,7 +159,6 @@ if __name__=='__main__':
                     normDev,
                 ),
                 palette=0,
-                photoIndex=i,
             )
         else:
             doPlot(pot.astype(complex),replotting,title='Potential (p to resume)',palette=1)

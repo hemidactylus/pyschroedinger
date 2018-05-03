@@ -44,8 +44,6 @@ def initPyGame(pIndex=0,saveImage=False):
     )
     if not saveImage:
         setDrawPalette(pIndex)
-    # palette=makePalette()
-    # pygame.display.set_palette(palette)
     startnparray=np.zeros((Nx*tileX,Ny*tileY)).astype(int)
     screen = pygame.surfarray.make_surface(startnparray).convert()
     startnparray=np.zeros((Nx,Ny)).astype(int)
@@ -66,19 +64,24 @@ def integerize(wfunction,maxMod2):
         into an array of integers 0-255
         rescaling the mod2 according to maxMod2
     '''
-    return (0.5+((mod2(wfunction)/maxMod2)**0.43)*254).astype(int)
-    # return (0.5+(mod2(wfunction)*254/maxMod2)).astype(int)
-    # the slower, bounds-checking form would be:
+    # to enhance the low values' coloring:
+    # return (0.5+((mod2(wfunction)/maxMod2)**0.43)*254).astype(int)
+    # the standard coloring:
+    return (0.5+(mod2(wfunction)*254/maxMod2)).astype(int)
+    # the slower, bounds-checking form of the latter would be:
     # nMat=(0.5+(mod2(wfunction)*254/maxMod2)).astype(int)
     # nMat[nMat>255]=255
     # nMat[nMat<0]=0
     # return nMat
 
+# Threshold of value (in units of 256) above which we draw the potential
+# instead of the wavefunction (for saveImage only)
+DRAW_POTENTIAL_THRESHOLD=80
 def mapToPalette(colArray,nparray,potarray,refPalette,refPotPalette):
     for x in range(nparray.shape[0]):
         for y in range(nparray.shape[1]):
             colArray[x][y]=np.array(refPalette[nparray[x][y]])
-            if potarray[x][y]>80:
+            if potarray[x][y]>DRAW_POTENTIAL_THRESHOLD:
                 colArray[x][y]=np.array(refPotPalette[potarray[x][y]])
 
 def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveImage=False,potential=None):
@@ -88,7 +91,13 @@ def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveIm
         Called once to init the plotting structure
         and subsequently to refresh the plotted data
 
-        saveImage = True DOES NOT USE PALETTE (faster), rather 24 bit depth all along!
+        To save frames for generating animated GIFs:
+            - in the init call, pass potential and saveImage=True
+            - for subsequent calls, to create a frame image,
+              pass the integer photoIndex
+            
+            # Careful: with saveImage we do not use any palette and
+              employ 24-bit colors natively (slowew)
     '''
     if replotting is None:
         # create everything
@@ -104,9 +113,9 @@ def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveIm
         replotting['palette']=palette
         if replotting['saveImage']:
             replotting['usedPalette']=makePalette(palette)
-        maxPot=mod2(potential.astype(complex)).max()
-        replotting['potential']=integerize(potential.astype(complex),maxPot)
-        replotting['potPalette']=makePalette(1)
+            maxPot=mod2(potential.astype(complex)).max()
+            replotting['potential']=integerize(potential.astype(complex),maxPot)
+            replotting['potPalette']=makePalette(1)
 
     if replotting['saveImage']:
         if palette!=replotting['palette']:
@@ -127,16 +136,13 @@ def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveIm
     maxMod2=mod2(wfunction).max()
     intMod2=integerize(wfunction,maxMod2)
 
-    # actual on-screen plotting through pygame
+    # actual on-screen plotting through pygame (and optionally saving)
     if replotting['saveImage']:
+        # non-optimised saving of the current frame
         colArray=np.zeros((180,180,3)).astype(int)
         pygame.pixelcopy.surface_to_array(colArray,replotting['pygame']['bufferSurf'])
         mapToPalette(colArray,intMod2,replotting['potential'],replotting['usedPalette'],replotting['potPalette'])
         pygame.pixelcopy.array_to_surface(replotting['pygame']['bufferSurf'],colArray)
-        # pygame.pixelcopy.array_to_surface(
-        #     replotting['pygame']['bufferSurf'],
-        #     colArray,
-        # )
     else:
         pygame.pixelcopy.array_to_surface(
             replotting['pygame']['bufferSurf'],
