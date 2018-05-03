@@ -139,14 +139,14 @@ def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveIm
     # actual on-screen plotting through pygame (and optionally saving)
     if replotting['saveImage']:
         # non-optimised saving of the current frame
-        colArray=np.zeros((180,180,3)).astype(int)
+        colArray=np.zeros((Nx,Ny,3)).astype(int)
         pygame.pixelcopy.surface_to_array(colArray,replotting['pygame']['bufferSurf'])
         mapToPalette(colArray,intMod2,replotting['potential'],replotting['usedPalette'],replotting['potPalette'])
         pygame.pixelcopy.array_to_surface(replotting['pygame']['bufferSurf'],colArray)
     else:
         pygame.pixelcopy.array_to_surface(
             replotting['pygame']['bufferSurf'],
-            intMod2,
+            intMod2.reshape((Nx,Ny)),
         )
     pygame.transform.scale(
         replotting['pygame']['bufferSurf'],

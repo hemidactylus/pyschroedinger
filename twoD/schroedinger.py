@@ -45,6 +45,7 @@ from twoD.tools import (
 from twoD.dynamics import (
     NaiveFiniteDifferenceIntegrator,
     RK4StepByStepIntegrator,
+    SparseMatrixRK4Integrator,
 )
 
 from utils.units import (
@@ -124,6 +125,7 @@ if __name__=='__main__':
 
     pot=initPot()
     integrator=RK4StepByStepIntegrator(
+    # integrator=SparseMatrixRK4Integrator(
         wfSizeX=Nx,
         wfSizeY=Ny,
         deltaTau=deltaTau,
@@ -146,6 +148,7 @@ if __name__=='__main__':
 
     plotTarget=0
 
+    initTime=time.time()
     for i in count() if framesToDraw is None else range(framesToDraw):
         if plotTarget==0:
             phi,normDev,tauIncr=integrator.integrate(phi,drawFreq)
@@ -169,3 +172,8 @@ if __name__=='__main__':
             #
             replotting['keyqueue']=[]
         #
+    elapsed=time.time()-initTime
+    print('Elapsed: %.2f seconds = %.3f iters/s' % (
+        elapsed,
+        framesToDraw/elapsed,
+    ))

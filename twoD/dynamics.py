@@ -3,12 +3,18 @@
 '''
 
 import numpy as np
+from scipy.sparse import csr_matrix
 
 from twoD.tools import (
     mod2,
     norm,
     re,
     im,
+)
+
+from twoD.settings import (
+    Nx,
+    Ny,
 )
 
 class WFIntegrator():
@@ -28,6 +34,90 @@ class WFIntegrator():
 
     def integrate(self,phi,nSteps):
         raise NotImplementedError
+
+class SparseMatrixRK4Integrator(WFIntegrator):
+    '''
+        RK4
+        uses sparse matrices
+        uses U=(1+H)^n
+        does n timesteps at once
+    '''
+    def __init__(
+        self,
+        wfSizeX,
+        wfSizeY,
+        deltaTau,
+        deltaLambdaX,
+        deltaLambdaY,
+        nIntegrationSteps,
+        vPotential,
+        periodicBCX,
+        periodicBCY,
+        mu,
+    ):
+        '''
+            the evolution matrix U^nIntegrationSteps is prepared here
+            for later usage
+        '''
+        self.nIntegrationSteps=nIntegrationSteps
+        self.wfSizeX=wfSizeX
+        self.wfSizeY=wfSizeY
+        self.periodicBCX=periodicBCX
+        self.periodicBCY=periodicBCY
+        self.deltaTau=deltaTau
+        self.deltaLambdaX=deltaLambdaX
+        self.deltaLambdaY=deltaLambdaY
+        self.deltaLambdaXY=self.deltaLambdaX*self.deltaLambdaY
+        self.vPotential=vPotential
+        self.mu=mu
+        # specials
+        self.kineticFactor=-1.0/(2.0*float(self.mu))
+        # not much else to do
+        self.totalDeltaTau=self.nIntegrationSteps*self.deltaTau
+        self._refreshEvoU()
+
+    def _refreshEvoU(self):
+        '''
+            calculates the nIntegrationSteps evolution matrix
+                U = (1+H)^nIntegrationSteps
+            such that the nIntSteps evolution is given by
+                phi -> U * phi
+        '''
+        self.evoU=csr_matrix(np.linalg.matrix_power(
+            createRK4StepMatrixH(
+                self.vPotential,
+                self.deltaTau,
+                self.deltaLambdaX,
+                self.deltaLambdaY,
+                self.wfSizeX,
+                self.wfSizeY,
+                self.periodicBCX,
+                self.periodicBCY,
+                self.mu
+            )+np.diag(np.ones(self.wfSizeX*self.wfSizeY)),
+            self.nIntegrationSteps,
+        ))
+
+    def setPotential(self,vPotential):
+        self.vPotential=vPotential
+        self._refreshEvoU()
+
+    def integrate(self,phi,nSteps):
+        '''
+            NO CHECKS are made whether nSteps matches self.nIntegrationSteps
+            (it should!), for the sake of speed
+
+            Given phi and nSteps, a tuple is returned:
+                newPhi, normBias, timeIncrement
+        '''
+        newPhi=self.evoU.dot(phi)
+        newNorm=norm(newPhi,self.deltaLambdaXY)
+        return (
+            newPhi/newNorm,
+            newNorm-1,
+            self.totalDeltaTau,
+        )
+
 
 class RK4StepByStepIntegrator(WFIntegrator):
     '''
@@ -76,8 +166,8 @@ class RK4StepByStepIntegrator(WFIntegrator):
             No normalisation is performed
         '''
         k1 = evolutionOperator(
-            phi,
-            self.vPotential,
+            phi.reshape((Nx,Ny)),
+            self.vPotential.reshape((Nx,Ny)),
             self.deltaLambdaX,
             self.deltaLambdaY,
             self.kineticFactor,
@@ -85,10 +175,10 @@ class RK4StepByStepIntegrator(WFIntegrator):
             self.periodicBCY,
             self.wfSizeX,
             self.wfSizeY,
-        )
+        ).reshape((Nx*Ny))
         k2 = evolutionOperator(
-            phi+k1*self.halfDeltaTau,
-            self.vPotential,
+            (phi+k1*self.halfDeltaTau).reshape((Nx,Ny)),
+            self.vPotential.reshape((Nx,Ny)),
             self.deltaLambdaX,
             self.deltaLambdaY,
             self.kineticFactor,
@@ -96,10 +186,10 @@ class RK4StepByStepIntegrator(WFIntegrator):
             self.periodicBCY,
             self.wfSizeX,
             self.wfSizeY,
-        )
+        ).reshape((Nx*Ny))
         k3=evolutionOperator(
-            phi+k2*self.halfDeltaTau,
-            self.vPotential,
+            (phi+k2*self.halfDeltaTau).reshape((Nx,Ny)),
+            self.vPotential.reshape((Nx,Ny)),
             self.deltaLambdaX,
             self.deltaLambdaY,
             self.kineticFactor,
@@ -107,10 +197,10 @@ class RK4StepByStepIntegrator(WFIntegrator):
             self.periodicBCY,
             self.wfSizeX,
             self.wfSizeY,
-        )
+        ).reshape((Nx*Ny))
         k4=evolutionOperator(
-            phi+self.deltaTau*k3,
-            self.vPotential,
+            (phi+self.deltaTau*k3).reshape((Nx,Ny)),
+            self.vPotential.reshape((Nx,Ny)),
             self.deltaLambdaX,
             self.deltaLambdaY,
             self.kineticFactor,
@@ -118,8 +208,8 @@ class RK4StepByStepIntegrator(WFIntegrator):
             self.periodicBCY,
             self.wfSizeX,
             self.wfSizeY,
-        )
-        return phi+self.deltaTau*(k1+2*k2+2*k3+k4)/6.0
+        ).reshape((Nx*Ny))
+        return (phi+self.deltaTau*(k1+2*k2+2*k3+k4)/6.0)
 
     def integrate(self,phi,nSteps):
         '''
@@ -187,10 +277,10 @@ class NaiveFiniteDifferenceIntegrator(WFIntegrator):
         return np.array([
             p+self.deltaTau*dp
             for p,dp in zip(
-                phi,
+                phi.reshape((Nx,Ny)),
                 evolutionOperator(
-                    phi,
-                    self.vPotential,
+                    phi.reshape((Nx,Ny)),
+                    self.vPotential.reshape((Nx,Ny)),
                     self.deltaLambdaX,
                     self.deltaLambdaY,
                     self.kineticFactor,
@@ -200,7 +290,7 @@ class NaiveFiniteDifferenceIntegrator(WFIntegrator):
                     self.wfSizeY,
                 ),
             )
-        ])
+        ]).reshape((Nx*Ny))
 
     def integrate(self,phi,nSteps):
         '''
@@ -217,7 +307,100 @@ class NaiveFiniteDifferenceIntegrator(WFIntegrator):
             self.deltaTau*nSteps,
         )
 
-def evolutionOperator(Phi,vPotential,deltaLambdaX,deltaLambdaY,kineticFactor,periodicBCX,periodicBCY,wfSizeX,wfSizeY):
+def createRK4StepMatrixH(
+    vPotential,
+    deltaTau,
+    deltaLambdaX,
+    deltaLambdaY,
+    wfSizeX,
+    wfSizeY,
+    periodicBCX,
+    periodicBCY,
+    mu
+):
+    '''
+        Creates the matrix H, encoding the whole rk process.
+        H is such that for one deltaTau time step
+            phi -> phi + H*phi
+    '''
+    sF=deltaTau*createEvolutionMatrixF(
+        vPotential,
+        wfSizeX,
+        wfSizeY,
+        deltaLambdaX,
+        deltaLambdaY,
+        periodicBCX,
+        periodicBCY,
+        mu
+    )
+    H=(sF+sF.dot(sF)/2.+sF.dot(sF).dot(sF)/6.+sF.dot(sF).dot(sF).dot(sF)/24.)
+    return H
+
+def createEvolutionMatrixF(
+    vPotential,
+    wfSizeX,
+    wfSizeY,
+    deltaLambdaX,
+    deltaLambdaY,
+    periodicBCX,
+    periodicBCY,
+    mu
+):
+    '''
+        returns a (wfSizeX*wfSizeY) x (wfSizeX*wfSizeY) matrix F,
+            F = (i/2mu)(kinetic part)-i(v)
+        defined so that the Schroedinger equation,
+        discretised, reads
+            d phi / d tau = F[phi]
+
+        Note: when the matrices [x][y] used here
+        undergo a reshape->(Nx*Ny),
+        the index map is:
+            [x][y] -> x*Ny+y
+    '''
+    # the kinetic part
+    fullSize=wfSizeX*wfSizeY
+    indexer=lambda x,y,_Ny=wfSizeY: x*_Ny+y
+    # the X- differences
+    kinPartX=np.diag(2*np.ones(fullSize))
+    for x in range(wfSizeX):
+        for y in range(wfSizeY):
+            tIdx=indexer(x,y)
+            kinPartX[tIdx,indexer((x+1)%wfSizeX,y)]=-1
+            kinPartX[indexer((x+1)%wfSizeX,y),tIdx]=-1
+        if not periodicBCX:
+            for y in [0,wfSizeY-1]:
+                tIdx=indexer(x,y)
+                kinPartX[tIdx,indexer((x+1)%wfSizeX,y)]=0
+                kinPartX[indexer((x+1)%wfSizeX,y),tIdx]=0
+    # the Y- differences
+    kinPartY=np.diag(2*np.ones(fullSize))
+    for y in range(wfSizeY):
+        for x in range(wfSizeX):
+            tIdx=indexer(x,y)
+            kinPartY[tIdx,indexer(x,(y+1)%wfSizeY)]=-1
+            kinPartY[indexer(x,(y+1)%wfSizeY),tIdx]=-1
+        if not periodicBCY:
+            for x in [0,wfSizeX-1]:
+                tIdx=indexer(x,y)
+                kinPartY[tIdx,indexer(x,(y+1)%wfSizeY)]=0
+                kinPartY[indexer(x,(y+1)%wfSizeY),tIdx]=0
+    # together with the potential is the final result
+    mKinFactorX=complex(0,1.0/(2.0*float(mu)*(deltaLambdaX**2)))
+    mKinFactorY=complex(0,1.0/(2.0*float(mu)*(deltaLambdaY**2)))
+    return mKinFactorX*kinPartX+mKinFactorY*kinPartY+complex(0,-1)*np.diag(vPotential)
+
+def evolutionOperator(
+    Phi,
+    vPotential,
+    deltaLambdaX,
+    deltaLambdaY,
+    kineticFactor,
+    periodicBCX,
+    periodicBCY,
+    wfSizeX,
+    wfSizeY
+):
     if periodicBCX:
         largePhiX=np.vstack([[Phi[:][-1]],Phi[:][:],[Phi[:][0]]])
         der2X=(2*Phi-largePhiX[:-2]-largePhiX[2:])/(deltaLambdaX**2)

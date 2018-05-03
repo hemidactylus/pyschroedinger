@@ -9,7 +9,7 @@ def mod2(psi):
     return (psi.conjugate()*psi).real
 
 def norm(psi,deltaLambdaXY):
-    return (sum(sum(mod2(psi)))*deltaLambdaXY)**0.5
+    return (sum(mod2(psi))*deltaLambdaXY)**0.5
 
 def re(psi):
     return psi.real

@@ -7,7 +7,7 @@ import numpy as np
 import math
 
 def freeParticlePotential(Nx,Ny):
-    return np.zeros((Nx,Ny),dtype=float)
+    return np.zeros((Nx,Ny),dtype=float).reshape((Nx*Ny))
 
 def rectangularHolePotential(Nx,Ny,pPos,pThickness,vIn,vOut):
     '''
@@ -48,4 +48,4 @@ def rectangularHolePotential(Nx,Ny,pPos,pThickness,vIn,vOut):
                 ],
             )
             unsubPot[x][y]=vOut+(vIn-vOut)*((1+math.tanh(leadDistance))/2)
-    return unsubPot
+    return unsubPot.reshape((Nx*Ny))

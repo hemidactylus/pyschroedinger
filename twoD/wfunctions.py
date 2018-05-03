@@ -24,7 +24,7 @@ def makeFakePhi(Nx,Ny,c,ph0,sigma2,phase=0.0,weight=1):
             amp=weight*np.exp(-((_x-c[0])**2/sigma2[0]+(_y-c[1])**2/sigma2[1]))
             pha=phase+(x*deltaLambdaX*ph[0])+(y*deltaLambdaY*ph[1])
             phi[x][y]=complex(amp*np.cos(pha),amp*np.sin(pha))
-    return phi
+    return phi.reshape((Nx*Ny))
 
 def roundWaveNumber(ph,axis):
     '''
