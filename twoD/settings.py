@@ -12,12 +12,12 @@ import math
 # Physical parameters
 LambdaX = 10
 LambdaY = 10
-Mu = 0.5
+Mu = 0.2
 
 # discretisation parameters
-Nx=60#128
-Ny=60#28
-deltaTau = 0.0005
+Nx=160
+Ny=160
+deltaTau = 0.0003
 
 periodicBCX=True
 periodicBCY=True
@@ -30,7 +30,7 @@ deltaLambdaY2=deltaLambdaY**2
 waveNumber0=(2*math.pi/LambdaX,2*math.pi/LambdaY)
 
 # display parameters
-tileX=8
-tileY=8
-drawFreq=25
+tileX=4
+tileY=4
+drawFreq=20
 framesToDraw=1000 # None => forever

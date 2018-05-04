@@ -83,14 +83,14 @@ def initPot():
                 pPos=(0.1,0.1,0.8,0.8),
                 pThickness=(0.0004,0.0004),
                 vIn=0,
-                vOut=2000,
+                vOut=6000,
             ),
             rectangularHolePotential(
                 Nx,
                 Ny,
                 pPos=(0.4,0.4,0.2,0.2),
                 pThickness=(0.0004,0.0004),
-                vIn=1600,
+                vIn=6000,
                 vOut=0,
             ),
             # 2. a "double slit" for 2. Better with fixed BC

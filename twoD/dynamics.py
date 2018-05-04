@@ -83,7 +83,10 @@ class SparseMatrixRK4Integrator(WFIntegrator):
             such that the nIntSteps evolution is given by
                 phi -> U * phi
         '''
-        self.evoU=csr_matrix(np.linalg.matrix_power(
+        # we exploit the fact that csr_matrix has a __pow__ method
+        # so we turn the one-step 1+H into a sparse and then
+        # compute its nIntSteps-th power within the sparseness realm.
+        oneStepMatrixOH=csr_matrix(
             createRK4StepMatrixH(
                 self.vPotential,
                 self.deltaTau,
@@ -94,9 +97,9 @@ class SparseMatrixRK4Integrator(WFIntegrator):
                 self.periodicBCX,
                 self.periodicBCY,
                 self.mu
-            )+np.diag(np.ones(self.wfSizeX*self.wfSizeY)),
-            self.nIntegrationSteps,
-        ))
+            )+np.diag(np.ones(self.wfSizeX*self.wfSizeY))
+        )
+        self.evoU=oneStepMatrixOH**self.nIntegrationSteps
 
     def setPotential(self,vPotential):
         self.vPotential=vPotential
