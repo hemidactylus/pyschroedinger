@@ -27,12 +27,6 @@ def rectangularHolePotential(Nx,Ny,pPos,pThickness,vIn,vOut):
     #
     unsubPot=np.zeros((Nx,Ny),dtype=float)
 
-    # for x in range(Nx):
-    #     for y in range(Ny):
-    #         if x<10 or x>Nx-10 or y<10 or y>Ny-10:
-    #             unsubPot[x][y]=vOut
-    # return unsubPot
-
     #
     for x in range(Nx):
         for y in range(Ny):
@@ -48,4 +42,17 @@ def rectangularHolePotential(Nx,Ny,pPos,pThickness,vIn,vOut):
                 ],
             )
             unsubPot[x][y]=vOut+(vIn-vOut)*((1+math.tanh(leadDistance))/2)
+    return unsubPot.reshape((Nx*Ny))
+
+def harmonicPotential(pPos,weights,Nx,Ny):
+    '''
+        generates a potential for 'harmonic',
+        with "elliptical shape"
+    '''
+    unsubPot=np.zeros((Nx,Ny),dtype=float)
+    for x in range(Nx):
+        for y in range(Ny):
+            _x=(x/(Nx-1))
+            _y=(y/(Ny-1))
+            unsubPot[x][y]=(weights[0]*(_x-pPos[0])**2)+(weights[1]*(_y-pPos[1])**2)
     return unsubPot.reshape((Nx*Ny))
