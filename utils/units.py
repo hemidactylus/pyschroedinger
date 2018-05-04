@@ -19,7 +19,7 @@ def toTime_fs(aTau):
     '''
     return aTau*hbarc/(c*m_e)
 
-def toEnergy_Mev(aE):
+def toEnergy_MeV(aE):
     '''
         energy in MeV
     '''

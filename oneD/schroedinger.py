@@ -52,7 +52,7 @@ from oneD.potentials import (
 from utils.units import (
     toLength_fm,
     toTime_fs,
-    toEnergy_Mev,
+    toEnergy_MeV,
 )
 
 from oneD.gui import (
@@ -158,7 +158,7 @@ if __name__=='__main__':
             '\n'.join(
                 '%s: E=%+.3E MeV (nd=%+.3E)' % (
                     k,
-                    toEnergy_Mev(energyMap[k]),
+                    toEnergy_MeV(energyMap[k]),
                     normDevMap[k],
                 )
                 for k in sorted(integrators.keys())
