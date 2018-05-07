@@ -20,30 +20,6 @@ from twoD.settings import (
 class WFIntegrator():
     def __init__(
         self,
-        wfSize,
-        deltaTau,
-        deltaLambda,
-        nIntegrationSteps,
-        periodicBC,
-        mu,
-    ):
-        raise NotImplementedError
-
-    def setPotential(self,pot):
-        raise NotImplementedError
-
-    def integrate(self,phi,nSteps):
-        raise NotImplementedError
-
-class SparseMatrixRK4Integrator(WFIntegrator):
-    '''
-        RK4
-        uses sparse matrices
-        uses U=(1+H)^n
-        does n timesteps at once
-    '''
-    def __init__(
-        self,
         wfSizeX,
         wfSizeY,
         deltaTau,
@@ -55,11 +31,6 @@ class SparseMatrixRK4Integrator(WFIntegrator):
         periodicBCY,
         mu,
     ):
-        '''
-            the evolution matrix U^nIntegrationSteps is prepared here
-            for later usage
-        '''
-        self.nIntegrationSteps=nIntegrationSteps
         self.wfSizeX=wfSizeX
         self.wfSizeY=wfSizeY
         self.periodicBCX=periodicBCX
@@ -67,13 +38,36 @@ class SparseMatrixRK4Integrator(WFIntegrator):
         self.deltaTau=deltaTau
         self.deltaLambdaX=deltaLambdaX
         self.deltaLambdaY=deltaLambdaY
+        self.nIntegrationSteps=nIntegrationSteps
+        self.totalDeltaTau=self.deltaTau*self.nIntegrationSteps
         self.deltaLambdaXY=self.deltaLambdaX*self.deltaLambdaY
+        self.halfDeltaTau=0.5*self.deltaTau
         self.vPotential=vPotential
         self.mu=mu
-        # specials
         self.kineticFactor=-1.0/(2.0*float(self.mu))
-        # not much else to do
-        self.totalDeltaTau=self.nIntegrationSteps*self.deltaTau
+
+    def setPotential(self,pot):
+        raise NotImplementedError
+
+    def integrate(self,phi):
+        newPhi=self._baseIntegrate(phi)
+        newNorm=norm(newPhi,self.deltaLambdaXY)
+        return (
+            newPhi/newNorm,
+            newNorm-1,
+            self.totalDeltaTau,
+        )
+
+
+class SparseMatrixRK4Integrator(WFIntegrator):
+    '''
+        RK4
+        uses sparse matrices
+        uses U=(1+H)^n
+        does n timesteps at once
+    '''
+    def __init__(self,*pargs,**kwargs):
+        WFIntegrator.__init__(self,*pargs,**kwargs)
         self._refreshEvoU()
 
     def _refreshEvoU(self):
@@ -86,7 +80,7 @@ class SparseMatrixRK4Integrator(WFIntegrator):
         # we exploit the fact that csr_matrix has a __pow__ method
         # so we turn the one-step 1+H into a sparse and then
         # compute its nIntSteps-th power within the sparseness realm.
-        oneStepMatrixOH=csr_matrix(
+        oneStepMatrixOH=(
             createRK4StepMatrixH(
                 self.vPotential,
                 self.deltaTau,
@@ -97,7 +91,7 @@ class SparseMatrixRK4Integrator(WFIntegrator):
                 self.periodicBCX,
                 self.periodicBCY,
                 self.mu
-            )+np.diag(np.ones(self.wfSizeX*self.wfSizeY))
+            )+csr_matrix(np.diag(np.ones(self.wfSizeX*self.wfSizeY)))
         )
         self.evoU=oneStepMatrixOH**self.nIntegrationSteps
 
@@ -105,7 +99,7 @@ class SparseMatrixRK4Integrator(WFIntegrator):
         self.vPotential=vPotential
         self._refreshEvoU()
 
-    def integrate(self,phi,nSteps):
+    def _baseIntegrate(self,phi):
         '''
             NO CHECKS are made whether nSteps matches self.nIntegrationSteps
             (it should!), for the sake of speed
@@ -113,13 +107,7 @@ class SparseMatrixRK4Integrator(WFIntegrator):
             Given phi and nSteps, a tuple is returned:
                 newPhi, normBias, timeIncrement
         '''
-        newPhi=self.evoU.dot(phi)
-        newNorm=norm(newPhi,self.deltaLambdaXY)
-        return (
-            newPhi/newNorm,
-            newNorm-1,
-            self.totalDeltaTau,
-        )
+        return self.evoU.dot(phi)
 
 
 class RK4StepByStepIntegrator(WFIntegrator):
@@ -128,36 +116,8 @@ class RK4StepByStepIntegrator(WFIntegrator):
         does not use matrices
         one timestep at a time (internally, for phi->phi)
     '''
-    def __init__(
-        self,
-        wfSizeX,
-        wfSizeY,
-        deltaTau,
-        deltaLambdaX,
-        deltaLambdaY,
-        nIntegrationSteps,
-        vPotential,
-        periodicBCX,
-        periodicBCY,
-        mu,
-    ):
-        '''
-            nIntegrationSteps is discarded
-        '''
-        self.wfSizeX=wfSizeX
-        self.wfSizeY=wfSizeY
-        self.periodicBCX=periodicBCX
-        self.periodicBCY=periodicBCY
-        self.deltaTau=deltaTau
-        self.deltaLambdaX=deltaLambdaX
-        self.deltaLambdaY=deltaLambdaY
-        self.deltaLambdaXY=self.deltaLambdaX*self.deltaLambdaY
-        self.halfDeltaTau=0.5*self.deltaTau
-        self.vPotential=vPotential
-        self.mu=mu
-        # specials
-        self.kineticFactor=-1.0/(2.0*float(self.mu))
-        # not much else to do
+    def __init__(self,*pargs,**kwargs):
+        WFIntegrator.__init__(self,*pargs,**kwargs)
 
     def setPotential(self,vPotential):
         self.vPotential=vPotential
@@ -214,7 +174,7 @@ class RK4StepByStepIntegrator(WFIntegrator):
         ).reshape((Nx*Ny))
         return (phi+self.deltaTau*(k1+2*k2+2*k3+k4)/6.0)
 
-    def integrate(self,phi,nSteps):
+    def _baseIntegrate(self,phi):
         '''
             Implements procedural RK4
 
@@ -222,14 +182,9 @@ class RK4StepByStepIntegrator(WFIntegrator):
             and the returned elapsedTime accordingly
         '''
         newPhi=phi
-        for _ in range(nSteps):
+        for _ in range(self.nIntegrationSteps):
             newPhi=self._performSingleRKStep(newPhi)
-        newNorm=norm(newPhi,self.deltaLambdaXY)
-        return (
-            newPhi/newNorm,
-            newNorm-1,
-            self.deltaTau*nSteps,
-        )
+        return newPhi
 
 class NaiveFiniteDifferenceIntegrator(WFIntegrator):
     '''
@@ -237,35 +192,8 @@ class NaiveFiniteDifferenceIntegrator(WFIntegrator):
         uses the simple discretised (adimensional) Schroedinger eq.
         one timestep at a time (internally, for phi->phi)
     '''
-    def __init__(
-        self,
-        wfSizeX,
-        wfSizeY,
-        deltaTau,
-        deltaLambdaX,
-        deltaLambdaY,
-        nIntegrationSteps,
-        vPotential,
-        periodicBCX,
-        periodicBCY,
-        mu,
-    ):
-        '''
-            nIntegrationSteps is discarded
-        '''
-        self.wfSizeX=wfSizeX
-        self.wfSizeY=wfSizeY
-        self.periodicBCX=periodicBCX
-        self.periodicBCY=periodicBCY
-        self.deltaTau=deltaTau
-        self.deltaLambdaX=deltaLambdaX
-        self.deltaLambdaY=deltaLambdaY
-        self.deltaLambdaXY=self.deltaLambdaX*self.deltaLambdaY
-        self.halfDeltaTau=0.5*self.deltaTau
-        self.vPotential=vPotential
-        self.mu=mu
-        # specials
-        self.kineticFactor=-1.0/(2.0*float(self.mu))
+    def __init__(self,*pargs,**kwargs):
+        WFIntegrator.__init__(self,*pargs,**kwargs)
         # not much else to do
 
     def setPotential(self,vPotential):
@@ -295,20 +223,15 @@ class NaiveFiniteDifferenceIntegrator(WFIntegrator):
             )
         ]).reshape((Nx*Ny))
 
-    def integrate(self,phi,nSteps):
+    def _baseIntegrate(self,phi):
         '''
             Implements a simple integration,
             repeated nSteps times.
         '''
         newPhi=phi
-        for _ in range(nSteps):
+        for _ in range(self.nIntegrationSteps):
             newPhi=self._performSingleIntegrationStep(newPhi)
-        newNorm=norm(newPhi,self.deltaLambdaXY)
-        return (
-            newPhi/newNorm,
-            newNorm-1,
-            self.deltaTau*nSteps,
-        )
+        return newPhi
 
 def createRK4StepMatrixH(
     vPotential,
@@ -391,7 +314,9 @@ def createEvolutionMatrixF(
     # together with the potential is the final result
     mKinFactorX=complex(0,1.0/(2.0*float(mu)*(deltaLambdaX**2)))
     mKinFactorY=complex(0,1.0/(2.0*float(mu)*(deltaLambdaY**2)))
-    return mKinFactorX*kinPartX+mKinFactorY*kinPartY+complex(0,-1)*np.diag(vPotential)
+    return csr_matrix(
+        mKinFactorX*kinPartX+mKinFactorY*kinPartY+complex(0,-1)*np.diag(vPotential)
+    )
 
 def evolutionOperator(
     Phi,

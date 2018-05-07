@@ -42,7 +42,23 @@ to be the only way to get the right colors on the saved picture files.)
 
 ## To do
 
-Better calculation of the particle energy
+A variable-pot version of the sparse integrator:
+  - keeps the pot separately, calculates the dynamics+id part once
+    in order to reapply the potential very time as a vector * vector (componentwise)
+  - does NOT compute expensive powers of the OH matrix, applies several time
+    the sparse one and that's it.
+      FOR ONE TIMESTEP:
+        phi = (1+H) phiO = (1+dyn+pot) phiO
+      keep 1+dyn = D as a csr matrix
+      and pot as a VECTOR
+        phi = (D+V) phiO = D * phiO + V * phiO
+      where the first * is (csr)matrix and the second is vector-vector.
+
+Better calculation of the particle energy (pO=pOld, a dt ago):
+
+(idea) <p|E|p> = <p|H|p> = ih <p|dp>/dt = ih <p| (|p>-|pO>) /dt
+  = ih/dt [ <p|p> - <p|pO> ] = ih ( 1 - <p|pO> ) / dt
+
 
 ## Units
 

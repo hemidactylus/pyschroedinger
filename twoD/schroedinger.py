@@ -124,8 +124,9 @@ def initPot():
 if __name__=='__main__':
 
     pot=initPot()
-    integrator=RK4StepByStepIntegrator(
-    # integrator=SparseMatrixRK4Integrator(
+    integrator=SparseMatrixRK4Integrator(
+    # integrator=RK4StepByStepIntegrator(
+    # integrator=NaiveFiniteDifferenceIntegrator(
         wfSizeX=Nx,
         wfSizeY=Ny,
         deltaTau=deltaTau,
@@ -151,7 +152,7 @@ if __name__=='__main__':
     initTime=time.time()
     for i in count() if framesToDraw is None else range(framesToDraw):
         if plotTarget==0:
-            phi,normDev,tauIncr=integrator.integrate(phi,drawFreq)
+            phi,normDev,tauIncr=integrator.integrate(phi)
             tau+=tauIncr
             doPlot(
                 phi,
