@@ -51,7 +51,7 @@ from twoD.dynamics import (
 from utils.units import (
     toLength_fm,
     toTime_fs,
-    toEnergy_Mev,
+    toEnergy_MeV,
 )
 
 import numpy as np
