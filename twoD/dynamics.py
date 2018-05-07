@@ -41,7 +41,6 @@ class WFIntegrator():
         self.nIntegrationSteps=nIntegrationSteps
         self.totalDeltaTau=self.deltaTau*self.nIntegrationSteps
         self.deltaLambdaXY=self.deltaLambdaX*self.deltaLambdaY
-        self.halfDeltaTau=0.5*self.deltaTau
         self.vPotential=vPotential
         self.mu=mu
         self.kineticFactor=-1.0/(2.0*float(self.mu))
@@ -52,8 +51,15 @@ class WFIntegrator():
     def integrate(self,phi):
         newPhi=self._baseIntegrate(phi)
         newNorm=norm(newPhi,self.deltaLambdaXY)
+        #
+        energy=complex(0,1)*(
+                newPhi.transpose().conjugate().dot( newPhi-phi )
+            )/self.totalDeltaTau
+        assert(abs(energy.imag)<=abs(energy.real)*0.1)
+        #
         return (
             newPhi/newNorm,
+            energy.real,
             newNorm-1,
             self.totalDeltaTau,
         )
@@ -118,6 +124,7 @@ class RK4StepByStepIntegrator(WFIntegrator):
     '''
     def __init__(self,*pargs,**kwargs):
         WFIntegrator.__init__(self,*pargs,**kwargs)
+        self.halfDeltaTau=0.5*self.deltaTau
 
     def setPotential(self,vPotential):
         self.vPotential=vPotential

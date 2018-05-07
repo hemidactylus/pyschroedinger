@@ -152,14 +152,15 @@ if __name__=='__main__':
     initTime=time.time()
     for i in count() if framesToDraw is None else range(framesToDraw):
         if plotTarget==0:
-            phi,normDev,tauIncr=integrator.integrate(phi)
+            phi,energy,normDev,tauIncr=integrator.integrate(phi)
             tau+=tauIncr
             doPlot(
                 phi,
                 replotting,
-                title='Iter %06i, t=%4.3E fs, nDev=%.4E' % (
+                title='Iter %04i, t=%.1E fs, E=%.1E MeV, nDev=%.2E' % (
                     i,
                     toTime_fs(tau),
+                    toEnergy_MeV(energy),
                     normDev,
                 ),
                 palette=0,

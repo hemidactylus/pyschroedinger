@@ -54,12 +54,6 @@ A variable-pot version of the sparse integrator:
         phi = (D+V) phiO = D * phiO + V * phiO
       where the first * is (csr)matrix and the second is vector-vector.
 
-Better calculation of the particle energy (pO=pOld, a dt ago):
-
-(idea) <p|E|p> = <p|H|p> = ih <p|dp>/dt = ih <p| (|p>-|pO>) /dt
-  = ih/dt [ <p|p> - <p|pO> ] = ih ( 1 - <p|pO> ) / dt
-
-
 ## Units
 
 We choose natural units and set <img
@@ -216,6 +210,21 @@ where
 <img
   src="https://latex.codecogs.com/svg.latex?e=\Delta\lambda\sum_i\phi^\star_i\left(-\frac{1}{2\mu}\frac{\Delta^2}{\Delta\lambda^2}+v\right)\phi_i"
 />
+
+### Approximate lightweight calculation:
+
+We exploit the evolution of the system between successive plotted timesteps:
+the two wavefunctions (before and after) encode the energy operator, hence
+
+WRITE THIS BETTER
+
+(idea) <p|E|p> = <p|H|p> = ih <p|dp>/dt = ih <p| (|p>-|pO>) /dt
+  = ih/dt [ <p|p> - <p|pO> ] = ih ( 1 - <p|pO> ) / dt
+
+<e>=
+  <p*|
+    (-1/2mu) (d2/dlambda2) + v
+  |p>
 
 ## Boundary conditions
 
