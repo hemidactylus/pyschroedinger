@@ -215,16 +215,21 @@ where
 
 We exploit the evolution of the system between successive plotted timesteps:
 the two wavefunctions (before and after) encode the energy operator, hence
+(using the fact that the norm of the wavefunction is one)
 
-WRITE THIS BETTER
+<img
+  src="https://latex.codecogs.com/svg.latex?\langle{E}\rangle=\langle|H|\rangle=i\hbar\langle{\psi}|\frac{\mathrm{d}|\psi\rangle}{\mathrm{d}\t}=i\hbar\langle{\psi}|\frac{\left(|\phi(t+\mathrm{d}t)\rangle-|\phi(t)\rangle\right)}{\mathrm{d}\t}=i\hbar\frac{\left(1-\langle\phi(t+\mathrm{d}t)|\phi(t)\rangle\right)}{\mathrm{d}t}"/>
 
-(idea) <p|E|p> = <p|H|p> = ih <p|dp>/dt = ih <p| (|p>-|pO>) /dt
-  = ih/dt [ <p|p> - <p|pO> ] = ih ( 1 - <p|pO> ) / dt
+In this way we do not need to perform additional computation to get the energy, save for a simple scalar
+product between the two successive wavefunction vectors.
 
-<e>=
-  <p*|
-    (-1/2mu) (d2/dlambda2) + v
-  |p>
+In practice we use the wavefunction before and after a single timestep &Delta;&tau;, meaning that
+the results deviates from the true energy in a way that goes to zero as the timestep goes to zero.
+
+In the adimensional units, the energy calculated in this way is given by:
+
+<img
+  src="https://latex.codecogs.com/svg.latex?e=\langle\phi|\left[-\frac{1}{2\mu}\frac{\mathrm{d}^2}{\mathrm{d}\lambda^2}+v|\phi\rangle\right]=\frac{i}{\Delta\tau}\langle\phi_\tau|\left(\phi_\tau-\phi_{\tau-\Delta\tau}\right)\rangle"/>.
 
 ## Boundary conditions
 
