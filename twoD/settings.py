@@ -11,14 +11,14 @@ import math
 import pygame
 
 # Physical parameters
-LambdaX = 10
-LambdaY = 10
+LambdaX = 1
+LambdaY = 1
 Mu = 0.25#0.14
 
 # discretisation parameters
 Nx=64
 Ny=64
-deltaTau = 0.0004
+deltaTau = 0.00001
 
 periodicBCX=True
 periodicBCY=True
@@ -33,10 +33,10 @@ waveNumber0=(2*math.pi/LambdaX,2*math.pi/LambdaY)
 # display parameters
 tileX=8
 tileY=8
-drawFreq=15
+drawFreq=5
 framesToDraw=None # None => forever
 
-potentialColor=[180,0,0]
+potentialColor=[0,180,0]
 
 padIncrement=0.003
 arrowKeyMap={

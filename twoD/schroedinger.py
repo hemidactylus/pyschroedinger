@@ -64,7 +64,7 @@ def initPhi():
     phi=combineWFunctions(
         [
             # 1. some interference
-            makeFakePhi(Nx,Ny,c=(0.25,0.25),ph0=(0,0),sigma2=(0.002,0.002),weight=1),
+            makeFakePhi(Nx,Ny,c=(0.25,0.25),ph0=(-5,5),sigma2=(0.002,0.002),weight=1),
             # makeFakePhi(Nx,Ny,c=(0.75,0.5),ph0=(-5,0),sigma2=(0.004,0.004),weight=1),
             # makeFakePhi(Nx,Ny,c=(0.5,0.2),ph0=(0,+3),sigma2=(0.001,0.001),weight=0.8),
             # makeFakePhi(Nx,Ny,c=(0.5,0.8),ph0=(0,-3),sigma2=(0.001,0.001),weight=0.8),
@@ -83,19 +83,28 @@ def initPot(patchPos):
             rectangularHolePotential(
                 Nx,
                 Ny,
-                pPos=(0.1,0.1,0.8,0.8),
-                pThickness=(0.00002,0.00002),
+                pPos=(0.03,0.03,0.94,0.94),
+                pThickness=(0.00001,0.00001),
                 vIn=0,
-                vOut=6000,
+                vOut=4000,
             ),
+            # ellipticHolePotential(
+            #     Nx,
+            #     Ny,
+            #     pPos=(0.5,0.5),
+            #     pRadius=(0.49,0.49),
+            #     pThickness=0.08,
+            #     vIn=0,
+            #     vOut=2000,
+            # ),
             # 1A. ... with an elliptic pad
             ellipticHolePotential(
                 Nx,
                 Ny,
                 pPos=patchPos,
                 pRadius=(0.1,0.1),
-                pThickness=0.002,
-                vIn=6000,
+                pThickness=0.001,
+                vIn=4000,
                 vOut=0,
             )
             # 1B. ... with a rectangular pad
@@ -149,7 +158,7 @@ def fixPatch(pp,ps):
 
 if __name__=='__main__':
 
-    patchPos=(0.5,0.5)
+    patchPos=(0.3,0.6)
 
     pot=initPot(patchPos=patchPos)
     # integrator=SparseMatrixRK4Integrator(
@@ -194,6 +203,7 @@ if __name__=='__main__':
                     normDev,
                 ),
                 palette=0,
+                potential=pot,
             )
         else:
             doPlot(pot.astype(complex),replotting,title='Potential (p to resume)',palette=1)
@@ -206,9 +216,9 @@ if __name__=='__main__':
             elif tkey=='x':
                 sys.exit()
             else: # arrow key
-                print('chg Pot',end='')
+                # print('chg Pot',end='')
                 patchPos=fixPatch(patchPos,arrowKeyMap[tkey])
-                print(' => %s' % str(patchPos))
+                # print(' => %s' % str(patchPos))
                 pot=initPot(patchPos=patchPos)
                 integrator.setPotential(pot)
         #

@@ -149,6 +149,9 @@ def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveIm
         mapToPalette(colArray,intMod2,replotting['potential'],replotting['usedPalette'],replotting['potPalette'])
         pygame.pixelcopy.array_to_surface(replotting['pygame']['bufferSurf'],colArray)
     else:
+        if potential is not None:
+            potThreshold=0.5*potential.max()
+            intMod2[potential>=potThreshold]=255
         pygame.pixelcopy.array_to_surface(
             replotting['pygame']['bufferSurf'],
             intMod2.reshape((Nx,Ny)),
@@ -177,8 +180,12 @@ def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveIm
             replotting['keyqueue'].append('x')
         if event.type in {pgKeyDown} and event.unicode=='q':
             replotting['keyqueue'].append('x')
-        if event.type in {pgKeyDown} and event.unicode=='p':
-            replotting['keyqueue'].append('p')
-        if event.type in {pgKeyDown} and event.key in arrowKeyMap:
-            replotting['keyqueue'].append(event.key)
+        # if event.type in {pgKeyDown} and event.unicode=='p':
+        #     replotting['keyqueue'].append('p')
+        # if event.type in {pgKeyDown} and event.key in arrowKeyMap:
+        #     replotting['keyqueue'].append(event.key)
+    kpresses= pygame.key.get_pressed()
+    for kDir in arrowKeyMap:
+        if kpresses[kDir]:
+            replotting['keyqueue'].append(kDir)
     return replotting
