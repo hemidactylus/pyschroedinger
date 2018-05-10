@@ -18,6 +18,7 @@ from twoD.settings import (
     tileX,
     tileY,
     arrowKeyMap,
+    potentialColor,
 )
 
 from twoD.tools import (
@@ -28,9 +29,9 @@ def makePalette(pIndex=0):
     import matplotlib.pyplot as plt
     cmap=plt.get_cmap(['magma','GnBu'][pIndex])
     return [
-        [int(comp*256) for comp in cmap(((i/255.)))[:3]]
-        for i in range(256)
-    ]
+        [int(comp*256) for comp in cmap(((i/254.)))[:3]]
+        for i in range(255)
+    ]+[potentialColor]
 
 def initPyGame(pIndex=0,saveImage=False):
     pygame.init()
@@ -69,7 +70,7 @@ def integerize(wfunction,maxMod2):
     # return (0.5+((mod2(wfunction)/maxMod2)**0.43)*254).astype(int)
     # the standard coloring:
     if maxMod2>0:
-        return (0.5+(mod2(wfunction)*254/maxMod2)).astype(int)
+        return (0.5+(mod2(wfunction)*253/maxMod2)).astype(int)
     else:
         return mod2(wfunction).astype(int)
     # the slower, bounds-checking form of the latter would be:

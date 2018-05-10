@@ -36,6 +36,8 @@ tileY=8
 drawFreq=15
 framesToDraw=None # None => forever
 
+potentialColor=[180,0,0]
+
 padIncrement=0.003
 arrowKeyMap={
     pygame.K_LEFT:  (-padIncrement,0),
