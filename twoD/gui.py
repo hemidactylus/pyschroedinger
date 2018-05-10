@@ -17,6 +17,7 @@ from twoD.settings import (
     Ny,
     tileX,
     tileY,
+    arrowKeyMap,
 )
 
 from twoD.tools import (
@@ -67,7 +68,10 @@ def integerize(wfunction,maxMod2):
     # to enhance the low values' coloring:
     # return (0.5+((mod2(wfunction)/maxMod2)**0.43)*254).astype(int)
     # the standard coloring:
-    return (0.5+(mod2(wfunction)*254/maxMod2)).astype(int)
+    if maxMod2>0:
+        return (0.5+(mod2(wfunction)*254/maxMod2)).astype(int)
+    else:
+        return mod2(wfunction).astype(int)
     # the slower, bounds-checking form of the latter would be:
     # nMat=(0.5+(mod2(wfunction)*254/maxMod2)).astype(int)
     # nMat[nMat>255]=255
@@ -169,12 +173,11 @@ def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveIm
     # 2. respond to events
     for event in pygame.event.get():
         if event.type in {pgQuit, pgMouseDown}:
-            pygame.quit()
-            sys.exit()
+            replotting['keyqueue'].append('x')
         if event.type in {pgKeyDown} and event.unicode=='q':
-            pygame.quit()
-            sys.exit()
+            replotting['keyqueue'].append('x')
         if event.type in {pgKeyDown} and event.unicode=='p':
             replotting['keyqueue'].append('p')
-    # all done
+        if event.type in {pgKeyDown} and event.key in arrowKeyMap:
+            replotting['keyqueue'].append(event.key)
     return replotting

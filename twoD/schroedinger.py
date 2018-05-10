@@ -22,6 +22,7 @@ from twoD.settings import (
     LambdaX,
     LambdaY,
     framesToDraw,
+    arrowKeyMap,
 )
 
 from twoD.gui import (
@@ -34,6 +35,7 @@ from twoD.wfunctions import (
 from twoD.potentials import (
     freeParticlePotential,
     rectangularHolePotential,
+    ellipticHolePotential,
 )
 
 from twoD.tools import (
@@ -46,6 +48,7 @@ from twoD.dynamics import (
     NaiveFiniteDifferenceIntegrator,
     RK4StepByStepIntegrator,
     SparseMatrixRK4Integrator,
+    VariablePotSparseRK4Integrator,
 )
 
 from utils.units import (
@@ -72,27 +75,38 @@ def initPhi():
     )
     return phi
 
-def initPot():
+def initPot(patchPos):
     return combinePotentials(
         [
             freeParticlePotential(Nx,Ny),
-            # 1. an arena within a box
+            # 1. an arena within a box...
             rectangularHolePotential(
                 Nx,
                 Ny,
                 pPos=(0.1,0.1,0.8,0.8),
-                pThickness=(0.0004,0.0004),
+                pThickness=(0.00002,0.00002),
                 vIn=0,
                 vOut=6000,
             ),
-            rectangularHolePotential(
+            # 1A. ... with an elliptic pad
+            ellipticHolePotential(
                 Nx,
                 Ny,
-                pPos=(0.4,0.4,0.2,0.2),
-                pThickness=(0.0004,0.0004),
+                pPos=patchPos,
+                pRadius=(0.1,0.1),
+                pThickness=0.002,
                 vIn=6000,
                 vOut=0,
-            ),
+            )
+            # 1B. ... with a rectangular pad
+            # rectangularHolePotential(
+            #     Nx,
+            #     Ny,
+            #     pPos=(patchPos[0]-0.1,patchPos[1]-0.1,0.2,0.2),
+            #     pThickness=(0.0004,0.0004),
+            #     vIn=6000,
+            #     vOut=0,
+            # ),
             # 2. a "double slit" for 2. Better with fixed BC
             # rectangularHolePotential(
             #     Nx,
@@ -121,12 +135,27 @@ def initPot():
         ]
     )
 
+def fixPatch(pp,ps):
+    nPos=[pp[0]+ps[0],pp[1]+ps[1]]
+    if nPos[0]<0:
+        nPos[0]=0
+    if nPos[0]>1:
+        nPos[0]=1
+    if nPos[1]<0:
+        nPos[1]=0
+    if nPos[1]>1:
+        nPos[1]=1
+    return tuple(nPos)
+
 if __name__=='__main__':
 
-    pot=initPot()
-    integrator=SparseMatrixRK4Integrator(
+    patchPos=(0.5,0.5)
+
+    pot=initPot(patchPos=patchPos)
+    # integrator=SparseMatrixRK4Integrator(
     # integrator=RK4StepByStepIntegrator(
     # integrator=NaiveFiniteDifferenceIntegrator(
+    integrator=VariablePotSparseRK4Integrator(
         wfSizeX=Nx,
         wfSizeY=Ny,
         deltaTau=deltaTau,
@@ -152,15 +181,16 @@ if __name__=='__main__':
     initTime=time.time()
     for i in count() if framesToDraw is None else range(framesToDraw):
         if plotTarget==0:
-            phi,energy,normDev,tauIncr=integrator.integrate(phi)
+            phi,energy,eComp,normDev,tauIncr=integrator.integrate(phi)
             tau+=tauIncr
             doPlot(
                 phi,
                 replotting,
-                title='Iter %04i, t=%.1E fs, E=%.1E MeV, nDev=%.2E' % (
+                title='Iter %04i, t=%.1E fs, E=%.1E MeV (%.1f), nDev=%.2E' % (
                     i,
                     toTime_fs(tau),
                     toEnergy_MeV(energy),
+                    eComp,
                     normDev,
                 ),
                 palette=0,
@@ -169,10 +199,18 @@ if __name__=='__main__':
             doPlot(pot.astype(complex),replotting,title='Potential (p to resume)',palette=1)
             time.sleep(0.1)
         #
-        if replotting['keyqueue']==['p']:
-            plotTarget=1-plotTarget
-            #
-            replotting['keyqueue']=[]
+        while replotting['keyqueue']:
+            tkey=replotting['keyqueue'].pop(0)
+            if tkey=='p':
+                plotTarget=1-plotTarget
+            elif tkey=='x':
+                sys.exit()
+            else: # arrow key
+                print('chg Pot',end='')
+                patchPos=fixPatch(patchPos,arrowKeyMap[tkey])
+                print(' => %s' % str(patchPos))
+                pot=initPot(patchPos=patchPos)
+                integrator.setPotential(pot)
         #
     elapsed=time.time()-initTime
     print('Elapsed: %.2f seconds = %.3f iters/s' % (

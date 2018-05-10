@@ -55,15 +55,83 @@ class WFIntegrator():
         energy=complex(0,1)*(
                 newPhi.transpose().conjugate().dot( newPhi-phi )
             )/self.totalDeltaTau
-        assert(abs(energy.imag)<=abs(energy.real)*0.1)
+        # assert(abs(energy.imag)<=abs(energy.real)*0.1)
+        # if abs(energy.imag)>abs(energy.real)*0.1:
+        #     print('ENERGY COMPLEX <%.4E> %.4E / %.4E' % (
+        #         abs(energy.imag)/abs(energy.real),
+        #         energy.real,
+        #         energy.imag,
+        #     ))
         #
         return (
             newPhi/newNorm,
             energy.real,
+            abs(energy.imag)/abs(energy.real),
             newNorm-1,
             self.totalDeltaTau,
         )
 
+class VariablePotSparseRK4Integrator(WFIntegrator):
+    '''
+        RK4
+        uses sparse matrices
+        applies repeatedly the one-step evolution
+        optimised for time-dependent potential:
+            the components of the evolution are assembled live
+    '''
+    def __init__(self,**kwargs):
+        WFIntegrator.__init__(self,**kwargs)
+        # calculation of the free-particle dynamics part
+        self.freeMatrix=createEvolutionMatrixF(
+            None,
+            self.wfSizeX,
+            self.wfSizeY,
+            self.deltaLambdaX,
+            self.deltaLambdaY,
+            self.periodicBCX,
+            self.periodicBCY,
+            self.mu
+        )
+        self.halfDeltaTau=0.5*self.deltaTau
+        #
+        self.setPotential(kwargs['vPotential'])
+
+    def setPotential(self,vPotential):
+        self.vPotential=vPotential
+
+    def _naiveEvolutionOperator(self,phi):
+        '''
+            uses the precomputed components to perform the
+            basic computation of the time evolution
+        '''
+        return (
+            (self.freeMatrix.dot(phi))-\
+            complex(0,1)*self.vPotential*phi
+        )
+
+    def _performSingleRKStep(self,phi):
+        '''
+            does what the function name says
+            and returns a new phi.
+            No normalisation is performed
+        '''
+        k1 = self._naiveEvolutionOperator(phi)
+        k2 = self._naiveEvolutionOperator(phi+k1*self.halfDeltaTau)
+        k3=self._naiveEvolutionOperator(phi+k2*self.halfDeltaTau)
+        k4=self._naiveEvolutionOperator(phi+self.deltaTau*k3)
+        return (phi+self.deltaTau*(k1+2*k2+2*k3+k4)/6.0)
+
+    def _baseIntegrate(self,phi):
+        '''
+            Implements procedural RK4
+
+            nSteps is used (even though it should match nIntegrationSteps)
+            and the returned elapsedTime accordingly
+        '''
+        newPhi=phi
+        for _ in range(self.nIntegrationSteps):
+            newPhi=self._performSingleRKStep(newPhi)
+        return newPhi
 
 class SparseMatrixRK4Integrator(WFIntegrator):
     '''
@@ -72,8 +140,8 @@ class SparseMatrixRK4Integrator(WFIntegrator):
         uses U=(1+H)^n
         does n timesteps at once
     '''
-    def __init__(self,*pargs,**kwargs):
-        WFIntegrator.__init__(self,*pargs,**kwargs)
+    def __init__(self,**kwargs):
+        WFIntegrator.__init__(self,**kwargs)
         self._refreshEvoU()
 
     def _refreshEvoU(self):
@@ -122,8 +190,8 @@ class RK4StepByStepIntegrator(WFIntegrator):
         does not use matrices
         one timestep at a time (internally, for phi->phi)
     '''
-    def __init__(self,*pargs,**kwargs):
-        WFIntegrator.__init__(self,*pargs,**kwargs)
+    def __init__(self,**kwargs):
+        WFIntegrator.__init__(self,**kwargs)
         self.halfDeltaTau=0.5*self.deltaTau
 
     def setPotential(self,vPotential):
@@ -199,8 +267,8 @@ class NaiveFiniteDifferenceIntegrator(WFIntegrator):
         uses the simple discretised (adimensional) Schroedinger eq.
         one timestep at a time (internally, for phi->phi)
     '''
-    def __init__(self,*pargs,**kwargs):
-        WFIntegrator.__init__(self,*pargs,**kwargs)
+    def __init__(self,**kwargs):
+        WFIntegrator.__init__(self,**kwargs)
         # not much else to do
 
     def setPotential(self,vPotential):
@@ -321,9 +389,14 @@ def createEvolutionMatrixF(
     # together with the potential is the final result
     mKinFactorX=complex(0,1.0/(2.0*float(mu)*(deltaLambdaX**2)))
     mKinFactorY=complex(0,1.0/(2.0*float(mu)*(deltaLambdaY**2)))
-    return csr_matrix(
-        mKinFactorX*kinPartX+mKinFactorY*kinPartY+complex(0,-1)*np.diag(vPotential)
-    )
+    if vPotential is not None:
+        return csr_matrix(
+            mKinFactorX*kinPartX+mKinFactorY*kinPartY+complex(0,-1)*np.diag(vPotential)
+        )
+    else:
+        return csr_matrix(
+            mKinFactorX*kinPartX+mKinFactorY*kinPartY
+        )
 
 def evolutionOperator(
     Phi,

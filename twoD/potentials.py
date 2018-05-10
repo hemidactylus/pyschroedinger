@@ -9,6 +9,29 @@ import math
 def freeParticlePotential(Nx,Ny):
     return np.zeros((Nx,Ny),dtype=float).reshape((Nx*Ny))
 
+def ellipticHolePotential(Nx,Ny,pPos,pRadius,pThickness,vIn,vOut):
+    '''
+        a plateau, of elliptic shape, with a steepness of borders;
+        center and values of the potential in and out are provided
+
+        pThickness is a *scalar* and appilies after the radiusization,
+        i.e. in scale where the border is at 'radius one'
+
+    '''
+    center=pPos
+    radius=pRadius
+    thickness=pThickness
+    unsubPot=np.zeros((Nx,Ny),dtype=float)
+
+    #
+    for x in range(Nx):
+        for y in range(Ny):
+            _x=(x/(Nx-1))
+            _y=(y/(Ny-1))
+            _rho=((((_x-center[0])/radius[0])**2)+(((_y-center[1])/radius[1])**2))**0.5
+            unsubPot[x][y]=vOut+(vIn-vOut)*((1+math.tanh((1-_rho)/thickness))/2)
+    return unsubPot.reshape((Nx*Ny))
+
 def rectangularHolePotential(Nx,Ny,pPos,pThickness,vIn,vOut):
     '''
         a "step" i.e. a rectangular area of low pot

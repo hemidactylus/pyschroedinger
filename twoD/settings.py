@@ -8,11 +8,12 @@
 '''
 
 import math
+import pygame
 
 # Physical parameters
 LambdaX = 10
 LambdaY = 10
-Mu = 0.2
+Mu = 0.25#0.14
 
 # discretisation parameters
 Nx=64
@@ -30,7 +31,15 @@ deltaLambdaY2=deltaLambdaY**2
 waveNumber0=(2*math.pi/LambdaX,2*math.pi/LambdaY)
 
 # display parameters
-tileX=6
-tileY=6
-drawFreq=10
-framesToDraw=2000 # None => forever
+tileX=8
+tileY=8
+drawFreq=15
+framesToDraw=None # None => forever
+
+padIncrement=0.003
+arrowKeyMap={
+    pygame.K_LEFT:  (-padIncrement,0),
+    pygame.K_RIGHT: (+padIncrement,0),
+    pygame.K_UP:    (0,-padIncrement),
+    pygame.K_DOWN:  (0,+padIncrement),
+}

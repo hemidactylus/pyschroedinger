@@ -40,7 +40,7 @@ the wavefunction; even more crucial, due to my incomplete knowledge of `pygame`,
 the 8-bit color palette, using instead full RGB colors for the rendering of the image -- that seemed
 to be the only way to get the right colors on the saved picture files.)
 
-## To do
+## DONE (not much optimized, to refine)
 
 A variable-pot version of the sparse integrator:
   - keeps the pot separately, calculates the dynamics+id part once
@@ -51,7 +51,7 @@ A variable-pot version of the sparse integrator:
         phi = (1+H) phiO = (1+dyn+pot) phiO
       keep 1+dyn = D as a csr matrix
       and pot as a VECTOR
-        phi = (D+V) phiO = D * phiO + V * phiO
+        phi = (D+V) phiO = D * phiO  -i * V * phiO
       where the first * is (csr)matrix and the second is vector-vector.
 
 ## Units
