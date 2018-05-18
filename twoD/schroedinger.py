@@ -86,7 +86,15 @@ def initPot(patchPos):
                 pPos=(0.03,0.03,0.94,0.94),
                 pThickness=(0.00001,0.00001),
                 vIn=0,
-                vOut=4000,
+                vOut=8000,
+            ),
+            rectangularHolePotential(
+                Nx,
+                Ny,
+                pPos=(0.02,0.45,0.96,0.1),
+                pThickness=(0.00001,0.0006),
+                vIn=5000,
+                vOut=0,
             ),
             # ellipticHolePotential(
             #     Nx,
@@ -104,7 +112,7 @@ def initPot(patchPos):
                 pPos=patchPos,
                 pRadius=(0.1,0.1),
                 pThickness=0.001,
-                vIn=4000,
+                vIn=8000,
                 vOut=0,
             )
             # 1B. ... with a rectangular pad
@@ -158,7 +166,7 @@ def fixPatch(pp,ps):
 
 if __name__=='__main__':
 
-    patchPos=(0.3,0.6)
+    patchPos=(0.3,0.8)
 
     pot=initPot(patchPos=patchPos)
     # integrator=SparseMatrixRK4Integrator(
@@ -186,6 +194,7 @@ if __name__=='__main__':
     print('Lengths: LX=%4.3E, LY=%4.3E' % (phLenX,phLenY))
 
     plotTarget=0
+    hidePot=False
 
     initTime=time.time()
     for i in count() if framesToDraw is None else range(framesToDraw):
@@ -203,7 +212,7 @@ if __name__=='__main__':
                     normDev,
                 ),
                 palette=0,
-                potential=pot,
+                potential=None if hidePot else pot,#pot,
             )
         else:
             doPlot(pot.astype(complex),replotting,title='Potential (p to resume)',palette=1)
@@ -215,12 +224,14 @@ if __name__=='__main__':
                 plotTarget=1-plotTarget
             elif tkey=='x':
                 sys.exit()
+            elif tkey=='s':
+                hidePot=not hidePot
             else: # arrow key
                 # print('chg Pot',end='')
                 patchPos=fixPatch(patchPos,arrowKeyMap[tkey])
                 # print(' => %s' % str(patchPos))
-                pot=initPot(patchPos=patchPos)
-                integrator.setPotential(pot)
+        pot=initPot(patchPos=patchPos)
+        integrator.setPotential(pot)
         #
     elapsed=time.time()-initTime
     print('Elapsed: %.2f seconds = %.3f iters/s' % (

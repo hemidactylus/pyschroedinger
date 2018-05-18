@@ -180,8 +180,10 @@ def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveIm
             replotting['keyqueue'].append('x')
         if event.type in {pgKeyDown} and event.unicode=='q':
             replotting['keyqueue'].append('x')
-        # if event.type in {pgKeyDown} and event.unicode=='p':
-        #     replotting['keyqueue'].append('p')
+        if event.type in {pgKeyDown} and event.unicode=='p':
+            replotting['keyqueue'].append('p')
+        if event.type in {pgKeyDown} and event.unicode=='s':
+            replotting['keyqueue'].append('s')
         # if event.type in {pgKeyDown} and event.key in arrowKeyMap:
         #     replotting['keyqueue'].append(event.key)
     kpresses= pygame.key.get_pressed()

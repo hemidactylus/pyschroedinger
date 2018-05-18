@@ -18,10 +18,10 @@ Mu = 0.25#0.14
 # discretisation parameters
 Nx=64
 Ny=64
-deltaTau = 0.00001
+deltaTau = 0.000005
 
-periodicBCX=True
-periodicBCY=True
+periodicBCX=False
+periodicBCY=False
 
 # quantities derived from the above
 deltaLambdaX=float(LambdaX)/float(Nx)
@@ -38,7 +38,7 @@ framesToDraw=None # None => forever
 
 potentialColor=[0,180,0]
 
-padIncrement=0.003
+padIncrement=0.01
 arrowKeyMap={
     pygame.K_LEFT:  (-padIncrement,0),
     pygame.K_RIGHT: (+padIncrement,0),
