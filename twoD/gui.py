@@ -94,7 +94,7 @@ def mapToPalette(colArray,nparray,potarray,refPalette,refPotPalette):
             if potarray[x][y]>DRAW_POTENTIAL_THRESHOLD:
                 colArray[x][y]=np.array(refPotPalette[potarray[x][y]])
 
-def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveImage=False,potential=None):
+def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveImage=False,potential=None,artifacts=[]):
     '''
         all information on the x,y-scale
         is implicit.
@@ -161,6 +161,11 @@ def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveIm
             replotting['pygame']['bufferSurf'],
             intMod2.reshape((Nx,Ny)),
         )
+    # artifacts
+    for art,pos in artifacts:
+        # print(dir(replotting['pygame']['bufferSurf']))
+        replotting['pygame']['bufferSurf'].blit(art,pos)
+    #
     pygame.transform.scale(
         replotting['pygame']['bufferSurf'],
         (

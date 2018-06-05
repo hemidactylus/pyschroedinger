@@ -63,13 +63,7 @@ def initPhi():
     # very fake for now
     phi=combineWFunctions(
         [
-            # 1. some interference
             makeFakePhi(Nx,Ny,c=(0.25,0.25),ph0=(-5,5),sigma2=(0.002,0.002),weight=1),
-            # makeFakePhi(Nx,Ny,c=(0.75,0.5),ph0=(-5,0),sigma2=(0.004,0.004),weight=1),
-            # makeFakePhi(Nx,Ny,c=(0.5,0.2),ph0=(0,+3),sigma2=(0.001,0.001),weight=0.8),
-            # makeFakePhi(Nx,Ny,c=(0.5,0.8),ph0=(0,-3),sigma2=(0.001,0.001),weight=0.8),
-            # 2. a "plane wave"
-            # makeFakePhi(Nx,Ny,c=(0.9,0.5),ph0=(8,0),sigma2=(0.001,0.1),weight=0.8),
         ],
         deltaLambdaXY=deltaLambdaX*deltaLambdaY,
     )
@@ -88,24 +82,14 @@ def initPot(patchPos):
                 vIn=0,
                 vOut=8000,
             ),
-            rectangularHolePotential(
-                Nx,
-                Ny,
-                pPos=(0.02,0.45,0.96,0.1),
-                pThickness=(0.00001,0.0006),
-                vIn=5000,
-                vOut=0,
-            ),
-            # ellipticHolePotential(
+            # rectangularHolePotential(
             #     Nx,
             #     Ny,
-            #     pPos=(0.5,0.5),
-            #     pRadius=(0.49,0.49),
-            #     pThickness=0.08,
-            #     vIn=0,
-            #     vOut=2000,
+            #     pPos=(0.02,0.45,0.96,0.1),
+            #     pThickness=(0.00001,0.0006),
+            #     vIn=5000,
+            #     vOut=0,
             # ),
-            # 1A. ... with an elliptic pad
             ellipticHolePotential(
                 Nx,
                 Ny,
@@ -115,40 +99,6 @@ def initPot(patchPos):
                 vIn=8000,
                 vOut=0,
             )
-            # 1B. ... with a rectangular pad
-            # rectangularHolePotential(
-            #     Nx,
-            #     Ny,
-            #     pPos=(patchPos[0]-0.1,patchPos[1]-0.1,0.2,0.2),
-            #     pThickness=(0.0004,0.0004),
-            #     vIn=6000,
-            #     vOut=0,
-            # ),
-            # 2. a "double slit" for 2. Better with fixed BC
-            # rectangularHolePotential(
-            #     Nx,
-            #     Ny,
-            #     pPos=(0.5,0.0,0.02,0.4),
-            #     pThickness=(0.00004,0.00004),
-            #     vIn=5000,
-            #     vOut=0,
-            # ),
-            # rectangularHolePotential(
-            #     Nx,
-            #     Ny,
-            #     pPos=(0.5,0.46,0.02,0.08),
-            #     pThickness=(0.00004,0.00004),
-            #     vIn=5000,
-            #     vOut=0,
-            # ),
-            # rectangularHolePotential(
-            #     Nx,
-            #     Ny,
-            #     pPos=(0.5,0.6,0.02,0.4),
-            #     pThickness=(0.00004,0.00004),
-            #     vIn=5000,
-            #     vOut=0,
-            # ),
         ]
     )
 
@@ -166,7 +116,7 @@ def fixPatch(pp,ps):
 
 if __name__=='__main__':
 
-    patchPos=(0.3,0.8)
+    patchPos=(0.5,0.5)
 
     pot=initPot(patchPos=patchPos)
     integrator=VariablePotSparseRK4Integrator(
@@ -193,6 +143,19 @@ if __name__=='__main__':
     plotTarget=0
     hidePot=False
 
+    import pygame.surface
+    art1=pygame.surface.Surface((4,4),0,8)
+    art1.set_at((0,0),255)
+    art1.set_at((0,3),255)
+    art1.set_at((3,0),255)
+    art1.set_at((3,3),255)
+    art1.set_colorkey(0)
+
+    art2=pygame.surface.Surface((1,Ny),0,8)
+    art2.fill(255)
+    art3=pygame.surface.Surface((Nx,1),0,8)
+    art3.fill(255)
+
     initTime=time.time()
     for i in count() if framesToDraw is None else range(framesToDraw):
         if plotTarget==0:
@@ -209,7 +172,17 @@ if __name__=='__main__':
                     normDev,
                 ),
                 palette=0,
-                potential=None if hidePot else pot,#pot,
+                potential=None if hidePot else pot,
+                artifacts=[
+                    (
+                        art1,
+                        (int(patchPos[0]*Nx),int(patchPos[1]*Ny)),
+                    ),
+                    (art2,(10,0)),
+                    (art2,(Nx-10,0)),
+                    (art3,(0,10)),
+                    (art3,(0,Ny-10)),
+                ],
             )
         else:
             doPlot(pot.astype(complex),replotting,title='Potential (p to resume)',palette=1)
