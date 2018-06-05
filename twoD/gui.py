@@ -26,6 +26,11 @@ from twoD.tools import (
 )
 
 def makePalette(pIndex=0):
+    '''
+        we leave a last single color for non-wavefunction
+        display (in particular for the potential).
+        Not a big waste even in case we are not interactive
+    '''
     import matplotlib.pyplot as plt
     cmap=plt.get_cmap(['magma','GnBu'][pIndex])
     return [
@@ -177,9 +182,9 @@ def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveIm
     # 2. respond to events
     for event in pygame.event.get():
         if event.type in {pgQuit, pgMouseDown}:
-            replotting['keyqueue'].append('x')
+            replotting['keyqueue'].append('q')
         if event.type in {pgKeyDown} and event.unicode=='q':
-            replotting['keyqueue'].append('x')
+            replotting['keyqueue'].append('q')
         if event.type in {pgKeyDown} and event.unicode=='p':
             replotting['keyqueue'].append('p')
         if event.type in {pgKeyDown} and event.unicode=='s':

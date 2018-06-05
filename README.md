@@ -42,6 +42,14 @@ to be the only way to get the right colors on the saved picture files.)
 
 ## DONE (not much optimized, to refine)
 
+TODO 22
+  clearly separate the interactive from the simulation (schroedinger.py vs interactive.py)
+      start from the oldSch temp file
+    also the handling of pressed keys is now to be done in the main code!
+  this means some flags passed down to gui.py to show the potential etc
+  then optimize variable potential in its own proper place
+
+
 A variable-pot version of the sparse integrator:
   - keeps the pot separately, calculates the dynamics+id part once
     in order to reapply the potential very time as a vector * vector (componentwise)

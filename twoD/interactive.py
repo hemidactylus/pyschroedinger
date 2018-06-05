@@ -22,6 +22,7 @@ from twoD.settings import (
     LambdaX,
     LambdaY,
     framesToDraw,
+    arrowKeyMap,
 )
 
 from twoD.gui import (
@@ -34,6 +35,7 @@ from twoD.wfunctions import (
 from twoD.potentials import (
     freeParticlePotential,
     rectangularHolePotential,
+    ellipticHolePotential,
 )
 
 from twoD.tools import (
@@ -46,6 +48,7 @@ from twoD.dynamics import (
     NaiveFiniteDifferenceIntegrator,
     RK4StepByStepIntegrator,
     SparseMatrixRK4Integrator,
+    VariablePotSparseRK4Integrator,
 )
 
 from utils.units import (
@@ -61,7 +64,7 @@ def initPhi():
     phi=combineWFunctions(
         [
             # 1. some interference
-            makeFakePhi(Nx,Ny,c=(0.25,0.25),ph0=(0,0),sigma2=(0.002,0.002),weight=1),
+            makeFakePhi(Nx,Ny,c=(0.25,0.25),ph0=(-5,5),sigma2=(0.002,0.002),weight=1),
             # makeFakePhi(Nx,Ny,c=(0.75,0.5),ph0=(-5,0),sigma2=(0.004,0.004),weight=1),
             # makeFakePhi(Nx,Ny,c=(0.5,0.2),ph0=(0,+3),sigma2=(0.001,0.001),weight=0.8),
             # makeFakePhi(Nx,Ny,c=(0.5,0.8),ph0=(0,-3),sigma2=(0.001,0.001),weight=0.8),
@@ -72,27 +75,55 @@ def initPhi():
     )
     return phi
 
-def initPot():
+def initPot(patchPos):
     return combinePotentials(
         [
             freeParticlePotential(Nx,Ny),
-            # 1. an arena within a box
+            # 1. an arena within a box...
             rectangularHolePotential(
                 Nx,
                 Ny,
-                pPos=(0.1,0.1,0.8,0.8),
-                pThickness=(0.0004,0.0004),
+                pPos=(0.03,0.03,0.94,0.94),
+                pThickness=(0.00001,0.00001),
                 vIn=0,
-                vOut=6000,
+                vOut=8000,
             ),
             rectangularHolePotential(
                 Nx,
                 Ny,
-                pPos=(0.4,0.4,0.2,0.2),
-                pThickness=(0.0004,0.0004),
-                vIn=6000,
+                pPos=(0.02,0.45,0.96,0.1),
+                pThickness=(0.00001,0.0006),
+                vIn=5000,
                 vOut=0,
             ),
+            # ellipticHolePotential(
+            #     Nx,
+            #     Ny,
+            #     pPos=(0.5,0.5),
+            #     pRadius=(0.49,0.49),
+            #     pThickness=0.08,
+            #     vIn=0,
+            #     vOut=2000,
+            # ),
+            # 1A. ... with an elliptic pad
+            ellipticHolePotential(
+                Nx,
+                Ny,
+                pPos=patchPos,
+                pRadius=(0.1,0.1),
+                pThickness=0.001,
+                vIn=8000,
+                vOut=0,
+            )
+            # 1B. ... with a rectangular pad
+            # rectangularHolePotential(
+            #     Nx,
+            #     Ny,
+            #     pPos=(patchPos[0]-0.1,patchPos[1]-0.1,0.2,0.2),
+            #     pThickness=(0.0004,0.0004),
+            #     vIn=6000,
+            #     vOut=0,
+            # ),
             # 2. a "double slit" for 2. Better with fixed BC
             # rectangularHolePotential(
             #     Nx,
@@ -121,10 +152,24 @@ def initPot():
         ]
     )
 
+def fixPatch(pp,ps):
+    nPos=[pp[0]+ps[0],pp[1]+ps[1]]
+    if nPos[0]<0:
+        nPos[0]=0
+    if nPos[0]>1:
+        nPos[0]=1
+    if nPos[1]<0:
+        nPos[1]=0
+    if nPos[1]>1:
+        nPos[1]=1
+    return tuple(nPos)
+
 if __name__=='__main__':
 
-    pot=initPot()
-    integrator=SparseMatrixRK4Integrator(
+    patchPos=(0.3,0.8)
+
+    pot=initPot(patchPos=patchPos)
+    integrator=VariablePotSparseRK4Integrator(
         wfSizeX=Nx,
         wfSizeY=Ny,
         deltaTau=deltaTau,
@@ -146,6 +191,7 @@ if __name__=='__main__':
     print('Lengths: LX=%4.3E, LY=%4.3E' % (phLenX,phLenY))
 
     plotTarget=0
+    hidePot=False
 
     initTime=time.time()
     for i in count() if framesToDraw is None else range(framesToDraw):
@@ -163,6 +209,7 @@ if __name__=='__main__':
                     normDev,
                 ),
                 palette=0,
+                potential=None if hidePot else pot,#pot,
             )
         else:
             doPlot(pot.astype(complex),replotting,title='Potential (p to resume)',palette=1)
@@ -174,6 +221,14 @@ if __name__=='__main__':
                 plotTarget=1-plotTarget
             elif tkey=='q':
                 sys.exit()
+            elif tkey=='s':
+                hidePot=not hidePot
+            else: # arrow key
+                # print('chg Pot',end='')
+                patchPos=fixPatch(patchPos,arrowKeyMap[tkey])
+                # print(' => %s' % str(patchPos))
+        pot=initPot(patchPos=patchPos)
+        integrator.setPotential(pot)
         #
     elapsed=time.time()-initTime
     print('Elapsed: %.2f seconds = %.3f iters/s' % (
