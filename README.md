@@ -40,27 +40,13 @@ the wavefunction; even more crucial, due to my incomplete knowledge of `pygame`,
 the 8-bit color palette, using instead full RGB colors for the rendering of the image -- that seemed
 to be the only way to get the right colors on the saved picture files.)
 
-## DONE (not much optimized, to refine)
+## To Do
 
-TODO 22
-  clearly separate the interactive from the simulation (schroedinger.py vs interactive.py)
-      start from the oldSch temp file
-    also the handling of pressed keys is now to be done in the main code!
-  this means some flags passed down to gui.py to show the potential etc
-  then optimize variable potential in its own proper place
-
-
-A variable-pot version of the sparse integrator:
-  - keeps the pot separately, calculates the dynamics+id part once
-    in order to reapply the potential very time as a vector * vector (componentwise)
-  - does NOT compute expensive powers of the OH matrix, applies several time
-    the sparse one and that's it.
-      FOR ONE TIMESTEP:
-        phi = (1+H) phiO = (1+dyn+pot) phiO
-      keep 1+dyn = D as a csr matrix
-      and pot as a VECTOR
-        phi = (D+V) phiO = D * phiO  -i * V * phiO
-      where the first * is (csr)matrix and the second is vector-vector.
+for the 2d interactive:
+- proper handling of the "artifacts" (spriting) for walls and paddle
+- reistate the exact energy calculation
+- check if ok to zero the wavefunction where the paddle goes
+- check if it makes sense to kill high frequencies (smoothing)
 
 ## Units
 

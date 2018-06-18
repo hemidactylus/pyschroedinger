@@ -29,6 +29,11 @@ from twoD.gui import (
     doPlot,
 )
 
+from twoD.artifacts import (
+    makeRectangularArtifactList,
+    makeCircleArtifact,
+)
+
 from twoD.wfunctions import (
     makeFakePhi,
 )
@@ -102,21 +107,23 @@ def initPot(patchPos):
         ]
     )
 
-def fixPatch(pp,ps):
+def fixPatch(pp,ps,rdii):
     nPos=[pp[0]+ps[0],pp[1]+ps[1]]
-    if nPos[0]<0:
-        nPos[0]=0
-    if nPos[0]>1:
-        nPos[0]=1
-    if nPos[1]<0:
-        nPos[1]=0
-    if nPos[1]>1:
-        nPos[1]=1
+    if nPos[0]-rdii[0]<0:
+        nPos[0]=rdii[0]
+    if nPos[0]+rdii[0]>1:
+        nPos[0]=1-rdii[0]
+    if nPos[1]-rdii[1]<0:
+        nPos[1]=rdii[1]
+    if nPos[1]+rdii[1]>1:
+        nPos[1]=1-rdii[1]
     return tuple(nPos)
 
 if __name__=='__main__':
 
+    # pad configuration
     patchPos=(0.5,0.5)
+    patchRadii=(0.08,0.08)
 
     pot=initPot(patchPos=patchPos)
     integrator=VariablePotSparseRK4Integrator(
@@ -143,24 +150,39 @@ if __name__=='__main__':
     plotTarget=0
     hidePot=False
 
-    import pygame.surface
-    art1=pygame.surface.Surface((4,4),0,8)
-    art1.set_at((0,0),255)
-    art1.set_at((0,3),255)
-    art1.set_at((3,0),255)
-    art1.set_at((3,3),255)
-    art1.set_colorkey(0)
+    pad=makeCircleArtifact(
+        Nx=Nx,
+        Ny=Ny,
+        centerX=0.5,
+        centerY=0.5,
+        radiusX=patchRadii[0],
+        radiusY=patchRadii[1],
+        color=255,
+        transparentKey=0,
+    )
 
-    art2=pygame.surface.Surface((1,Ny),0,8)
-    art2.fill(255)
-    art3=pygame.surface.Surface((Nx,1),0,8)
-    art3.fill(255)
+    frameArtifacts=makeRectangularArtifactList(
+        Nx=Nx,
+        Ny=Ny,
+        posX=0.03,
+        posY=0.03,
+        widthX=0.03,
+        heightY=0.03,
+        color=255,
+        transparentKey=0,
+    )
 
     initTime=time.time()
     for i in count() if framesToDraw is None else range(framesToDraw):
         if plotTarget==0:
             phi,energy,eComp,normDev,tauIncr=integrator.integrate(phi)
             tau+=tauIncr
+            #
+            pad['pos']=(
+                int((patchPos[0])*Nx),
+                int((patchPos[1])*Nx),
+            )
+            #
             doPlot(
                 phi,
                 replotting,
@@ -174,15 +196,8 @@ if __name__=='__main__':
                 palette=0,
                 potential=None if hidePot else pot,
                 artifacts=[
-                    (
-                        art1,
-                        (int(patchPos[0]*Nx),int(patchPos[1]*Ny)),
-                    ),
-                    (art2,(10,0)),
-                    (art2,(Nx-10,0)),
-                    (art3,(0,10)),
-                    (art3,(0,Ny-10)),
-                ],
+                    pad,
+                ]+frameArtifacts,
             )
         else:
             doPlot(pot.astype(complex),replotting,title='Potential (p to resume)',palette=1)
@@ -197,9 +212,7 @@ if __name__=='__main__':
             elif tkey=='s':
                 hidePot=not hidePot
             else: # arrow key
-                # print('chg Pot',end='')
-                patchPos=fixPatch(patchPos,arrowKeyMap[tkey])
-                # print(' => %s' % str(patchPos))
+                patchPos=fixPatch(patchPos,arrowKeyMap[tkey],patchRadii)
         pot=initPot(patchPos=patchPos)
         integrator.setPotential(pot)
         #

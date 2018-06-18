@@ -162,9 +162,12 @@ def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveIm
             intMod2.reshape((Nx,Ny)),
         )
     # artifacts
-    for art,pos in artifacts:
+    for art in artifacts:
         # print(dir(replotting['pygame']['bufferSurf']))
-        replotting['pygame']['bufferSurf'].blit(art,pos)
+        replotting['pygame']['bufferSurf'].blit(
+            art['surface'],
+            tuple(p+o for p,o in zip(art['pos'],art['offset'])),
+        )
     #
     pygame.transform.scale(
         replotting['pygame']['bufferSurf'],
