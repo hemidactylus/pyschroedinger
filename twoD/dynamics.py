@@ -58,6 +58,7 @@ class WFIntegrator():
             )
         else:
             self.energyCalculator=None
+        self.lastEnergy=None
 
     def setPotential(self,pot):
         raise NotImplementedError
@@ -67,7 +68,7 @@ class WFIntegrator():
         newNorm=norm(newPhi,self.deltaLambdaXY)
         #
         if self.exactEnergy:
-            energy=self.energyCalculator(phi,self.vPotential)
+            energy=self.energyCalculator(phi,self.vPotential,self.lastEnergy)
         else:
             energy=complex(0,1)*(
                     newPhi.transpose().conjugate().dot( newPhi-phi )
@@ -129,6 +130,7 @@ class VariablePotSparseRK4Integrator(WFIntegrator):
         k2 = self._naiveEvolutionOperator(phi+k1*self.halfDeltaTau)
         k3=self._naiveEvolutionOperator(phi+k2*self.halfDeltaTau)
         k4=self._naiveEvolutionOperator(phi+self.deltaTau*k3)
+        self.lastEnergy = complex(0,1)*phi.conjugate().dot(k1)
         return (phi+self.deltaTau*(k1+2*k2+2*k3+k4)/6.0)
 
     def _baseIntegrate(self,phi):
@@ -467,7 +469,7 @@ def createEnergyCalculator(
         periodicBCY,
         mu,
     )
-    def _enCalculator(wf,pot,_data=enCalcData,_iF0=iFreeEnPart):
+    def _enCalculator(wf,pot,lastEnergy,_data=enCalcData,_iF0=iFreeEnPart):
         '''
             F = (i/2mu)(kinetic part)-i(v)
 
@@ -477,10 +479,15 @@ def createEnergyCalculator(
                = deltaLambda * [ phi* ( i*F ) phi ]
                = deltaLambda * [ phi* ( i*F0 + v ) phi ]
         '''
-        bEn=wf.conjugate().dot((
-            _iF0+ \
-            csr_matrix(np.diag(pot))
-        ).dot(wf))
-        
-        return bEn*_data['deltaLambdaX']
+        if lastEnergy is not None:
+            thisEn=lastEnergy
+        else:
+            # slow, sluggish re-calculation: to be avoided when possible
+            thisEn=wf.conjugate().dot((
+                _iF0+ \
+                csr_matrix(np.diag(pot))
+            ).dot(wf))
+            # here we *AVERAGE* the two deltaLambdas assuming no large asymmetries!
+            # CAREFUL
+        return thisEn*(_data['deltaLambdaX']+_data['deltaLambdaY'])/2
     return _enCalculator
