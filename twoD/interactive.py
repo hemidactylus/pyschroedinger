@@ -137,6 +137,7 @@ if __name__=='__main__':
         periodicBCX=periodicBCX,
         periodicBCY=periodicBCY,
         mu=Mu,
+        exactEnergy=True,
     )
 
     phi=initPhi()
@@ -148,7 +149,7 @@ if __name__=='__main__':
     print('Lengths: LX=%4.3E, LY=%4.3E' % (phLenX,phLenY))
 
     plotTarget=0
-    hidePot=False
+    hidePot=True
 
     pad=makeCircleArtifact(
         Nx=Nx,

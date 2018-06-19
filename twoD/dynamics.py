@@ -30,6 +30,7 @@ class WFIntegrator():
         periodicBCX,
         periodicBCY,
         mu,
+        exactEnergy=False,
     ):
         self.wfSizeX=wfSizeX
         self.wfSizeY=wfSizeY
@@ -43,7 +44,20 @@ class WFIntegrator():
         self.deltaLambdaXY=self.deltaLambdaX*self.deltaLambdaY
         self.vPotential=vPotential
         self.mu=mu
+        self.exactEnergy=exactEnergy
         self.kineticFactor=-1.0/(2.0*float(self.mu))
+        if self.exactEnergy:
+            self.energyCalculator=createEnergyCalculator(
+                self.wfSizeX,
+                self.wfSizeY,
+                self.periodicBCX,
+                self.periodicBCY,
+                self.deltaLambdaX,
+                self.deltaLambdaY,
+                self.mu,
+            )
+        else:
+            self.energyCalculator=None
 
     def setPotential(self,pot):
         raise NotImplementedError
@@ -52,17 +66,13 @@ class WFIntegrator():
         newPhi=self._baseIntegrate(phi)
         newNorm=norm(newPhi,self.deltaLambdaXY)
         #
-        energy=complex(0,1)*(
-                newPhi.transpose().conjugate().dot( newPhi-phi )
-            )/self.totalDeltaTau
-        # assert(abs(energy.imag)<=abs(energy.real)*0.1)
-        # if abs(energy.imag)>abs(energy.real)*0.1:
-        #     print('ENERGY COMPLEX <%.4E> %.4E / %.4E' % (
-        #         abs(energy.imag)/abs(energy.real),
-        #         energy.real,
-        #         energy.imag,
-        #     ))
-        #
+        if self.exactEnergy:
+            energy=self.energyCalculator(phi,self.vPotential)
+        else:
+            energy=complex(0,1)*(
+                    newPhi.transpose().conjugate().dot( newPhi-phi )
+                )/self.totalDeltaTau
+
         return (
             newPhi/newNorm,
             energy.real,
@@ -429,3 +439,48 @@ def evolutionOperator(
     minusI = complex(0,-1)
     F = minusI*(secondDerivative+vPotential*Phi)
     return F
+
+def createEnergyCalculator(
+    wfSizeX,
+    wfSizeY,
+    periodicBCX,
+    periodicBCY,
+    deltaLambdaX,
+    deltaLambdaY,
+    mu,
+):
+    enCalcData={
+        'wfSizeX':      wfSizeX,
+        'wfSizeY':      wfSizeY,
+        'periodicBCX':  periodicBCX,
+        'periodicBCY':  periodicBCY,
+        'deltaLambdaX': deltaLambdaX,
+        'deltaLambdaY': deltaLambdaY,
+    }
+    iFreeEnPart=complex(0,1)*createEvolutionMatrixF(
+        None,
+        wfSizeX,
+        wfSizeY,
+        deltaLambdaX,
+        deltaLambdaY,
+        periodicBCX,
+        periodicBCY,
+        mu,
+    )
+    def _enCalculator(wf,pot,_data=enCalcData,_iF0=iFreeEnPart):
+        '''
+            F = (i/2mu)(kinetic part)-i(v)
+
+            F0 = (i/2mu)(kinetic part)
+
+            en = deltaLambda * [ phi* ( (-1/2mu)d2/dlambda2 + v ) phi ]
+               = deltaLambda * [ phi* ( i*F ) phi ]
+               = deltaLambda * [ phi* ( i*F0 + v ) phi ]
+        '''
+        bEn=wf.conjugate().dot((
+            _iF0+ \
+            csr_matrix(np.diag(pot))
+        ).dot(wf))
+        
+        return bEn*_data['deltaLambdaX']
+    return _enCalculator

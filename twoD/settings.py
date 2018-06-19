@@ -18,7 +18,8 @@ Mu = 0.25#0.14
 # discretisation parameters
 Nx=64
 Ny=64
-deltaTau = 0.000005
+# deltaTau = 0.000005
+deltaTau = 0.000007
 
 periodicBCX=False
 periodicBCY=False
@@ -33,10 +34,11 @@ waveNumber0=(2*math.pi/LambdaX,2*math.pi/LambdaY)
 # display parameters
 tileX=8
 tileY=8
-drawFreq=5
+drawFreq=20
+# drawFreq=5
 framesToDraw=None # None => forever
 
-potentialColor=[0,180,0]
+potentialColor=[0,180,90]
 
 padIncrement=0.01
 arrowKeyMap={
