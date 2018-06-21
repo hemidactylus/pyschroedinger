@@ -54,6 +54,7 @@ from twoD.dynamics import (
     RK4StepByStepIntegrator,
     SparseMatrixRK4Integrator,
     VariablePotSparseRK4Integrator,
+    makeSmoothingMatrix,
 )
 
 from utils.units import (
@@ -69,43 +70,26 @@ def initPhi():
     phi=combineWFunctions(
         [
             makeFakePhi(Nx,Ny,c=(0.25,0.25),ph0=(-5,5),sigma2=(0.002,0.002),weight=1),
+            makeFakePhi(Nx,Ny,c=(0.75,0.75),ph0=(-5,5),sigma2=(0.002,0.002),weight=1),
         ],
         deltaLambdaXY=deltaLambdaX*deltaLambdaY,
     )
     return phi
 
-def initPot(patchPos):
-    return combinePotentials(
-        [
-            freeParticlePotential(Nx,Ny),
-            # 1. an arena within a box...
-            rectangularHolePotential(
-                Nx,
-                Ny,
-                pPos=(0.03,0.03,0.94,0.94),
-                pThickness=(0.00001,0.00001),
-                vIn=0,
-                vOut=8000,
-            ),
-            # rectangularHolePotential(
-            #     Nx,
-            #     Ny,
-            #     pPos=(0.02,0.45,0.96,0.1),
-            #     pThickness=(0.00001,0.0006),
-            #     vIn=5000,
-            #     vOut=0,
-            # ),
-            ellipticHolePotential(
-                Nx,
-                Ny,
-                pPos=patchPos,
-                pRadius=(0.1,0.1),
-                pThickness=0.001,
-                vIn=8000,
-                vOut=0,
-            )
-        ]
+def initPot(patchPos,prevPot):
+    patchPot=ellipticHolePotential(
+        Nx,
+        Ny,
+        pPos=patchPos,
+        pRadius=(0.1,0.1),
+        pThickness=0.01,
+        vIn=10000,#8000,
+        vOut=0,
     )
+    return combinePotentials([
+        prevPot,
+        patchPot, 
+    ]), patchPot
 
 def fixPatch(pp,ps,rdii):
     nPos=[pp[0]+ps[0],pp[1]+ps[1]]
@@ -125,7 +109,30 @@ if __name__=='__main__':
     patchPos=(0.5,0.5)
     patchRadii=(0.08,0.08)
 
-    pot=initPot(patchPos=patchPos)
+    # 1. an arena within a box...
+    basePot=rectangularHolePotential(
+        Nx,
+        Ny,
+        pPos=(0.03,0.03,0.94,0.94),
+        pThickness=(0.00001,0.00001),
+        vIn=0,
+        vOut=8000,
+    )
+    phiSmoothingMatrix=makeSmoothingMatrix(
+        wfSizeX=Nx,
+        wfSizeY=Ny,
+        periodicBCX=periodicBCX,
+        periodicBCY=periodicBCY,
+        smoothingMap=[
+            (( 0, 0),1.0),
+            (( 0,+1),0.1),
+            (( 0,-1),0.1),
+            ((+1, 0),0.1),
+            ((-1, 0),0.1),
+        ]
+    )
+
+    pot,patchPot=initPot(patchPos=patchPos,prevPot=basePot)
     integrator=VariablePotSparseRK4Integrator(
         wfSizeX=Nx,
         wfSizeY=Ny,
@@ -174,6 +181,8 @@ if __name__=='__main__':
     )
 
     initTime=time.time()
+    phi,initEnergy,_,_,_=integrator.integrate(phi)
+    initEnergyThreshold=(initEnergy-0.05*abs(initEnergy))
     for i in count() if framesToDraw is None else range(framesToDraw):
         if plotTarget==0:
             phi,energy,eComp,normDev,tauIncr=integrator.integrate(phi)
@@ -183,7 +192,11 @@ if __name__=='__main__':
                 int((patchPos[0])*Nx),
                 int((patchPos[1])*Nx),
             )
-            #
+            # smoothing step
+            if energy < initEnergyThreshold:
+                phi=phiSmoothingMatrix.dot(phi)
+            # damping step TEMP SLOW
+            phi=phi*(np.exp(-patchPot))
             doPlot(
                 phi,
                 replotting,
@@ -214,7 +227,7 @@ if __name__=='__main__':
                 hidePot=not hidePot
             else: # arrow key
                 patchPos=fixPatch(patchPos,arrowKeyMap[tkey],patchRadii)
-        pot=initPot(patchPos=patchPos)
+        pot,patchPot=initPot(patchPos=patchPos,prevPot=basePot)
         integrator.setPotential(pot)
         #
     elapsed=time.time()-initTime

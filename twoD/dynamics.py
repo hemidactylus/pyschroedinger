@@ -442,6 +442,28 @@ def evolutionOperator(
     F = minusI*(secondDerivative+vPotential*Phi)
     return F
 
+def makeSmoothingMatrix(wfSizeX,wfSizeY,periodicBCX,periodicBCY,smoothingMap=[((0,0),1.0)]):
+    '''
+        constructs a smoothing (csr sparse) matrix S for usage
+        in killing high frequencies as:
+            phi_smoothed = S . phi
+    '''
+    fullSize=wfSizeX*wfSizeY
+    indexer=lambda x,y,_Ny=wfSizeY: x*_Ny+y
+    # the X- differences
+    smoother=np.zeros((fullSize,fullSize))
+    smMapSum=sum(mpRule[1] for mpRule in smoothingMap)
+    normSmMap=[(smPos,smVal/smMapSum) for smPos,smVal in smoothingMap]
+    for x in range(wfSizeX):
+        for y in range(wfSizeY):
+            tIdx=indexer(x,y)
+            for (posDx,posDy),smVal in normSmMap:
+                oIdx=indexer((x+posDx+wfSizeX)%wfSizeX,(y+posDy+wfSizeY)%wfSizeY)
+                smoother[tIdx,oIdx]=smVal
+    return csr_matrix(
+        smoother
+    )
+
 def createEnergyCalculator(
     wfSizeX,
     wfSizeY,
