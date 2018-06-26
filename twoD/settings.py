@@ -19,10 +19,10 @@ Mu = 0.25#0.14
 Nx=64
 Ny=64
 # deltaTau = 0.000005
-deltaTau = 0.000004
+deltaTau = 0.000003
 
-periodicBCX=True#False
-periodicBCY=True#False
+periodicBCX=False
+periodicBCY=False
 
 # quantities derived from the above
 deltaLambdaX=float(LambdaX)/float(Nx)
@@ -34,16 +34,8 @@ waveNumber0=(2*math.pi/LambdaX,2*math.pi/LambdaY)
 # display parameters
 tileX=8
 tileY=8
-drawFreq=30
+drawFreq=50
 # drawFreq=5
 framesToDraw=None # None => forever
 
 potentialColor=[0,180,90]
-
-padIncrement=0.03
-arrowKeyMap={
-    pygame.K_LEFT:  (-padIncrement,0),
-    pygame.K_RIGHT: (+padIncrement,0),
-    pygame.K_UP:    (0,-padIncrement),
-    pygame.K_DOWN:  (0,+padIncrement),
-}

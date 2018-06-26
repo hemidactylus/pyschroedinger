@@ -17,7 +17,7 @@ from twoD.settings import (
     Ny,
     tileX,
     tileY,
-    arrowKeyMap,
+    # arrowKeyMap,
     potentialColor,
 )
 
@@ -94,7 +94,7 @@ def mapToPalette(colArray,nparray,potarray,refPalette,refPotPalette):
             if potarray[x][y]>DRAW_POTENTIAL_THRESHOLD:
                 colArray[x][y]=np.array(refPotPalette[potarray[x][y]])
 
-def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveImage=False,potential=None,artifacts=[]):
+def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveImage=False,potential=None,artifacts=[],keysToCatch=set()):
     '''
         all information on the x,y-scale
         is implicit.
@@ -200,7 +200,7 @@ def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveIm
         # if event.type in {pgKeyDown} and event.key in arrowKeyMap:
         #     replotting['keyqueue'].append(event.key)
     kpresses= pygame.key.get_pressed()
-    for kDir in arrowKeyMap:
+    for kDir in keysToCatch:
         if kpresses[kDir]:
             replotting['keyqueue'].append(kDir)
     return replotting

@@ -22,7 +22,12 @@ from twoD.settings import (
     LambdaX,
     LambdaY,
     framesToDraw,
-    arrowKeyMap,
+)
+from twoD.interactiveSettings import (
+    fullArrowKeyMap,
+    patchRadii,
+    fieldBevelX,
+    fieldBevelY,
 )
 
 from twoD.gui import (
@@ -32,6 +37,7 @@ from twoD.gui import (
 from twoD.artifacts import (
     makeRectangularArtifactList,
     makeCircleArtifact,
+    makeCheckerboardRectangularArtifact,
 )
 
 from twoD.wfunctions import (
@@ -76,48 +82,95 @@ def initPhi():
     )
     return phi
 
-def initPot(patchPos,prevPot):
-    patchPot=ellipticHolePotential(
-        Nx,
-        Ny,
-        pPos=patchPos,
-        pRadius=(0.1,0.1),
-        pThickness=0.01,
-        vIn=10000,#8000,
-        vOut=0,
-    )
-    return combinePotentials([
-        prevPot,
-        patchPot, 
-    ]), patchPot
+def initPot(patchPosList,prevPot):
+    patchPotList=[
+        ellipticHolePotential(
+            Nx,
+            Ny,
+            pPos=patchPos,
+            pRadius=(0.1,0.1),
+            pThickness=0.01,
+            vIn=10000,#8000,
+            vOut=0,
+        )
+        for patchPos in patchPosList
+    ]
+    return combinePotentials(
+        [
+            prevPot,
+        ]+patchPotList, 
+    ), patchPotList
 
-def fixPatch(pp,ps,rdii):
+def fixPatch(pp,ps,rdii,bbox):
     nPos=[pp[0]+ps[0],pp[1]+ps[1]]
-    if nPos[0]-rdii[0]<0:
-        nPos[0]=rdii[0]
-    if nPos[0]+rdii[0]>1:
-        nPos[0]=1-rdii[0]
-    if nPos[1]-rdii[1]<0:
-        nPos[1]=rdii[1]
-    if nPos[1]+rdii[1]>1:
-        nPos[1]=1-rdii[1]
+    if nPos[0]-rdii[0]<bbox[0]:
+        nPos[0]=bbox[0]+rdii[0]
+    if nPos[0]+rdii[0]>bbox[2]:
+        nPos[0]=bbox[2]-rdii[0]
+    if nPos[1]-rdii[1]<bbox[1]:
+        nPos[1]=bbox[1]+rdii[1]
+    if nPos[1]+rdii[1]>bbox[3]:
+        nPos[1]=bbox[3]-rdii[1]
     return tuple(nPos)
+
+def preparePlayerInfo(nPlayers):
+    if nPlayers==1:
+        return {
+            0: {
+                'bbox': [
+                    fieldBevelX,
+                    fieldBevelY,
+                    1-fieldBevelX,
+                    1-fieldBevelY,
+                ],
+                'patchInitPos': (0.5,0.5),
+            }
+        }
+    elif nPlayers==2:
+        raise NotImplementedError('nPlayers==2')
+    else:
+        raise ValueError('nPlayers cannot be %i' % nPlayers)
 
 if __name__=='__main__':
 
-    # pad configuration
-    patchPos=(0.5,0.5)
-    patchRadii=(0.08,0.08)
+    nPlayers=1
+    playerInfo=preparePlayerInfo(nPlayers)
 
-    # 1. an arena within a box...
+    arrowKeyMap={
+        k: v
+        for k,v in fullArrowKeyMap.items()
+        if v['player']<nPlayers
+    }
+
+    # preparation of tools
     basePot=rectangularHolePotential(
         Nx,
         Ny,
-        pPos=(0.03,0.03,0.94,0.94),
-        pThickness=(0.00001,0.00001),
+        pPos=(0.0,0.0,1.,1.),
+        pThickness=(0.0001,0.0001),
         vIn=0,
         vOut=8000,
     )
+    pot,patchPotList=initPot(
+        patchPosList=[
+            plInfo['patchInitPos']
+            for plInfo in playerInfo.values()
+        ],
+        prevPot=basePot,
+    )
+    for plInfo in playerInfo.values():
+        plInfo['pad']=makeCircleArtifact(
+            Nx=Nx,
+            Ny=Ny,
+            centerX=0.5,
+            centerY=0.5,
+            radiusX=patchRadii[0],
+            radiusY=patchRadii[1],
+            color=255,
+            transparentKey=0,
+        )
+        plInfo['patchPos']=plInfo['patchInitPos']
+
     phiSmoothingMatrix=makeSmoothingMatrix(
         wfSizeX=Nx,
         wfSizeY=Ny,
@@ -132,7 +185,6 @@ if __name__=='__main__':
         ]
     )
 
-    pot,patchPot=initPot(patchPos=patchPos,prevPot=basePot)
     integrator=VariablePotSparseRK4Integrator(
         wfSizeX=Nx,
         wfSizeY=Ny,
@@ -158,13 +210,13 @@ if __name__=='__main__':
     plotTarget=0
     hidePot=True
 
-    pad=makeCircleArtifact(
+    halfField=makeCheckerboardRectangularArtifact(
         Nx=Nx,
         Ny=Ny,
-        centerX=0.5,
-        centerY=0.5,
-        radiusX=patchRadii[0],
-        radiusY=patchRadii[1],
+        posX=0.03,
+        posY=0.5-0.5*0.03,
+        widthX=0.94,
+        heightY=0.03,
         color=255,
         transparentKey=0,
     )
@@ -172,10 +224,8 @@ if __name__=='__main__':
     frameArtifacts=makeRectangularArtifactList(
         Nx=Nx,
         Ny=Ny,
-        posX=0.03,
-        posY=0.03,
-        widthX=0.03,
-        heightY=0.03,
+        posX=fieldBevelX,
+        posY=fieldBevelY,
         color=255,
         transparentKey=0,
     )
@@ -188,15 +238,16 @@ if __name__=='__main__':
             phi,energy,eComp,normDev,tauIncr=integrator.integrate(phi)
             tau+=tauIncr
             #
-            pad['pos']=(
-                int((patchPos[0])*Nx),
-                int((patchPos[1])*Nx),
-            )
+            for plInfo in playerInfo.values():
+                plInfo['pad']['pos']=(
+                    int((plInfo['patchPos'][0])*Nx),
+                    int((plInfo['patchPos'][1])*Nx),
+                )
             # smoothing step
             if energy < initEnergyThreshold:
                 phi=phiSmoothingMatrix.dot(phi)
             # damping step TEMP SLOW
-            phi=phi*(np.exp(-patchPot))
+            phi=phi*(np.exp(-pot/8000))
             doPlot(
                 phi,
                 replotting,
@@ -210,24 +261,45 @@ if __name__=='__main__':
                 palette=0,
                 potential=None if hidePot else pot,
                 artifacts=[
-                    pad,
-                ]+frameArtifacts,
+                    plInfo['pad']
+                    for plInfo in playerInfo.values()
+                ]+frameArtifacts+[
+                    halfField
+                ],
+                keysToCatch=arrowKeyMap.keys(),
             )
         else:
-            doPlot(pot.astype(complex),replotting,title='Potential (p to resume)',palette=1)
+            doPlot(
+                pot.astype(complex) if plotTarget==1 else basePot.astype(complex),
+                replotting,
+                title='Potential (p to switch)' if plotTarget==1 else 'BasePot (p to switch)',
+                palette=1,
+            )
             time.sleep(0.1)
         #
         while replotting['keyqueue']:
             tkey=replotting['keyqueue'].pop(0)
             if tkey=='p':
-                plotTarget=1-plotTarget
+                plotTarget=(1+plotTarget)%3
             elif tkey=='q':
                 sys.exit()
             elif tkey=='s':
                 hidePot=not hidePot
             else: # arrow key
-                patchPos=fixPatch(patchPos,arrowKeyMap[tkey],patchRadii)
-        pot,patchPot=initPot(patchPos=patchPos,prevPot=basePot)
+                targetPlayer=arrowKeyMap[tkey]['player']
+                playerInfo[targetPlayer]['patchPos']=fixPatch(
+                    playerInfo[targetPlayer]['patchPos'],
+                    arrowKeyMap[tkey]['incr'],
+                    patchRadii,
+                    playerInfo[targetPlayer]['bbox'],
+                )
+        pot,patchPotList=initPot(
+            patchPosList=[
+                plInfo['patchPos']
+                for plInfo in playerInfo.values()
+            ],
+            prevPot=basePot,
+        )
         integrator.setPotential(pot)
         #
     elapsed=time.time()-initTime

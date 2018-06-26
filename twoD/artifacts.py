@@ -25,7 +25,33 @@ def makeFilledBlockArtifact(pPos,pSize,color):
         'offset': (0,0),
     }
 
-def makeRectangularArtifactList(Nx,Ny,posX,posY,widthX,heightY,color,transparentKey):
+def makeCheckerboardRectangularArtifact(Nx,Ny,posX,posY,widthX,heightY,color,transparentKey):
+    '''
+        once the area is constructed, the pixels are
+        filled in a checkerboard fashion.
+    '''
+    pPosX=int(Nx*posX)
+    pPosY=int(Ny*posY)
+    pPos=(pPosX,pPosY)
+    pLength=int(Nx*widthX)
+    pHeight=int(Ny*heightY)
+    art=pygame.surface.Surface(
+        (pLength,pHeight),
+        0,
+        8,
+    )
+    art.fill(transparentKey)
+    for x in range(pLength):
+        for y in range(pHeight):
+            if (x+y)%2==0:
+                art.set_at((x,y),color)
+    return {
+        'pos': pPos,
+        'surface': art,
+        'offset': (0,0),
+    }
+
+def makeRectangularArtifactList(Nx,Ny,posX,posY,color,transparentKey):
     '''
         returns an artifact of a rectangular frame.
             pos* < 0.5, width* are in 0-1 units
@@ -36,8 +62,6 @@ def makeRectangularArtifactList(Nx,Ny,posX,posY,widthX,heightY,color,transparent
     pPosY=int(Ny*posY)
     pLength=Nx-2*pPosX
     pHeight=Ny-2*pPosY
-    pFrameWidth=int(Nx*widthX)
-    pFrameHeight=int(Nx*heightY)
     return [
         makeFilledBlockArtifact(
             (pPosX,pPosY),
