@@ -21,13 +21,15 @@ from twoD.settings import (
     drawFreq,
     LambdaX,
     LambdaY,
-    framesToDraw,
 )
 from twoD.interactiveSettings import (
     fullArrowKeyMap,
     patchRadii,
     fieldBevelX,
     fieldBevelY,
+    potWavefunctionDampingDivider,
+    potBorderWallHeight,
+    potPlayerPadHeight,
 )
 
 from twoD.gui import (
@@ -90,7 +92,7 @@ def initPot(patchPosList,prevPot):
             pPos=patchPos,
             pRadius=(0.1,0.1),
             pThickness=0.01,
-            vIn=10000,#8000,
+            vIn=potPlayerPadHeight,
             vOut=0,
         )
         for patchPos in patchPosList
@@ -124,16 +126,35 @@ def preparePlayerInfo(nPlayers):
                     1-fieldBevelY,
                 ],
                 'patchInitPos': (0.5,0.5),
-            }
+            },
         }
     elif nPlayers==2:
-        raise NotImplementedError('nPlayers==2')
+        return {
+            0: {
+                'bbox': [
+                    fieldBevelX,
+                    fieldBevelY,
+                    1-fieldBevelX,
+                    0.5,
+                ],
+                'patchInitPos': (0.5,0.25),
+            },
+            1: {
+                'bbox': [
+                    fieldBevelX,
+                    0.5,
+                    1-fieldBevelX,
+                    1-fieldBevelY,
+                ],
+                'patchInitPos': (0.5,0.75),
+            },
+        }
     else:
         raise ValueError('nPlayers cannot be %i' % nPlayers)
 
 if __name__=='__main__':
 
-    nPlayers=1
+    nPlayers=2
     playerInfo=preparePlayerInfo(nPlayers)
 
     arrowKeyMap={
@@ -149,7 +170,7 @@ if __name__=='__main__':
         pPos=(0.0,0.0,1.,1.),
         pThickness=(0.0001,0.0001),
         vIn=0,
-        vOut=8000,
+        vOut=potBorderWallHeight,
     )
     pot,patchPotList=initPot(
         patchPosList=[
@@ -233,7 +254,7 @@ if __name__=='__main__':
     initTime=time.time()
     phi,initEnergy,_,_,_=integrator.integrate(phi)
     initEnergyThreshold=(initEnergy-0.05*abs(initEnergy))
-    for i in count() if framesToDraw is None else range(framesToDraw):
+    for i in count():
         if plotTarget==0:
             phi,energy,eComp,normDev,tauIncr=integrator.integrate(phi)
             tau+=tauIncr
@@ -247,7 +268,7 @@ if __name__=='__main__':
             if energy < initEnergyThreshold:
                 phi=phiSmoothingMatrix.dot(phi)
             # damping step TEMP SLOW
-            phi=phi*(np.exp(-pot/8000))
+            phi=phi*(np.exp(-pot/potWavefunctionDampingDivider))
             doPlot(
                 phi,
                 replotting,
@@ -283,7 +304,7 @@ if __name__=='__main__':
                 plotTarget=(1+plotTarget)%3
             elif tkey=='q':
                 sys.exit()
-            elif tkey=='s':
+            elif tkey=='o':
                 hidePot=not hidePot
             else: # arrow key
                 targetPlayer=arrowKeyMap[tkey]['player']
@@ -301,9 +322,3 @@ if __name__=='__main__':
             prevPot=basePot,
         )
         integrator.setPotential(pot)
-        #
-    elapsed=time.time()-initTime
-    print('Elapsed: %.2f seconds = %.3f iters/s' % (
-        elapsed,
-        framesToDraw/elapsed,
-    ))

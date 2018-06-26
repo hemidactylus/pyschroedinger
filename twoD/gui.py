@@ -17,7 +17,6 @@ from twoD.settings import (
     Ny,
     tileX,
     tileY,
-    # arrowKeyMap,
     potentialColor,
 )
 
@@ -195,10 +194,8 @@ def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveIm
             replotting['keyqueue'].append('q')
         if event.type in {pgKeyDown} and event.unicode=='p':
             replotting['keyqueue'].append('p')
-        if event.type in {pgKeyDown} and event.unicode=='s':
-            replotting['keyqueue'].append('s')
-        # if event.type in {pgKeyDown} and event.key in arrowKeyMap:
-        #     replotting['keyqueue'].append(event.key)
+        if event.type in {pgKeyDown} and event.unicode=='o':
+            replotting['keyqueue'].append('o')
     kpresses= pygame.key.get_pressed()
     for kDir in keysToCatch:
         if kpresses[kDir]:
