@@ -8,12 +8,25 @@ import numpy as np
 def mod2(psi):
     return (psi.conjugate()*psi).real
 
-def norm(psi,deltaLambdaXY):
-    halfPoint=int(psi.size/2)
-    firstHalf=sum(mod2(psi[:halfPoint]))**0.5
-    secondHalf=sum(mod2(psi[halfPoint:]))**0.5
-    print('FIRST = %f' % (firstHalf/(firstHalf+secondHalf)))
-    return (sum(mod2(psi))*deltaLambdaXY)**0.5
+def norm(psi,deltaLambdaXY,slices=None):
+    '''
+        if slices are requested, those are
+        integer indices for the one-dimensional Nx*Ny full psi
+        and the second argument is a map of partial norms
+        each pertaining to a slice.
+        It is responsibility of the caller to ensure the slices
+        are a proper partition. The slices are a list such as:
+            [0, i1, i2 ... in] where in < total_size
+    '''
+    if slices is None:
+        return (sum(mod2(psi))*deltaLambdaXY)**0.5,None
+    else:
+        _mod2=mod2(psi)
+        normMap={
+            slIndex: sum(_mod2[slStart:slEnd])
+            for slIndex,(slStart,slEnd) in enumerate(zip(slices,slices[1:]+[None]))
+        }
+        return (sum(normMap.values())*deltaLambdaXY)**0.5,normMap
 
 def re(psi):
     return psi.real
@@ -31,7 +44,7 @@ def combineWFunctions(wflist,deltaLambdaXY,normalize=True):
     '''
     unnormed = reduce(sumFunctions,wflist[1:],wflist[0])
     if normalize:
-        psiNorm=norm(unnormed,deltaLambdaXY)
+        psiNorm,_=norm(unnormed,deltaLambdaXY,slices=None)
         return unnormed/psiNorm
     else:
         return unnormed

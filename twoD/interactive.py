@@ -42,6 +42,7 @@ from twoD.artifacts import (
     makeRectangularArtifactList,
     makeCircleArtifact,
     makeCheckerboardRectangularArtifact,
+    makeFilledBlockArtifact,
 )
 
 from twoD.wfunctions import (
@@ -79,8 +80,8 @@ def initPhi():
     # very fake for now
     phi=combineWFunctions(
         [
-            makeFakePhi(Nx,Ny,c=(0.25,0.25),ph0=(-5,5),sigma2=(0.002,0.002),weight=1),
-            makeFakePhi(Nx,Ny,c=(0.75,0.75),ph0=(-5,5),sigma2=(0.002,0.002),weight=1),
+            makeFakePhi(Nx,Ny,c=(0.25,0.25),ph0=(0,0),sigma2=(0.002,0.002),weight=1),
+            makeFakePhi(Nx,Ny,c=(0.75,0.75),ph0=(0,0),sigma2=(0.002,0.002),weight=1),
         ],
         deltaLambdaXY=deltaLambdaX*deltaLambdaY,
     )
@@ -134,7 +135,7 @@ def preparePlayerInfo(nPlayers):
         return {
             0: {
                 'bbox': [
-                    0.5,
+                    0.5+0.5*fieldBevelX,
                     fieldBevelY,
                     1-fieldBevelX,
                     1-fieldBevelY,
@@ -220,6 +221,7 @@ if __name__=='__main__':
         periodicBCY=periodicBCY,
         mu=Mu,
         exactEnergy=True,
+        slicesSet=[0.0,0.25,0.5,0.75],
     )
 
     phi=initPhi()
@@ -245,6 +247,13 @@ if __name__=='__main__':
         transparentKey=0,
     )
 
+    # FIXME temp solution to the score marker
+    scoreMarker=makeFilledBlockArtifact(
+        (-2,2),
+        (5,4),
+        color=255,
+    )
+
     frameArtifacts=makeRectangularArtifactList(
         Nx=Nx,
         Ny=Ny,
@@ -255,12 +264,29 @@ if __name__=='__main__':
     )
 
     initTime=time.time()
-    phi,initEnergy,_,_,_=integrator.integrate(phi)
+    phi,initEnergy,_,_,_,_=integrator.integrate(phi)
     initEnergyThreshold=(initEnergy-0.05*abs(initEnergy))
     for i in count():
+        time.sleep(0.02)
         if plotTarget==0:
-            phi,energy,eComp,normDev,tauIncr=integrator.integrate(phi)
+            phi,energy,eComp,normDev,tauIncr,normMap=integrator.integrate(phi)
             tau+=tauIncr
+            # partial norms recap
+            # _tot=sum(normMap.values())
+            # print(
+            #     'Norms: %s' % (
+            #         '  '.join(
+            #             '%1i : %3i' % (k,int(100*v/_tot))
+            #             for k,v in sorted(normMap.items())
+            #         )
+            #     )
+            # )
+            scorePos=int(Nx*(normMap[3]/(normMap[3]+normMap[0])))
+            # print('scorePos %i' % scorePos)
+            scoreMarker['offset']=(
+                scorePos,
+                0,
+            )
             #
             for plInfo in playerInfo.values():
                 plInfo['pad']['pos']=(
@@ -289,6 +315,8 @@ if __name__=='__main__':
                     for plInfo in playerInfo.values()
                 ]+frameArtifacts+[
                     halfField
+                ]+[
+                    scoreMarker
                 ],
                 keysToCatch=arrowKeyMap.keys(),
             )
@@ -299,7 +327,7 @@ if __name__=='__main__':
                 title='Potential (p to switch)' if plotTarget==1 else 'BasePot (p to switch)',
                 palette=1,
             )
-            time.sleep(0.1)
+            # time.sleep(0.1)
         #
         while replotting['keyqueue']:
             tkey=replotting['keyqueue'].pop(0)

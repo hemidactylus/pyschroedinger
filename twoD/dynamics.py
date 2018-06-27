@@ -31,6 +31,7 @@ class WFIntegrator():
         periodicBCY,
         mu,
         exactEnergy=False,
+        slicesSet=None
     ):
         self.wfSizeX=wfSizeX
         self.wfSizeY=wfSizeY
@@ -46,6 +47,12 @@ class WFIntegrator():
         self.mu=mu
         self.exactEnergy=exactEnergy
         self.kineticFactor=-1.0/(2.0*float(self.mu))
+        self.slices = None if slicesSet is None else [
+            int(0.5+slFraction*self.wfSizeX*self.wfSizeY)
+            for slFraction in sorted(slicesSet)
+        ]
+        print('DBG SLICES NxNy %i' % (self.wfSizeX*self.wfSizeY))
+        print('DBG SLICES : %s' % ' '.join(str(i) for i in self.slices))
         if self.exactEnergy:
             self.energyCalculator=createEnergyCalculator(
                 self.wfSizeX,
@@ -65,7 +72,7 @@ class WFIntegrator():
 
     def integrate(self,phi):
         newPhi=self._baseIntegrate(phi)
-        newNorm=norm(newPhi,self.deltaLambdaXY)
+        newNorm,sliceNorm=norm(newPhi,self.deltaLambdaXY,slices=self.slices)
         #
         if self.exactEnergy:
             energy=self.energyCalculator(phi,self.vPotential,self.lastEnergy)
@@ -80,6 +87,7 @@ class WFIntegrator():
             abs(energy.imag)/abs(energy.real),
             newNorm-1,
             self.totalDeltaTau,
+            sliceNorm,
         )
 
 class VariablePotSparseRK4Integrator(WFIntegrator):

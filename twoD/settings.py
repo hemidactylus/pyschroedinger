@@ -16,6 +16,8 @@ LambdaY = 1
 Mu = 0.25#0.14
 
 # discretisation parameters
+# Nx=36
+# Ny=36
 Nx=64
 Ny=64
 # deltaTau = 0.000005
