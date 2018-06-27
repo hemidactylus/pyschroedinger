@@ -134,21 +134,21 @@ def preparePlayerInfo(nPlayers):
         return {
             0: {
                 'bbox': [
-                    fieldBevelX,
+                    0.5,
                     fieldBevelY,
                     1-fieldBevelX,
-                    0.5,
+                    1-fieldBevelY,
                 ],
-                'patchInitPos': (0.5,0.25),
+                'patchInitPos': (0.75,0.5),
             },
             1: {
                 'bbox': [
                     fieldBevelX,
-                    0.5,
-                    1-fieldBevelX,
+                    fieldBevelY,
+                    0.5-0.5*fieldBevelX,
                     1-fieldBevelY,
                 ],
-                'patchInitPos': (0.5,0.75),
+                'patchInitPos': (0.25,0.5),
             },
         }
     else:
@@ -237,10 +237,10 @@ if __name__=='__main__':
     halfField=makeCheckerboardRectangularArtifact(
         Nx=Nx,
         Ny=Ny,
-        posX=0.03,
-        posY=0.5-0.5*0.03,
-        widthX=0.94,
-        heightY=0.03,
+        posX=0.5-0.5*fieldBevelX,
+        posY=fieldBevelX,
+        widthX=fieldBevelX,
+        heightY=1-2*fieldBevelX,
         color=255,
         transparentKey=0,
     )

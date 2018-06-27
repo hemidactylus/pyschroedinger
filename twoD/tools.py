@@ -9,6 +9,10 @@ def mod2(psi):
     return (psi.conjugate()*psi).real
 
 def norm(psi,deltaLambdaXY):
+    halfPoint=int(psi.size/2)
+    firstHalf=sum(mod2(psi[:halfPoint]))**0.5
+    secondHalf=sum(mod2(psi[halfPoint:]))**0.5
+    print('FIRST = %f' % (firstHalf/(firstHalf+secondHalf)))
     return (sum(mod2(psi))*deltaLambdaXY)**0.5
 
 def re(psi):
