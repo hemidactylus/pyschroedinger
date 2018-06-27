@@ -24,20 +24,21 @@ from twoD.tools import (
     mod2,
 )
 
-def makePalette(pIndex=0):
+def makePalette(pIndex=0,specialColors=[]):
     '''
         we leave a last single color for non-wavefunction
         display (in particular for the potential).
         Not a big waste even in case we are not interactive
     '''
+    nSpecials=len(specialColors)
     import matplotlib.pyplot as plt
     cmap=plt.get_cmap(['magma','GnBu'][pIndex])
     return [
-        [int(comp*256) for comp in cmap(((i/254.)))[:3]]
-        for i in range(255)
-    ]+[potentialColor]
+        [int(comp*256) for comp in cmap(((i/(255.0-nSpecials))))[:3]]
+        for i in range(256-nSpecials)
+    ]+specialColors
 
-def initPyGame(pIndex=0,saveImage=False):
+def initPyGame(pIndex=0,specialColors=[],saveImage=False):
     pygame.init()
     pygame.display.set_caption('Pyschroedinger 2D. Click to close')
     window=pygame.display.set_mode(
@@ -49,7 +50,7 @@ def initPyGame(pIndex=0,saveImage=False):
         8 if not saveImage else 24,
     )
     if not saveImage:
-        setDrawPalette(pIndex)
+        setDrawPalette(pIndex,specialColors=specialColors)
     startnparray=np.zeros((Nx*tileX,Ny*tileY)).astype(int)
     screen = pygame.surfarray.make_surface(startnparray).convert()
     startnparray=np.zeros((Nx,Ny)).astype(int)
@@ -60,21 +61,22 @@ def initPyGame(pIndex=0,saveImage=False):
         'bufferSurf': bufferSurf,
     }
 
-def setDrawPalette(pIndex=0):
-    palette=makePalette(pIndex)
+def setDrawPalette(pIndex=0,specialColors=[]):
+    palette=makePalette(pIndex,specialColors=specialColors)
     pygame.display.set_palette(palette)
 
-def integerize(wfunction,maxMod2):
+def integerize(wfunction,maxMod2,paletteRange):
     '''
         makes a complex wavefunction
         into an array of integers 0-255
         rescaling the mod2 according to maxMod2
+        paletteRange=256-nSpecialColors
     '''
     # to enhance the low values' coloring:
     # return (0.5+((mod2(wfunction)/maxMod2)**0.43)*254).astype(int)
     # the standard coloring:
     if maxMod2>0:
-        return (0.5+(mod2(wfunction)*253/maxMod2)).astype(int)
+        return (0.5+(mod2(wfunction)*(paletteRange-2)/maxMod2)).astype(int)
     else:
         return mod2(wfunction).astype(int)
     # the slower, bounds-checking form of the latter would be:
@@ -93,7 +95,7 @@ def mapToPalette(colArray,nparray,potarray,refPalette,refPotPalette):
             if potarray[x][y]>DRAW_POTENTIAL_THRESHOLD:
                 colArray[x][y]=np.array(refPotPalette[potarray[x][y]])
 
-def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveImage=False,potential=None,artifacts=[],keysToCatch=set()):
+def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveImage=False,potential=None,artifacts=[],keysToCatch=set(),specialColors=[potentialColor]):
     '''
         all information on the x,y-scale
         is implicit.
@@ -116,19 +118,20 @@ def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveIm
         replotting={
             'maxMod2': maxMod2,
         }
-        replotting['pygame']=initPyGame(palette,saveImage)
+        replotting['pygame']=initPyGame(palette,specialColors,saveImage)
         replotting['keyqueue']=[]
         replotting['saveImage']=saveImage
         replotting['palette']=palette
+        replotting['paletteRange']=256-len(specialColors)
         if replotting['saveImage']:
-            replotting['usedPalette']=makePalette(palette)
+            replotting['usedPalette']=makePalette(palette,specialColors)
             maxPot=mod2(potential.astype(complex)).max()
-            replotting['potential']=integerize(potential.astype(complex),maxPot)
-            replotting['potPalette']=makePalette(1)
+            replotting['potential']=integerize(potential.astype(complex),maxPot,paletteRange=replotting['paletteRange'])
+            replotting['potPalette']=makePalette(1,specialColors)
 
     if replotting['saveImage']:
         if palette!=replotting['palette']:
-            replotting['usedPalette']=makePalette(palette)
+            replotting['usedPalette']=makePalette(palette,specialColors)
             replotting['palette']=palette
     else:
         if palette!=replotting['palette']:
@@ -141,9 +144,8 @@ def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveIm
     if title is not None:
         pygame.display.set_caption(title)
     # 1. recalculate the integer wf
-    # intMod2=integerize(wfunction,replotting['maxMod2'])
     maxMod2=mod2(wfunction).max()
-    intMod2=integerize(wfunction,maxMod2)
+    intMod2=integerize(wfunction,maxMod2,paletteRange=replotting['paletteRange'])
 
     # actual on-screen plotting through pygame (and optionally saving)
     if replotting['saveImage']:

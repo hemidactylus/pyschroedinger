@@ -30,6 +30,8 @@ from twoD.interactiveSettings import (
     potWavefunctionDampingDivider,
     potBorderWallHeight,
     potPlayerPadHeight,
+    intPotentialColor,
+    intPlayerColors,
 )
 
 from twoD.gui import (
@@ -179,7 +181,7 @@ if __name__=='__main__':
         ],
         prevPot=basePot,
     )
-    for plInfo in playerInfo.values():
+    for plIndex,plInfo in playerInfo.items():
         plInfo['pad']=makeCircleArtifact(
             Nx=Nx,
             Ny=Ny,
@@ -187,7 +189,7 @@ if __name__=='__main__':
             centerY=0.5,
             radiusX=patchRadii[0],
             radiusY=patchRadii[1],
-            color=255,
+            color=254-plIndex,
             transparentKey=0,
         )
         plInfo['patchPos']=plInfo['patchInitPos']
@@ -222,7 +224,8 @@ if __name__=='__main__':
 
     phi=initPhi()
     tau=0
-    replotting=doPlot(phi)
+    # in this way 255=pot, 254=player0, 253=player1
+    replotting=doPlot(phi,specialColors=intPlayerColors+[intPotentialColor])
 
     # some info
     phLenX,phLenY=toLength_fm(LambdaX),toLength_fm(LambdaY)

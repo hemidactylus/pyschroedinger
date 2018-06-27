@@ -48,3 +48,9 @@ fieldBevelY=0.03
 potWavefunctionDampingDivider=80000
 potBorderWallHeight=8000
 potPlayerPadHeight=10000
+
+intPotentialColor=[0,180,90]
+intPlayerColors=[
+    [240,70,70],
+    [50,50,180],
+]
