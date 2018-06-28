@@ -123,6 +123,7 @@ def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveIm
         replotting['saveImage']=saveImage
         replotting['palette']=palette
         replotting['paletteRange']=256-len(specialColors)
+        replotting['specialColors']=specialColors
         if replotting['saveImage']:
             replotting['usedPalette']=makePalette(palette,specialColors)
             maxPot=mod2(potential.astype(complex)).max()
@@ -131,11 +132,11 @@ def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveIm
 
     if replotting['saveImage']:
         if palette!=replotting['palette']:
-            replotting['usedPalette']=makePalette(palette,specialColors)
+            replotting['usedPalette']=makePalette(palette,replotting['specialColors'])
             replotting['palette']=palette
     else:
         if palette!=replotting['palette']:
-            setDrawPalette(palette)
+            setDrawPalette(palette,specialColors=replotting['specialColors'])
             replotting['palette']=palette
 
     # refresh the plotting window
@@ -198,6 +199,8 @@ def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveIm
             replotting['keyqueue'].append('p')
         if event.type in {pgKeyDown} and event.unicode=='o':
             replotting['keyqueue'].append('o')
+        if event.type in {pgKeyDown} and event.unicode=='i':
+            replotting['keyqueue'].append('i')
     kpresses= pygame.key.get_pressed()
     for kDir in keysToCatch:
         if kpresses[kDir]:

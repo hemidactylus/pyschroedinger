@@ -42,11 +42,13 @@ to be the only way to get the right colors on the saved picture files.)
 
 ## To Do
 
-for the 2d interactive:
-- proper handling of the "artifacts" (spriting) for walls and paddle
-- reistate the exact energy calculation
-- check if ok to zero the wavefunction where the paddle goes
-- check if it makes sense to kill high frequencies (smoothing)
+Documenting the two approxs (exp damping with pot of the wf, smoothing to keep energy under control)
+
+Rewriting the keyqueue business
+
+A proper messaging system for on-screen
+
+State machine to handle game
 
 ## Units
 

@@ -55,4 +55,7 @@ intPlayerColors=[
     [50,50,180],
 ]
 
-winningFraction=0.5
+winningFraction=0.35
+
+# debugSleepTime=0.02
+debugSleepTime=0

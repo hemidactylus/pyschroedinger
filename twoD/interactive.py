@@ -33,6 +33,7 @@ from twoD.interactiveSettings import (
     intPotentialColor,
     intPlayerColors,
     winningFraction,
+    debugSleepTime,
 )
 
 from twoD.gui import (
@@ -81,8 +82,8 @@ def initPhi():
     # very fake for now
     phi=combineWFunctions(
         [
-            makeFakePhi(Nx,Ny,c=(0.25,0.25),ph0=(0,0),sigma2=(0.002,0.002),weight=1),
-            makeFakePhi(Nx,Ny,c=(0.75,0.75),ph0=(0,0),sigma2=(0.002,0.002),weight=1),
+            makeFakePhi(Nx,Ny,c=(0.25,0.25),ph0=(0,-5),sigma2=(0.002,0.002),weight=1),
+            makeFakePhi(Nx,Ny,c=(0.75,0.75),ph0=(0,+5),sigma2=(0.002,0.002),weight=1),
         ],
         deltaLambdaXY=deltaLambdaX*deltaLambdaY,
     )
@@ -162,7 +163,15 @@ def scorePosition(normMap):
             0 1 2 3
         are the norms in the respective sectors
     '''
-    return normMap[3]/(normMap[0]+normMap[3])
+    renorm={
+        0: max(0,1-normMap[0]/winningFraction),
+        1: max(0,1-normMap[3]/winningFraction),
+    }
+    if renorm[0]<renorm[1]:
+        s=-1+renorm[0]/renorm[1]
+    else:
+        s=+1-renorm[1]/renorm[0]
+    return 0.5*(1+s)
 
 if __name__=='__main__':
 
@@ -283,14 +292,15 @@ if __name__=='__main__':
     phi,initEnergy,_,_,_,_=integrator.integrate(phi)
     initEnergyThreshold=(initEnergy-0.05*abs(initEnergy))
     for i in count():
-        time.sleep(0.02)
+        if debugSleepTime>0:
+            time.sleep(debugSleepTime)
         if plotTarget==0:
             phi,energy,eComp,normDev,tauIncr,normMap=integrator.integrate(phi)
             tau+=tauIncr
 
             scorePos=scorePosition(normMap)
             # TEMP fixme score markers more grafecully placed!
-            scorePosInteger=int(Nx*scorePos)
+            scorePosInteger=int(Nx*(fieldBevelX+scorePos*(1-2*fieldBevelX)))
             scoreMarkers[0]['offset']=(
                 scorePosInteger,
                 0,
@@ -300,14 +310,15 @@ if __name__=='__main__':
                 0,
             )
             # scoring check
-            _totNorm=sum(normMap.values())
-            scorers={
-                i: ((normMap[3*i])/(_totNorm))>=winningFraction
-                for i in range(2)
-            }
-            if any(scorers.values()):
-                winner=[k for k,v in scorers.items() if v][0]
-                print(' *** [%9i] Player %i scored a point! ***' % (i,winner))
+            if nPlayers>1:
+                aboveThreshold={
+                    i: normMap[3*i]
+                    for i in range(nPlayers)
+                    if normMap[3*i]>=winningFraction
+                }
+                if len(aboveThreshold)>0:
+                    winner=max(aboveThreshold.items(),key=lambda kf: kf[1])[0]
+                    print(' *** [%9i] Player %i scored a point! ***' % (i,winner))
             #
             for plInfo in playerInfo.values():
                 plInfo['pad']['pos']=(
@@ -347,13 +358,12 @@ if __name__=='__main__':
                 title='Potential (p to switch)' if plotTarget==1 else 'BasePot (p to switch)',
                 palette=1,
             )
-            # time.sleep(0.1)
         #
         while replotting['keyqueue']:
             tkey=replotting['keyqueue'].pop(0)
             if tkey=='p':
                 plotTarget=(1+plotTarget)%3
-            elif tkey=='q':
+            elif tkey=='i':
                 sys.exit()
             elif tkey=='o':
                 hidePot=not hidePot
