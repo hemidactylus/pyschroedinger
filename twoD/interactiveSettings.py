@@ -55,4 +55,4 @@ intPlayerColors=[
     [50,50,180],
 ]
 
-winningFraction=0.6
+winningFraction=0.5

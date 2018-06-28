@@ -156,6 +156,14 @@ def preparePlayerInfo(nPlayers):
     else:
         raise ValueError('nPlayers cannot be %i' % nPlayers)
 
+def scorePosition(normMap):
+    '''
+        in normMap:
+            0 1 2 3
+        are the norms in the respective sectors
+    '''
+    return normMap[3]/(normMap[0]+normMap[3])
+
 if __name__=='__main__':
 
     nPlayers=2
@@ -279,25 +287,16 @@ if __name__=='__main__':
         if plotTarget==0:
             phi,energy,eComp,normDev,tauIncr,normMap=integrator.integrate(phi)
             tau+=tauIncr
-            # partial norms recap
-            # _tot=sum(normMap.values())
-            # print(
-            #     'Norms: %s' % (
-            #         '  '.join(
-            #             '%1i : %3i' % (k,int(100*v/_tot))
-            #             for k,v in sorted(normMap.items())
-            #         )
-            #     )
-            # )
-            scorePos=int(Nx*(normMap[3]/(normMap[3]+normMap[0])))
-            # print('scorePos %i' % scorePos)
+
+            scorePos=scorePosition(normMap)
             # TEMP fixme score markers more grafecully placed!
+            scorePosInteger=int(Nx*scorePos)
             scoreMarkers[0]['offset']=(
-                scorePos,
+                scorePosInteger,
                 0,
             )
             scoreMarkers[1]['offset']=(
-                scorePos,
+                scorePosInteger,
                 0,
             )
             # scoring check
@@ -315,10 +314,11 @@ if __name__=='__main__':
                     int((plInfo['patchPos'][0])*Nx),
                     int((plInfo['patchPos'][1])*Nx),
                 )
+
             # smoothing step
             if energy < initEnergyThreshold:
                 phi=phiSmoothingMatrix.dot(phi)
-            # damping step TEMP SLOW
+            # damping step
             phi=phi*(np.exp(-pot/potWavefunctionDampingDivider))
             doPlot(
                 phi,

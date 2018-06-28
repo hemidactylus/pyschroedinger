@@ -164,7 +164,6 @@ def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveIm
         )
     # artifacts
     for art in artifacts:
-        # print(dir(replotting['pygame']['bufferSurf']))
         replotting['pygame']['bufferSurf'].blit(
             art['surface'],
             tuple(p+o for p,o in zip(art['pos'],art['offset'])),
@@ -182,6 +181,7 @@ def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveIm
         replotting['pygame']['screen'],
         (0,0),
     )
+
     pygame.display.flip()
     #
     if photoIndex is not None:

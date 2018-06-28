@@ -26,7 +26,8 @@ def norm(psi,deltaLambdaXY,slices=None):
             slIndex: sum(_mod2[slStart:slEnd])
             for slIndex,(slStart,slEnd) in enumerate(zip(slices,slices[1:]+[None]))
         }
-        return (sum(normMap.values())*deltaLambdaXY)**0.5,normMap
+        fullNorm=sum(normMap.values())
+        return (fullNorm*deltaLambdaXY)**0.5,{k: v/fullNorm for k,v in normMap.items()}
 
 def re(psi):
     return psi.real
