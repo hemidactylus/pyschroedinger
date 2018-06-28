@@ -32,6 +32,7 @@ from twoD.interactiveSettings import (
     potPlayerPadHeight,
     intPotentialColor,
     intPlayerColors,
+    winningFraction,
 )
 
 from twoD.gui import (
@@ -248,11 +249,18 @@ if __name__=='__main__':
     )
 
     # FIXME temp solution to the score marker
-    scoreMarker=makeFilledBlockArtifact(
-        (-2,2),
-        (5,4),
-        color=255,
-    )
+    scoreMarkers=[
+        makeFilledBlockArtifact(
+            (0,0),
+            (1,3),
+            color=255,
+        ),
+        makeFilledBlockArtifact(
+            (0,Ny-3),
+            (1,3),
+            color=255,
+        ),
+    ]
 
     frameArtifacts=makeRectangularArtifactList(
         Nx=Nx,
@@ -283,10 +291,24 @@ if __name__=='__main__':
             # )
             scorePos=int(Nx*(normMap[3]/(normMap[3]+normMap[0])))
             # print('scorePos %i' % scorePos)
-            scoreMarker['offset']=(
+            # TEMP fixme score markers more grafecully placed!
+            scoreMarkers[0]['offset']=(
                 scorePos,
                 0,
             )
+            scoreMarkers[1]['offset']=(
+                scorePos,
+                0,
+            )
+            # scoring check
+            _totNorm=sum(normMap.values())
+            scorers={
+                i: ((normMap[3*i])/(_totNorm))>=winningFraction
+                for i in range(2)
+            }
+            if any(scorers.values()):
+                winner=[k for k,v in scorers.items() if v][0]
+                print(' *** [%9i] Player %i scored a point! ***' % (i,winner))
             #
             for plInfo in playerInfo.values():
                 plInfo['pad']['pos']=(
@@ -315,9 +337,7 @@ if __name__=='__main__':
                     for plInfo in playerInfo.values()
                 ]+frameArtifacts+[
                     halfField
-                ]+[
-                    scoreMarker
-                ],
+                ]+scoreMarkers,
                 keysToCatch=arrowKeyMap.keys(),
             )
         else:

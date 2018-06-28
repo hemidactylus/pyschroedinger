@@ -45,6 +45,7 @@ def makeCheckerboardRectangularArtifact(Nx,Ny,posX,posY,widthX,heightY,color,tra
         for y in range(pHeight):
             if (x+y)%2==0:
                 art.set_at((x,y),color)
+    art.set_colorkey(transparentKey)
     return {
         'pos': pPos,
         'surface': art,
