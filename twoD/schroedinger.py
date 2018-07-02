@@ -29,7 +29,7 @@ from twoD.gui import (
 )
 
 from twoD.wfunctions import (
-    makeFakePhi,
+    wavePacket,
 )
 from twoD.potentials import (
     freeParticlePotential,
@@ -61,12 +61,12 @@ def initPhi():
     phi=combineWFunctions(
         [
             # 1. some interference
-            makeFakePhi(Nx,Ny,c=(0.25,0.25),ph0=(0,0),sigma2=(0.002,0.002),weight=1),
-            # makeFakePhi(Nx,Ny,c=(0.75,0.5),ph0=(-5,0),sigma2=(0.004,0.004),weight=1),
-            # makeFakePhi(Nx,Ny,c=(0.5,0.2),ph0=(0,+3),sigma2=(0.001,0.001),weight=0.8),
-            # makeFakePhi(Nx,Ny,c=(0.5,0.8),ph0=(0,-3),sigma2=(0.001,0.001),weight=0.8),
+            wavePacket(Nx,Ny,c=(0.25,0.25),ph0=(0,0),sigma2=(0.002,0.002),weight=1),
+            # wavePacket(Nx,Ny,c=(0.75,0.5),ph0=(-5,0),sigma2=(0.004,0.004),weight=1),
+            # wavePacket(Nx,Ny,c=(0.5,0.2),ph0=(0,+3),sigma2=(0.001,0.001),weight=0.8),
+            # wavePacket(Nx,Ny,c=(0.5,0.8),ph0=(0,-3),sigma2=(0.001,0.001),weight=0.8),
             # 2. a "plane wave"
-            # makeFakePhi(Nx,Ny,c=(0.9,0.5),ph0=(8,0),sigma2=(0.001,0.1),weight=0.8),
+            # wavePacket(Nx,Ny,c=(0.9,0.5),ph0=(8,0),sigma2=(0.001,0.1),weight=0.8),
         ],
         deltaLambdaXY=deltaLambdaX*deltaLambdaY,
     )

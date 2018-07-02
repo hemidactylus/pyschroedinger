@@ -45,7 +45,7 @@ patchRadii=(0.08,0.08)
 fieldBevelX=0.03
 fieldBevelY=0.03
 
-potWavefunctionDampingDivider=120000
+potWavefunctionDampingDivider=220000
 potBorderWallHeight=8000
 potPlayerPadHeight=10000
 

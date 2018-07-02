@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 
 '''
-    schroedinger.py :
-      two-dimensional study of integration of the
-      Schroedinger equation
+    qpong.py :
+      a two-dimensional quantum pong game
 '''
+
 from itertools import count
 import time
 import sys
+import numpy as np
 
 from twoD.settings import (
     Nx,
@@ -22,13 +23,14 @@ from twoD.settings import (
     LambdaX,
     LambdaY,
 )
-from twoD.interactiveSettings import (
+
+from qpong.interactiveSettings import (
     fullArrowKeyMap,
     patchRadii,
     fieldBevelX,
     fieldBevelY,
     potWavefunctionDampingDivider,
-    potBorderWallHeight,
+    # potBorderWallHeight,
     potPlayerPadHeight,
     intPotentialColor,
     intPlayerColors,
@@ -42,30 +44,12 @@ from twoD.gui import (
 
 from twoD.artifacts import (
     makeRectangularArtifactList,
-    makeCircleArtifact,
+    # makeCircleArtifact,
     makeCheckerboardRectangularArtifact,
     makeFilledBlockArtifact,
 )
 
-from twoD.wfunctions import (
-    makeFakePhi,
-)
-from twoD.potentials import (
-    freeParticlePotential,
-    rectangularHolePotential,
-    ellipticHolePotential,
-)
-
-from twoD.tools import (
-    combineWFunctions,
-    combinePotentials,
-    norm,
-)
-
 from twoD.dynamics import (
-    NaiveFiniteDifferenceIntegrator,
-    RK4StepByStepIntegrator,
-    SparseMatrixRK4Integrator,
     VariablePotSparseRK4Integrator,
     makeSmoothingMatrix,
 )
@@ -76,102 +60,14 @@ from utils.units import (
     toEnergy_MeV,
 )
 
-import numpy as np
-
-def initPhi():
-    # very fake for now
-    phi=combineWFunctions(
-        [
-            makeFakePhi(Nx,Ny,c=(0.25,0.25),ph0=(0,-5),sigma2=(0.002,0.002),weight=1),
-            makeFakePhi(Nx,Ny,c=(0.75,0.75),ph0=(0,+5),sigma2=(0.002,0.002),weight=1),
-        ],
-        deltaLambdaXY=deltaLambdaX*deltaLambdaY,
-    )
-    return phi
-
-def initPot(patchPosList,prevPot):
-    patchPotList=[
-        ellipticHolePotential(
-            Nx,
-            Ny,
-            pPos=patchPos,
-            pRadius=(0.1,0.1),
-            pThickness=0.01,
-            vIn=potPlayerPadHeight,
-            vOut=0,
-        )
-        for patchPos in patchPosList
-    ]
-    return combinePotentials(
-        [
-            prevPot,
-        ]+patchPotList, 
-    ), patchPotList
-
-def fixPatch(pp,ps,rdii,bbox):
-    nPos=[pp[0]+ps[0],pp[1]+ps[1]]
-    if nPos[0]-rdii[0]<bbox[0]:
-        nPos[0]=bbox[0]+rdii[0]
-    if nPos[0]+rdii[0]>bbox[2]:
-        nPos[0]=bbox[2]-rdii[0]
-    if nPos[1]-rdii[1]<bbox[1]:
-        nPos[1]=bbox[1]+rdii[1]
-    if nPos[1]+rdii[1]>bbox[3]:
-        nPos[1]=bbox[3]-rdii[1]
-    return tuple(nPos)
-
-def preparePlayerInfo(nPlayers):
-    if nPlayers==1:
-        return {
-            0: {
-                'bbox': [
-                    fieldBevelX,
-                    fieldBevelY,
-                    1-fieldBevelX,
-                    1-fieldBevelY,
-                ],
-                'patchInitPos': (0.5,0.5),
-            },
-        }
-    elif nPlayers==2:
-        return {
-            0: {
-                'bbox': [
-                    0.5+0.5*fieldBevelX,
-                    fieldBevelY,
-                    1-fieldBevelX,
-                    1-fieldBevelY,
-                ],
-                'patchInitPos': (0.75,0.5),
-            },
-            1: {
-                'bbox': [
-                    fieldBevelX,
-                    fieldBevelY,
-                    0.5-0.5*fieldBevelX,
-                    1-fieldBevelY,
-                ],
-                'patchInitPos': (0.25,0.5),
-            },
-        }
-    else:
-        raise ValueError('nPlayers cannot be %i' % nPlayers)
-
-def scorePosition(normMap):
-    '''
-        in normMap:
-            0 1 2 3
-        are the norms in the respective sectors
-    '''
-    renorm={
-        0: max(0,1-normMap[0]/winningFraction),
-        1: max(0,1-normMap[3]/winningFraction),
-    }
-    if renorm[0]<renorm[1]:
-        s=-1+renorm[0]/renorm[1]
-    else:
-        s=+1-renorm[1]/renorm[0]
-    return 0.5*(1+s)
+from qpong.interactive import (
+    initPhi,
+    initPot,
+    fixCursorPosition,
+    preparePlayerInfo,
+    scorePosition,
+    prepareBasePotential,
+)
 
 if __name__=='__main__':
 
@@ -185,18 +81,12 @@ if __name__=='__main__':
     arrowKeyMap={
         k: v
         for k,v in fullArrowKeyMap.items()
-        if v['player']<nPlayers
+        if v['player'] in playerInfo
     }
 
     # preparation of tools
-    basePot=rectangularHolePotential(
-        Nx,
-        Ny,
-        pPos=(0.0,0.0,1.,1.),
-        pThickness=(0.0001,0.0001),
-        vIn=0,
-        vOut=potBorderWallHeight,
-    )
+    basePot=prepareBasePotential()
+
     pot,patchPotList=initPot(
         patchPosList=[
             plInfo['patchInitPos']
@@ -204,18 +94,6 @@ if __name__=='__main__':
         ],
         prevPot=basePot,
     )
-    for plIndex,plInfo in playerInfo.items():
-        plInfo['pad']=makeCircleArtifact(
-            Nx=Nx,
-            Ny=Ny,
-            centerX=0.5,
-            centerY=0.5,
-            radiusX=patchRadii[0],
-            radiusY=patchRadii[1],
-            color=254-plIndex,
-            transparentKey=0,
-        )
-        plInfo['patchPos']=plInfo['patchInitPos']
 
     phiSmoothingMatrix=makeSmoothingMatrix(
         wfSizeX=Nx,
@@ -377,7 +255,7 @@ if __name__=='__main__':
                 hidePot=not hidePot
             else: # arrow key
                 targetPlayer=arrowKeyMap[tkey]['player']
-                playerInfo[targetPlayer]['patchPos']=fixPatch(
+                playerInfo[targetPlayer]['patchPos']=fixCursorPosition(
                     playerInfo[targetPlayer]['patchPos'],
                     arrowKeyMap[tkey]['incr'],
                     patchRadii,

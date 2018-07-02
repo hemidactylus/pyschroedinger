@@ -10,7 +10,7 @@ from twoD.settings import (
     deltaLambdaY,
 )
 
-def makeFakePhi(Nx,Ny,c,ph0,sigma2,phase=0.0,weight=1):
+def wavePacket(Nx,Ny,c,ph0,sigma2,phase=0.0,weight=1):
     ph=(
         roundWaveNumber(ph0[0],0),
         roundWaveNumber(ph0[1],1),
