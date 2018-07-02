@@ -37,7 +37,7 @@ waveNumber0=(2*math.pi/LambdaX,2*math.pi/LambdaY)
 tileX=8
 tileY=8
 drawFreq=50
-# drawFreq=5
+drawFreq=5
 framesToDraw=None # None => forever
 
 potentialColor=[0,180,90]

@@ -51,8 +51,6 @@ class WFIntegrator():
             int(0.5+slFraction*self.wfSizeX*self.wfSizeY)
             for slFraction in sorted(slicesSet)
         ]
-        print('DBG SLICES NxNy %i' % (self.wfSizeX*self.wfSizeY))
-        print('DBG SLICES : %s' % ' '.join(str(i) for i in self.slices))
         if self.exactEnergy:
             self.energyCalculator=createEnergyCalculator(
                 self.wfSizeX,

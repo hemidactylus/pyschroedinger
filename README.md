@@ -7,8 +7,6 @@ A playground to learn something about numerical integration of the Schroedinger 
 
 ## To Do
 
-Rewriting the keyqueue business
-
 A proper messaging system for on-screen
 
 State machine to handle game

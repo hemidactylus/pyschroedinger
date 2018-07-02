@@ -147,10 +147,12 @@ if __name__=='__main__':
 
     plotTarget=0
 
+    keysToSend={'o','p'}
+
     initTime=time.time()
     for i in count() if framesToDraw is None else range(framesToDraw):
         if plotTarget==0:
-            phi,energy,eComp,normDev,tauIncr=integrator.integrate(phi)
+            phi,energy,eComp,normDev,tauIncr,_=integrator.integrate(phi)
             tau+=tauIncr
             doPlot(
                 phi,
@@ -163,16 +165,17 @@ if __name__=='__main__':
                     normDev,
                 ),
                 palette=0,
+                keysToSend=keysToSend,
             )
         else:
-            doPlot(pot.astype(complex),replotting,title='Potential (p to resume)',palette=1)
+            doPlot(pot.astype(complex),replotting,title='Potential (p to resume)',palette=1,keysToSend=keysToSend)
             time.sleep(0.1)
         #
         while replotting['keyqueue']:
             tkey=replotting['keyqueue'].pop(0)
             if tkey=='p':
                 plotTarget=1-plotTarget
-            elif tkey=='q':
+            elif tkey=='o':
                 sys.exit()
         #
     elapsed=time.time()-initTime

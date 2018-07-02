@@ -95,7 +95,7 @@ def mapToPalette(colArray,nparray,potarray,refPalette,refPotPalette):
             if potarray[x][y]>DRAW_POTENTIAL_THRESHOLD:
                 colArray[x][y]=np.array(refPotPalette[potarray[x][y]])
 
-def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveImage=False,potential=None,artifacts=[],keysToCatch=set(),specialColors=[potentialColor]):
+def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveImage=False,potential=None,artifacts=[],keysToCatch=set(),keysToSend=set(),specialColors=[potentialColor]):
     '''
         all information on the x,y-scale
         is implicit.
@@ -191,17 +191,9 @@ def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveIm
     #
     # 2. respond to events
     for event in pygame.event.get():
-        if event.type in {pgQuit, pgMouseDown}:
-            replotting['keyqueue'].append('q')
-        if event.type in {pgKeyDown} and event.unicode=='q':
-            replotting['keyqueue'].append('q')
-        if event.type in {pgKeyDown} and event.unicode=='p':
-            replotting['keyqueue'].append('p')
-        if event.type in {pgKeyDown} and event.unicode=='o':
-            replotting['keyqueue'].append('o')
-        if event.type in {pgKeyDown} and event.unicode=='i':
-            replotting['keyqueue'].append('i')
-    kpresses= pygame.key.get_pressed()
+        if event.type==pgKeyDown and event.unicode in keysToSend:
+            replotting['keyqueue'].append(event.unicode)
+    kpresses=pygame.key.get_pressed()
     for kDir in keysToCatch:
         if kpresses[kDir]:
             replotting['keyqueue'].append(kDir)
