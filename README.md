@@ -1,6 +1,17 @@
 # pyschroedinger
 
-A playground to learn something about numerical integration of the Schroedinger equation
+A game of __pong__ where the ball is not a classical particle, rather a
+quantum-mechanical wavefunction.
+
+A playground to learn something about numerical integration of the Schroedinger equation.
+
+## To Do
+
+Rewriting the keyqueue business
+
+A proper messaging system for on-screen
+
+State machine to handle game
 
 ## Get it running
 
@@ -8,7 +19,13 @@ Clone the repo, create the virtualenv
 (with python3) and set the repo's root
 dir into the path of the virtualenv.
 
-Then go to either `oneD` or `twoD` directories, start
+Then go to the `twoD` directory and start
+
+    ./interactive.py
+
+to play; alternatively, to have a look at the integrator
+in a non-interactive fashion,
+go to either `oneD` or `twoD` directories, start
 
     ./schroedinger.py
 
@@ -16,9 +33,48 @@ and enjoy the show.
 
 You can alter the initial wavefunction/potential by playing with the `initPhi`
 and `initPot` functions in `schroedinger.py`, and you can tweak more fundamental
-settings (time interval, grid size, boundary conditions, and so on) in `settings.py`.
+settings (time interval, grid size, boundary conditions, and so on) in `settings.py`;
+game-specific settings are in `twoD/interactiveSettings.py`.
 
-### Examples
+### Basic structure of the project
+
+The one- and two-dimensional cases are in two different subdirectories
+and share almost nothing.
+The dynamics (i.e. integrators) and the GUI reside in separate modules,
+and are used by the main driver and - in the case of two dimensions - 
+the game as well.
+
+## Game-specific features
+
+In the game, the player control a "pad" that is, in fact, an island of high potential
+in the system, whose position changes over time. This leads to two unpleasant
+consequences that have to be addressed, at the cost of tweaking a bit the
+quantum evolution of the system, to keep the game playable:
+
+(1) Since the pad motion is discrete, it so happens that the pad slides under a
+region where the wavefunction has a high value: this, effectively, raises the total
+energy of the system in an unwarranted way, a fact which mostly manifests itself
+as a growth of high-frequency components in the wavefunction (a rougher and rougher psi).
+To keep this under control, a smoothing matrix, designed to kill high frequencies, is applied
+to psi whenever, after the update iteration, the new total energy exceeds a threshold
+set by the initial energy of the system.
+
+(2) Another consequence of the discretised time steps is the fact that, when the pad
+slides under a region with large psi, the latter is effectively "trapped" there (the pad having
+a constant potential at its core. If one had infinitesimal time steps, the wave function
+would be, correctly, pushed away by the gradient of the potential at the rim of the pads:
+here, to avoid trapping large portions of the wave function within the pad, we apply a damping
+factor at each iteration of type 
+
+<img
+  src="https://latex.codecogs.com/svg.latex?\psi\to\psi\cdot{e}^{-V/v_0}~,"
+/>
+
+with v<sub>0</sub> chosen as large as possible as long as it does its job. Unfortunately,
+this is a minor tweak that may hinder e.g. exploiting the tunnel effect in
+some way throughout the game.
+
+### Examples (non-game version)
 
 __Tunnel effect__: A (one-dimensional) Gaussian wave packet (mass is half that of the electron)
 hits a finite potential barrier and tunnels through it (with periodic B.C.):
@@ -39,16 +95,6 @@ with itself.)
 the wavefunction; even more crucial, due to my incomplete knowledge of `pygame`, was the choice to make without
 the 8-bit color palette, using instead full RGB colors for the rendering of the image -- that seemed
 to be the only way to get the right colors on the saved picture files.)
-
-## To Do
-
-Documenting the two approxs (exp damping with pot of the wf, smoothing to keep energy under control)
-
-Rewriting the keyqueue business
-
-A proper messaging system for on-screen
-
-State machine to handle game
 
 ## Units
 
@@ -226,6 +272,11 @@ In the adimensional units, the energy calculated in this way is given by:
 
 <img
   src="https://latex.codecogs.com/svg.latex?e=\langle\phi|\left[-\frac{1}{2\mu}\frac{\mathrm{d}^2}{\mathrm{d}\lambda^2}+v\right]|\phi\rangle=\frac{i}{\Delta\tau}\langle\phi_\tau|\left(\phi_\tau-\phi_{\tau-\Delta\tau}\right)\rangle"/>.
+
+_Note_: this calculation introduces too large a bias in typical configurations, hence it is discarded
+in favour of the exact one based on the actual definition of energy. The latter, if properly implemented,
+hitches a ride on the system evolution (at least in the case of the time-dependent potential integrator)
+and introduces practically no additional overhead.
 
 ## Boundary conditions
 
