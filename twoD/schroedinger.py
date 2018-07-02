@@ -147,7 +147,7 @@ if __name__=='__main__':
 
     plotTarget=0
 
-    keysToSend={'o','p'}
+    keysToSend={'i','p'}
 
     initTime=time.time()
     for i in count() if framesToDraw is None else range(framesToDraw):
@@ -175,7 +175,7 @@ if __name__=='__main__':
             tkey=replotting['keyqueue'].pop(0)
             if tkey=='p':
                 plotTarget=1-plotTarget
-            elif tkey=='o':
+            elif tkey=='i':
                 sys.exit()
         #
     elapsed=time.time()-initTime

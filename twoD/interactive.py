@@ -175,7 +175,11 @@ def scorePosition(normMap):
 
 if __name__=='__main__':
 
-    nPlayers=2
+    if '-1' in sys.argv[1:]:
+        nPlayers=1
+    else:
+        nPlayers=2
+    
     playerInfo=preparePlayerInfo(nPlayers)
 
     arrowKeyMap={
@@ -288,6 +292,8 @@ if __name__=='__main__':
         transparentKey=0,
     )
 
+    keysToSend={'p','o','i'}
+
     initTime=time.time()
     phi,initEnergy,_,_,_,_=integrator.integrate(phi)
     initEnergyThreshold=(initEnergy-0.05*abs(initEnergy))
@@ -350,6 +356,7 @@ if __name__=='__main__':
                     halfField
                 ]+scoreMarkers,
                 keysToCatch=arrowKeyMap.keys(),
+                keysToSend=keysToSend,
             )
         else:
             doPlot(
@@ -357,6 +364,7 @@ if __name__=='__main__':
                 replotting,
                 title='Potential (p to switch)' if plotTarget==1 else 'BasePot (p to switch)',
                 palette=1,
+                keysToSend=keysToSend,
             )
         #
         while replotting['keyqueue']:

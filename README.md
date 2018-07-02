@@ -21,6 +21,8 @@ Then go to the `twoD` directory and start
 
     ./interactive.py
 
+(optionally passing the `-1` option to experiment with one-player)
+
 to play; alternatively, to have a look at the integrator
 in a non-interactive fashion,
 go to either `oneD` or `twoD` directories, start
