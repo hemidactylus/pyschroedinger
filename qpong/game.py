@@ -22,6 +22,7 @@ from twoD.settings import (
     drawFreq,
     LambdaX,
     LambdaY,
+    framesToDraw,
 )
 
 from qpong.interactiveSettings import (
@@ -29,9 +30,6 @@ from qpong.interactiveSettings import (
     patchRadii,
     fieldBevelX,
     fieldBevelY,
-    potWavefunctionDampingDivider,
-    # potBorderWallHeight,
-    potPlayerPadHeight,
     intPotentialColor,
     intPlayerColors,
     winningFraction,
@@ -62,11 +60,12 @@ from utils.units import (
 
 from qpong.interactive import (
     initPhi,
-    initPot,
+    assemblePotentials,
     fixCursorPosition,
     preparePlayerInfo,
     scorePosition,
     prepareBasePotential,
+    initPatchPotential,
 )
 
 if __name__=='__main__':
@@ -86,13 +85,15 @@ if __name__=='__main__':
 
     # preparation of tools
     basePot=prepareBasePotential()
+    patchPot=initPatchPotential()
 
-    pot,patchPotList=initPot(
+    pot,damping=assemblePotentials(
         patchPosList=[
             plInfo['patchInitPos']
             for plInfo in playerInfo.values()
         ],
-        prevPot=basePot,
+        patchPot=patchPot,
+        backgroundPot=basePot,
     )
 
     phiSmoothingMatrix=makeSmoothingMatrix(
@@ -175,7 +176,7 @@ if __name__=='__main__':
     initTime=time.time()
     phi,initEnergy,_,_,_,_=integrator.integrate(phi)
     initEnergyThreshold=(initEnergy-0.05*abs(initEnergy))
-    for i in count():
+    for i in count() if framesToDraw is None else range(framesToDraw):
         if debugSleepTime>0:
             time.sleep(debugSleepTime)
         if plotTarget==0:
@@ -214,7 +215,7 @@ if __name__=='__main__':
             if energy < initEnergyThreshold:
                 phi=phiSmoothingMatrix.dot(phi)
             # damping step
-            phi=phi*(np.exp(-pot/potWavefunctionDampingDivider))
+            phi=phi*damping
             doPlot(
                 phi,
                 replotting,
@@ -261,11 +262,12 @@ if __name__=='__main__':
                     patchRadii,
                     playerInfo[targetPlayer]['bbox'],
                 )
-        pot,patchPotList=initPot(
+        pot,damping=assemblePotentials(
             patchPosList=[
                 plInfo['patchPos']
                 for plInfo in playerInfo.values()
             ],
-            prevPot=basePot,
+            patchPot=patchPot,
+            backgroundPot=basePot,
         )
         integrator.setPotential(pot)

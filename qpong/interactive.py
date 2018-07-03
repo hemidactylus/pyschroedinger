@@ -2,9 +2,7 @@
     interactive.py :
       tools for qpong
 '''
-from itertools import count
-import time
-import sys
+import numpy as np
 
 from twoD.settings import (
     Nx,
@@ -19,6 +17,8 @@ from qpong.interactiveSettings import (
     winningFraction,
     potBorderWallHeight,
     patchRadii,
+    patchThickness,
+    potWavefunctionDampingDivider,
 )
 
 from twoD.wfunctions import (
@@ -53,29 +53,58 @@ def initPhi():
     )
     return phi
 
-def initPot(patchPosList,prevPot):
+def initPatchPotential():
     '''
-        given a one-off background potential
+        prepares a single patch potential
+        centred in a 2*Nx,2*Ny plane
+        acting as a cache at each patch
+        repositioning
+    '''
+    pPot=ellipticHolePotential(
+        2*Nx,
+        2*Ny,
+        pPos=(0.5,0.5),
+        pRadius=tuple(0.5*r for r in patchRadii),
+        pThickness=0.5*patchThickness,
+        vIn=potPlayerPadHeight,
+        vOut=0,
+        reshape=False,
+    )
+    return {
+        'pot': pPot,
+        'centre': (Nx,Ny),
+        'halfSize': (Nx,Ny),
+    }
+
+def assemblePotentials(patchPosList,patchPot,backgroundPot):
+    '''
+        given a one-off background potential,
+        a cached patch potential
+        (as returned by initPatchPotential)
         and a list of positions for the 'patches'
         (the player pads), the potential is computed
     '''
-    patchPotList=[
-        ellipticHolePotential(
-            Nx,
-            Ny,
-            pPos=patchPos,
-            pRadius=(0.1,0.1),
-            pThickness=0.01,
-            vIn=potPlayerPadHeight,
-            vOut=0,
-        )
-        for patchPos in patchPosList
-    ]
-    return combinePotentials(
+    varPot=np.zeros((Nx,Ny),dtype=float)
+    pcX,pcY=patchPot['centre']
+    for patchPos in patchPosList:
+        pPosIntX,pPosIntY=(int(patchPos[0]*Nx),int(patchPos[1]*Ny))
+        for vpX in range(Nx):
+            for vpY in range(Ny):
+                varPot[vpX][vpY]+=patchPot['pot'][(vpX-pPosIntX)+pcX][(vpY-pPosIntY)+pcY]
+    rVarPot=varPot.reshape((Nx*Ny))
+    fPot=combinePotentials(
         [
-            prevPot,
-        ]+patchPotList, 
-    ), patchPotList
+            backgroundPot,
+            rVarPot
+        ]
+    )
+    # a linear approximation is not particularly faster than this (see below)
+    dampingFactor=np.exp(-fPot/potWavefunctionDampingDivider)
+    # _mx=np.max(fPot/potWavefunctionDampingDivider)
+    # dampingFactor=1-(fPot/potWavefunctionDampingDivider)
+    # dampingFactor[dampingFactor<0]=0
+    #
+    return fPot,dampingFactor
 
 def prepareBasePotential():
     return rectangularHolePotential(

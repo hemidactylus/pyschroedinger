@@ -9,7 +9,7 @@ import math
 def freeParticlePotential(Nx,Ny):
     return np.zeros((Nx,Ny),dtype=float).reshape((Nx*Ny))
 
-def ellipticHolePotential(Nx,Ny,pPos,pRadius,pThickness,vIn,vOut):
+def ellipticHolePotential(Nx,Ny,pPos,pRadius,pThickness,vIn,vOut, reshape=True):
     '''
         a plateau, of elliptic shape, with a steepness of borders;
         center and values of the potential in and out are provided
@@ -30,7 +30,10 @@ def ellipticHolePotential(Nx,Ny,pPos,pRadius,pThickness,vIn,vOut):
             _y=(y/(Ny-1))
             _rho=((((_x-center[0])/radius[0])**2)+(((_y-center[1])/radius[1])**2))**0.5
             unsubPot[x][y]=vOut+(vIn-vOut)*((1+math.tanh((1-_rho)/thickness))/2)
-    return unsubPot.reshape((Nx*Ny))
+    if reshape:
+        return unsubPot.reshape((Nx*Ny))
+    else:
+        return unsubPot
 
 def rectangularHolePotential(Nx,Ny,pPos,pThickness,vIn,vOut):
     '''

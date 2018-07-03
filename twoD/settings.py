@@ -38,6 +38,6 @@ tileX=8
 tileY=8
 # drawFreq=50
 drawFreq=5
-framesToDraw=None # None => forever
+framesToDraw=1000#None # None => forever
 
 potentialColor=[0,180,90]

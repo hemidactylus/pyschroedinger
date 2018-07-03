@@ -9,10 +9,6 @@ A playground to learn something about numerical integration of the Schroedinger 
 
 Deep refactoring of the qpong part
 
-Store the per-pad potentials and use them as a cache to place the pads (makes it faster!)
-
-and the same for the exp(-v/v0) damping step!
-
 A proper messaging system for on-screen
 
 State machine to handle game
