@@ -23,19 +23,21 @@ Clone the repo, create the virtualenv
 (with python3) and set the repo's root
 dir into the path of the virtualenv.
 
-Then go to the `twoD` directory and start
+Then, in order to play, go to the
+`qpong` directory and start
 
-    ./interactive.py
+    ./game.py
 
 (optionally passing the `-1` option to experiment with one-player)
 
-to play; alternatively, to have a look at the integrator
+Alternatively, to have a look at the integrator
 in a non-interactive fashion,
 go to either `oneD` or `twoD` directories, start
 
     ./schroedinger.py
 
-and enjoy the show.
+and enjoy the show (after tweaking the code and/or the parameters,
+if you feel so inclined).
 
 You can alter the initial wavefunction/potential by playing with the `initPhi`
 and `initPot` functions in `schroedinger.py`, and you can tweak more fundamental
