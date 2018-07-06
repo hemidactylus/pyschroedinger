@@ -13,6 +13,8 @@ A proper messaging system for on-screen
 
 State machine to handle game
 
+In-place everything that is possible for numpy not to re-allocate every time
+
 ## Get it running
 
 Clone the repo, create the virtualenv

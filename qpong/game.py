@@ -148,7 +148,6 @@ if __name__=='__main__':
         transparentKey=0,
     )
 
-    # FIXME temp solution to the score marker
     scoreMarkers=[
         makeFilledBlockArtifact(
             (0,0),
@@ -184,7 +183,6 @@ if __name__=='__main__':
             tau+=tauIncr
 
             scorePos=scorePosition(normMap)
-            # TEMP fixme score markers more grafecully placed!
             scorePosInteger=int(Nx*(fieldBevelX+scorePos*(1-2*fieldBevelX)))
             scoreMarkers[0]['offset']=(
                 scorePosInteger,
