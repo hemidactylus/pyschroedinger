@@ -13,7 +13,7 @@ A proper messaging system for on-screen
 
 State machine to handle game
 
-In-place everything that is possible for numpy not to re-allocate every time
+What can be made in-place in the integrator?
 
 ## Get it running
 
