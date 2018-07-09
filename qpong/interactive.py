@@ -76,7 +76,7 @@ def initPatchPotential():
         'halfSize': (Nx,Ny),
     }
 
-def assemblePotentials(patchPosList,patchPot,backgroundPot):
+def assemblePotentials(patchPosList,patchPot,backgroundPot,matrixRepo=None):
     '''
         given a one-off background potential,
         a cached patch potential
@@ -84,7 +84,11 @@ def assemblePotentials(patchPosList,patchPot,backgroundPot):
         and a list of positions for the 'patches'
         (the player pads), the potential is computed
     '''
-    varPot=np.zeros((Nx,Ny),dtype=float)
+    if matrixRepo is not None:
+        varPot=matrixRepo['varPot']
+        varPot[:][:]=0.0
+    else:
+        varPot=np.zeros((Nx,Ny),dtype=float)
     pcX,pcY=patchPot['centre']
     for patchPos in patchPosList:
         pPosIntX,pPosIntY=(int(patchPos[0]*Nx),int(patchPos[1]*Ny))
@@ -96,10 +100,22 @@ def assemblePotentials(patchPosList,patchPot,backgroundPot):
         [
             backgroundPot,
             rVarPot
-        ]
+        ],
+        matrixRepo=matrixRepo,
     )
     # a linear approximation is not particularly faster than this (see below)
-    dampingFactor=np.exp(-fPot/potWavefunctionDampingDivider)
+    if matrixRepo is not None:
+        dampingFactor=matrixRepo['dampingFactor']
+        # in-place linear approx
+        maxP,minP=np.max(fPot),np.min(fPot)
+        dampingFactor-=minP
+        dampingFactor/=(maxP-minP)
+        dampingFactor**=16
+        dampingFactor-=1
+        # in-place exp damping
+        # np.exp(-fPot/potWavefunctionDampingDivider,dampingFactor)
+    else:
+        dampingFactor=np.exp(-fPot/potWavefunctionDampingDivider)
     # _mx=np.max(fPot/potWavefunctionDampingDivider)
     # dampingFactor=1-(fPot/potWavefunctionDampingDivider)
     # dampingFactor[dampingFactor<0]=0
@@ -213,3 +229,13 @@ def scorePosition(normMap):
     else:
         s=0.0
     return 0.5*(1+s)
+
+def prepareMatrixRepository():
+    varPot=np.zeros((Nx,Ny),dtype=float)
+    dampingFactor=varPot.reshape((Nx*Ny))
+    fullPotential=np.zeros(Nx*Ny,dtype=float)
+    return {
+        'varPot': varPot,
+        'dampingFactor': dampingFactor,
+        'fullPotential': fullPotential,
+    }

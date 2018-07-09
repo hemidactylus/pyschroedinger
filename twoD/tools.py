@@ -50,14 +50,24 @@ def combineWFunctions(wflist,deltaLambdaXY,normalize=True):
     else:
         return unnormed
 
-def combinePotentials(potlist,shift=True):
+def combinePotentials(potlist,shift=True,matrixRepo=None):
     '''
         sums the provided potentials and optionally
         brings the minimum to zero
     '''
-    unshifted = reduce(sumFunctions,potlist[1:],potlist[0])
-    if shift:
-        minPot=unshifted.min()
-        return unshifted-minPot
+    if matrixRepo is None:
+        unshifted = reduce(sumFunctions,potlist[1:],potlist[0])
+        if shift:
+            minPot=unshifted.min()
+            return unshifted-minPot
+        else:
+            return unshifted
     else:
-        return unshifted
+        np.copyto(matrixRepo['fullPotential'],potlist[0])
+        for pot in potlist[1:]:
+            matrixRepo['fullPotential']+=pot
+        if shift:
+            minPot=matrixRepo['fullPotential'].min()
+            return matrixRepo['fullPotential']-minPot
+        else:
+            return matrixRepo['fullPotential']

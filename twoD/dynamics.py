@@ -114,7 +114,7 @@ class VariablePotSparseRK4Integrator(WFIntegrator):
         self.setPotential(kwargs['vPotential'])
 
     def setPotential(self,vPotential):
-        self.vPotential=vPotential
+        np.copyto(self.vPotential,vPotential)
 
     def _naiveEvolutionOperator(self,phi):
         '''

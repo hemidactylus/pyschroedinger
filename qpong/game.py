@@ -66,6 +66,7 @@ from qpong.interactive import (
     scorePosition,
     prepareBasePotential,
     initPatchPotential,
+    prepareMatrixRepository,
 )
 
 if __name__=='__main__':
@@ -74,8 +75,15 @@ if __name__=='__main__':
         nPlayers=1
     else:
         nPlayers=2
+
+    if '-norepo' in sys.argv[1:]:
+        useMRepo=False
+    else:
+        useMRepo=True
     
     playerInfo=preparePlayerInfo(nPlayers)
+
+    globalMatrixRepo=prepareMatrixRepository() if useMRepo else None
 
     arrowKeyMap={
         k: v
@@ -94,6 +102,7 @@ if __name__=='__main__':
         ],
         patchPot=patchPot,
         backgroundPot=basePot,
+        matrixRepo=globalMatrixRepo,
     )
 
     phiSmoothingMatrix=makeSmoothingMatrix(
@@ -211,9 +220,10 @@ if __name__=='__main__':
 
             # smoothing step
             if energy < initEnergyThreshold:
+                # this does not seem to be doable in-place (why?)
                 phi=phiSmoothingMatrix.dot(phi)
-            # damping step
-            phi=phi*damping
+            # potential-induced damping step, in-place
+            phi*=damping
             doPlot(
                 phi,
                 replotting,
@@ -267,5 +277,6 @@ if __name__=='__main__':
             ],
             patchPot=patchPot,
             backgroundPot=basePot,
+            matrixRepo=globalMatrixRepo,
         )
         integrator.setPotential(pot)
