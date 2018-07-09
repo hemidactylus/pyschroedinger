@@ -34,6 +34,7 @@ from qpong.interactiveSettings import (
     intPlayerColors,
     winningFraction,
     debugSleepTime,
+    panelHeight,
 )
 
 from twoD.gui import (
@@ -137,7 +138,7 @@ if __name__=='__main__':
     phi=initPhi()
     tau=0
     # in this way 255=pot, 254=player0, 253=player1
-    replotting=doPlot(phi,specialColors=intPlayerColors+[intPotentialColor])
+    replotting=doPlot(phi,specialColors=intPlayerColors+[intPotentialColor],panelHeight=panelHeight)
 
     # some info
     phLenX,phLenY=toLength_fm(LambdaX),toLength_fm(LambdaY)
@@ -224,16 +225,23 @@ if __name__=='__main__':
                 phi=phiSmoothingMatrix.dot(phi)
             # potential-induced damping step, in-place
             phi*=damping
+            titleMessage=[
+                'Iter %04i, t=%.1E fs' % (
+                    i,
+                    toTime_fs(tau),
+                ),
+                'E=%.1E MeV (%.1f)' % (
+                    toEnergy_MeV(energy),
+                    eComp,
+                ),
+                'nDev=%.2E' % (
+                    normDev,
+                ),
+            ]
             doPlot(
                 phi,
                 replotting,
-                title='Iter %04i, t=%.1E fs, E=%.1E MeV (%.1f), nDev=%.2E' % (
-                    i,
-                    toTime_fs(tau),
-                    toEnergy_MeV(energy),
-                    eComp,
-                    normDev,
-                ),
+                title=titleMessage[0],
                 palette=0,
                 potential=None if hidePot else pot,
                 artifacts=[
@@ -244,6 +252,8 @@ if __name__=='__main__':
                 ]+scoreMarkers,
                 keysToCatch=arrowKeyMap.keys(),
                 keysToSend=keysToSend,
+                panelHeight=panelHeight,
+                panelInfo=titleMessage,
             )
         else:
             doPlot(

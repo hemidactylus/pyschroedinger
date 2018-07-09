@@ -38,15 +38,15 @@ def makePalette(pIndex=0,specialColors=[]):
         for i in range(256-nSpecials)
     ]+specialColors
 
-def initPyGame(pIndex=0,specialColors=[],saveImage=False):
+def initPyGame(pIndex=0,specialColors=[],saveImage=False,panelHeight=0):
     pygame.init()
     pygame.display.set_caption('Pyschroedinger 2D. Click to close')
     window=pygame.display.set_mode(
         (
             Nx*tileX,
-            Ny*tileY,
+            Ny*tileY+panelHeight,
         ),
-        pygame.DOUBLEBUF,
+        pygame.DOUBLEBUF | pygame.NOFRAME,
         8 if not saveImage else 24,
     )
     if not saveImage:
@@ -55,10 +55,16 @@ def initPyGame(pIndex=0,specialColors=[],saveImage=False):
     screen = pygame.surfarray.make_surface(startnparray).convert()
     startnparray=np.zeros((Nx,Ny)).astype(int)
     bufferSurf = pygame.surfarray.make_surface(startnparray).convert()
+    if panelHeight>0:
+        startArrayTopPanel=np.zeros((Nx*tileX,panelHeight)).astype(int)
+        topPanel=pygame.surfarray.make_surface(startArrayTopPanel).convert()
+    else:
+        topPanel=None
     return {
         'screen': screen,
         'window': window,
         'bufferSurf': bufferSurf,
+        'topPanel': topPanel,
     }
 
 def setDrawPalette(pIndex=0,specialColors=[]):
@@ -95,7 +101,7 @@ def mapToPalette(colArray,nparray,potarray,refPalette,refPotPalette):
             if potarray[x][y]>DRAW_POTENTIAL_THRESHOLD:
                 colArray[x][y]=np.array(refPotPalette[potarray[x][y]])
 
-def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveImage=False,potential=None,artifacts=[],keysToCatch=set(),keysToSend=set(),specialColors=[potentialColor]):
+def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveImage=False,potential=None,artifacts=[],keysToCatch=set(),keysToSend=set(),specialColors=[potentialColor],panelHeight=0,panelInfo=None):
     '''
         all information on the x,y-scale
         is implicit.
@@ -118,7 +124,7 @@ def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveIm
         replotting={
             'maxMod2': maxMod2,
         }
-        replotting['pygame']=initPyGame(palette,specialColors,saveImage)
+        replotting['pygame']=initPyGame(palette,specialColors,saveImage,panelHeight=panelHeight)
         replotting['keyqueue']=[]
         replotting['saveImage']=saveImage
         replotting['palette']=palette
@@ -180,8 +186,38 @@ def doPlot(wfunction,replotting=None,title=None,palette=0,photoIndex=None,saveIm
     )
     replotting['pygame']['window'].blit(
         replotting['pygame']['screen'],
-        (0,0),
+        (0,panelHeight),
     )
+    #
+    if panelInfo is not None:
+        i=12
+        def _makeTop(i):
+            canvas=np.zeros((Nx*tileX,panelHeight),dtype=int)
+            canvas[:][:]=150-3*(i%30)
+            return canvas
+        # for now a message
+        _tp=_makeTop(i)
+        pygame.pixelcopy.array_to_surface(
+            replotting['pygame']['topPanel'],
+            _tp,
+        )
+        #
+        # pick a font you have and set its size
+        myfont = pygame.font.SysFont("Courier New", 20, bold=True)
+        # apply it to text on a label
+        labelList=[
+            myfont.render(panelLine,False,(ind*36,100,255),0)
+            for ind,panelLine in enumerate(panelInfo)
+        ]
+        for ind,l in enumerate(labelList):
+            l.convert(8)
+            l.set_colorkey(0)
+            replotting['pygame']['topPanel'].blit(l,(5,5+20*ind))
+        replotting['pygame']['window'].blit(
+            replotting['pygame']['topPanel'],
+            (0,0),
+        )
+        #
 
     pygame.display.flip()
     #

@@ -9,11 +9,11 @@ A playground to learn something about numerical integration of the Schroedinger 
 
 Deep refactoring of the qpong part
 
-A proper messaging system for on-screen
+A proper messaging system for on-screen: restore title also in init, better handling of message lines, formatting etc
 
 State machine to handle game
 
-What can be made in-place in the integrator?
+What can be made in-place in the integrator? Not much, apparently. This bites.
 
 ## Get it running
 
