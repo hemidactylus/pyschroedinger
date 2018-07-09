@@ -29,7 +29,7 @@ from twoD.potentials import (
     rectangularHolePotential,
 )
 
-from twoD.artifacts import (
+from qpong.artifacts import (
     makeRectangularArtifactList,
     makeCircleArtifact,
     makeCheckerboardRectangularArtifact,

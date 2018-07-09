@@ -37,11 +37,11 @@ from qpong.interactiveSettings import (
     panelHeight,
 )
 
-from twoD.gui import (
+from qpong.gui import (
     doPlot,
 )
 
-from twoD.artifacts import (
+from qpong.artifacts import (
     makeRectangularArtifactList,
     # makeCircleArtifact,
     makeCheckerboardRectangularArtifact,
@@ -144,9 +144,6 @@ if __name__=='__main__':
     phLenX,phLenY=toLength_fm(LambdaX),toLength_fm(LambdaY)
     print('Lengths: LX=%4.3E, LY=%4.3E' % (phLenX,phLenY))
 
-    plotTarget=0
-    hidePot=True
-
     halfField=makeCheckerboardRectangularArtifact(
         Nx=Nx,
         Ny=Ny,
@@ -180,7 +177,7 @@ if __name__=='__main__':
         transparentKey=0,
     )
 
-    keysToSend={'p','o','i'}
+    keysToSend={'i'}
 
     initTime=time.time()
     phi,initEnergy,_,_,_,_=integrator.integrate(phi)
@@ -188,7 +185,6 @@ if __name__=='__main__':
     for i in count() if framesToDraw is None else range(framesToDraw):
         if debugSleepTime>0:
             time.sleep(debugSleepTime)
-        if plotTarget==0:
             phi,energy,eComp,normDev,tauIncr,normMap=integrator.integrate(phi)
             tau+=tauIncr
 
@@ -241,9 +237,6 @@ if __name__=='__main__':
             doPlot(
                 phi,
                 replotting,
-                title=titleMessage[0],
-                palette=0,
-                potential=None if hidePot else pot,
                 artifacts=[
                     plInfo['pad']
                     for plInfo in playerInfo.values()
@@ -255,23 +248,11 @@ if __name__=='__main__':
                 panelHeight=panelHeight,
                 panelInfo=titleMessage,
             )
-        else:
-            doPlot(
-                pot.astype(complex) if plotTarget==1 else basePot.astype(complex),
-                replotting,
-                title='Potential (p to switch)' if plotTarget==1 else 'BasePot (p to switch)',
-                palette=1,
-                keysToSend=keysToSend,
-            )
         #
         while replotting['keyqueue']:
             tkey=replotting['keyqueue'].pop(0)
-            if tkey=='p':
-                plotTarget=(1+plotTarget)%3
-            elif tkey=='i':
+            if tkey=='i':
                 sys.exit()
-            elif tkey=='o':
-                hidePot=not hidePot
             else: # arrow key
                 targetPlayer=arrowKeyMap[tkey]['player']
                 playerInfo[targetPlayer]['patchPos']=fixCursorPosition(
