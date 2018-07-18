@@ -33,7 +33,6 @@ from qpong.interactiveSettings import (
     intPotentialColor,
     intPlayerColors,
     winningFraction,
-    debugSleepTime,
     panelHeight,
 )
 
@@ -70,6 +69,12 @@ from qpong.interactive import (
     prepareMatrixRepository,
 )
 
+from qpong.stateMachine import (
+    initState,
+    # gameStates,
+    handleStateChange,
+)
+
 if __name__=='__main__':
 
     if '-1' in sys.argv[1:]:
@@ -82,30 +87,10 @@ if __name__=='__main__':
     else:
         useMRepo=True
     
-    playerInfo=preparePlayerInfo(nPlayers)
-
-    globalMatrixRepo=prepareMatrixRepository() if useMRepo else None
-
-    arrowKeyMap={
-        k: v
-        for k,v in fullArrowKeyMap.items()
-        if v['player'] in playerInfo
-    }
-
-    # preparation of tools
+    # preparation of once-per-run tools
     basePot=prepareBasePotential()
     patchPot=initPatchPotential()
-
-    pot,damping=assemblePotentials(
-        patchPosList=[
-            plInfo['patchInitPos']
-            for plInfo in playerInfo.values()
-        ],
-        patchPot=patchPot,
-        backgroundPot=basePot,
-        matrixRepo=globalMatrixRepo,
-    )
-
+    globalMatrixRepo=prepareMatrixRepository() if useMRepo else None
     phiSmoothingMatrix=makeSmoothingMatrix(
         wfSizeX=Nx,
         wfSizeY=Ny,
@@ -119,31 +104,6 @@ if __name__=='__main__':
             ((-1, 0),0.1),
         ]
     )
-
-    integrator=VariablePotSparseRK4Integrator(
-        wfSizeX=Nx,
-        wfSizeY=Ny,
-        deltaTau=deltaTau,
-        deltaLambdaX=deltaLambdaX,
-        deltaLambdaY=deltaLambdaY,
-        nIntegrationSteps=drawFreq,
-        vPotential=pot,
-        periodicBCX=periodicBCX,
-        periodicBCY=periodicBCY,
-        mu=Mu,
-        exactEnergy=True,
-        slicesSet=[0.0,0.25,0.5,0.75],
-    )
-
-    phi=initPhi()
-    tau=0
-    # in this way 255=pot, 254=player0, 253=player1
-    replotting=doPlot(phi,specialColors=intPlayerColors+[intPotentialColor],panelHeight=panelHeight)
-
-    # some info
-    phLenX,phLenY=toLength_fm(LambdaX),toLength_fm(LambdaY)
-    print('Lengths: LX=%4.3E, LY=%4.3E' % (phLenX,phLenY))
-
     halfField=makeCheckerboardRectangularArtifact(
         Nx=Nx,
         Ny=Ny,
@@ -154,7 +114,6 @@ if __name__=='__main__':
         color=255,
         transparentKey=0,
     )
-
     scoreMarkers=[
         makeFilledBlockArtifact(
             (0,0),
@@ -167,7 +126,6 @@ if __name__=='__main__':
             color=255,
         ),
     ]
-
     frameArtifacts=makeRectangularArtifactList(
         Nx=Nx,
         Ny=Ny,
@@ -177,83 +135,187 @@ if __name__=='__main__':
         transparentKey=0,
     )
 
-    keysToSend={'i'}
+    # here the action starts
+    gameState=initState()
+    replotting=doPlot(
+        None,
+        # with this choice of color palette: 255=pot, 254=player0, 253=player1
+        specialColors=intPlayerColors+[intPotentialColor],
+        panelHeight=panelHeight,
+        panelInfo=[
+            'Initialization.',
+        ],
+    )
 
-    initTime=time.time()
-    phi,initEnergy,_,_,_,_=integrator.integrate(phi)
-    initEnergyThreshold=(initEnergy-0.05*abs(initEnergy))
-    for i in count() if framesToDraw is None else range(framesToDraw):
-        if debugSleepTime>0:
-            time.sleep(debugSleepTime)
-        phi,energy,eComp,normDev,tauIncr,normMap=integrator.integrate(phi)
-        tau+=tauIncr
-
-        scorePos=scorePosition(normMap)
-        scorePosInteger=int(Nx*(fieldBevelX+scorePos*(1-2*fieldBevelX)))
-        scoreMarkers[0]['offset']=(
-            scorePosInteger,
-            0,
-        )
-        scoreMarkers[1]['offset']=(
-            scorePosInteger,
-            0,
-        )
-        # scoring check
-        if nPlayers>1:
-            aboveThreshold={
-                i: normMap[3*i]
-                for i in range(nPlayers)
-                if normMap[3*i]>=winningFraction
-            }
-            if len(aboveThreshold)>0:
-                winner=max(aboveThreshold.items(),key=lambda kf: kf[1])[0]
-                print(' *** [%9i] Player %i scored a point! ***' % (i,winner))
-        #
-        for plInfo in playerInfo.values():
-            plInfo['pad']['pos']=(
-                int((plInfo['patchPos'][0])*Nx),
-                int((plInfo['patchPos'][1])*Nx),
-            )
-
-        # smoothing step
-        if energy < initEnergyThreshold:
-            # this does not seem to be doable in-place (why?)
-            phi=phiSmoothingMatrix.dot(phi)
-        # potential-induced damping step, in-place
-        phi*=damping
-        titleMessage=[
-            'Iter %04i, t=%.1E fs' % (
-                i,
-                toTime_fs(tau),
-            ),
-            'E=%.1E MeV (%.1f)' % (
-                toEnergy_MeV(energy),
-                eComp,
-            ),
-            'nDev=%.2E' % (
-                normDev,
-            ),
-        ]
-        doPlot(
-            phi,
-            replotting,
-            artifacts=[
-                plInfo['pad']
+    if False:
+        # per-match tools
+        arrowKeyMap={
+            k: v
+            for k,v in fullArrowKeyMap.items()
+            if v['player'] in playerInfo
+        }
+        playerInfo=preparePlayerInfo(nPlayers)
+        pot,damping=assemblePotentials(
+            patchPosList=[
+                plInfo['patchInitPos']
                 for plInfo in playerInfo.values()
-            ]+frameArtifacts+[
-                halfField
-            ]+scoreMarkers,
-            keysToCatch=arrowKeyMap.keys(),
-            keysToSend=keysToSend,
-            panelHeight=panelHeight,
-            panelInfo=titleMessage,
+            ],
+            patchPot=patchPot,
+            backgroundPot=basePot,
+            matrixRepo=globalMatrixRepo,
         )
+        integrator=VariablePotSparseRK4Integrator(
+            wfSizeX=Nx,
+            wfSizeY=Ny,
+            deltaTau=deltaTau,
+            deltaLambdaX=deltaLambdaX,
+            deltaLambdaY=deltaLambdaY,
+            nIntegrationSteps=drawFreq,
+            vPotential=pot,
+            periodicBCX=periodicBCX,
+            periodicBCY=periodicBCY,
+            mu=Mu,
+            exactEnergy=True,
+            slicesSet=[0.0,0.25,0.5,0.75],
+        )
+        phi=initPhi()
+        tau=0
+        doPlot(phi,replotting,specialColors=intPlayerColors+[intPotentialColor],panelHeight=panelHeight)
+
+    # some info
+    phLenX,phLenY=toLength_fm(LambdaX),toLength_fm(LambdaY)
+    print('Lengths: LX=%4.3E, LY=%4.3E' % (phLenX,phLenY))
+
+    # not here
+    # if gameState['integrate']:
+    #     phi,initEnergy,_,_,_,_=integrator.integrate(phi)
+    #     initEnergyThreshold=(initEnergy-0.05*abs(initEnergy))
+
+    for i in count() if framesToDraw is None else range(framesToDraw):
+        if gameState['sleep']>0:
+            time.sleep(gameState['sleep'])
+        if gameState['integrate']:
+            phi,energy,eComp,normDev,tauIncr,normMap=integrator.integrate(phi)
+            tau+=tauIncr
+            scorePos=scorePosition(normMap)
+            scorePosInteger=int(Nx*(fieldBevelX+scorePos*(1-2*fieldBevelX)))
+            scoreMarkers[0]['offset']=(
+                scorePosInteger,
+                0,
+            )
+            scoreMarkers[1]['offset']=(
+                scorePosInteger,
+                0,
+            )
+            # scoring check
+            if nPlayers>1:
+                aboveThreshold={
+                    i: normMap[3*i]
+                    for i in range(nPlayers)
+                    if normMap[3*i]>=winningFraction
+                }
+                if len(aboveThreshold)>0:
+                    winner=max(aboveThreshold.items(),key=lambda kf: kf[1])[0]
+                    print(' *** [%9i] Player %i scored a point! ***' % (i,winner))
+            #
+            for plInfo in playerInfo.values():
+                plInfo['pad']['pos']=(
+                    int((plInfo['patchPos'][0])*Nx),
+                    int((plInfo['patchPos'][1])*Nx),
+                )
+            # smoothing step
+            if energy < initEnergyThreshold:
+                # this does not seem to be doable in-place (why?)
+                phi=phiSmoothingMatrix.dot(phi)
+            # potential-induced damping step, in-place
+            phi*=damping
+            titleMessage=[
+                'Iter %04i, t=%.1E fs' % (
+                    i,
+                    toTime_fs(tau),
+                ),
+                'E=%.1E MeV (%.1f)' % (
+                    toEnergy_MeV(energy),
+                    eComp,
+                ),
+                'nDev=%.2E' % (
+                    normDev,
+                ),
+            ]
+        if gameState['displaywf']:
+            doPlot(
+                phi,
+                replotting,
+                artifacts=[
+                    plInfo['pad']
+                    for plInfo in playerInfo.values()
+                ]+frameArtifacts+[
+                    halfField
+                ]+scoreMarkers,
+                keysToCatch=arrowKeyMap.keys(),
+                keysToSend=gameState['keysToSend'],
+                # panelHeight=panelHeight,
+                panelInfo=titleMessage,
+            )
+        else: # some other static screen
+            doPlot(
+                None,
+                replotting,
+                # panelHeight=panelHeight,
+                panelInfo=[
+                    'Welcome to Quantum Pong. (%i)' % i,
+                    'Press G to start a game, I to quit.',
+                    'Switch Nplayers with "1", "2".',
+                ],                
+                keysToSend=gameState['keysToSend'],
+            )
         #
         while replotting['keyqueue']:
             tkey=replotting['keyqueue'].pop(0)
             if tkey=='i':
                 sys.exit()
-            else: # arrow key
+            elif tkey=='g':
+                print('SHOULD START')
+                playerInfo=preparePlayerInfo(nPlayers)
+                arrowKeyMap={
+                    k: v
+                    for k,v in fullArrowKeyMap.items()
+                    if v['player'] in playerInfo
+                }
+                pot,damping=assemblePotentials(
+                    patchPosList=[
+                        plInfo['patchInitPos']
+                        for plInfo in playerInfo.values()
+                    ],
+                    patchPot=patchPot,
+                    backgroundPot=basePot,
+                    matrixRepo=globalMatrixRepo,
+                )
+                integrator=VariablePotSparseRK4Integrator(
+                    wfSizeX=Nx,
+                    wfSizeY=Ny,
+                    deltaTau=deltaTau,
+                    deltaLambdaX=deltaLambdaX,
+                    deltaLambdaY=deltaLambdaY,
+                    nIntegrationSteps=drawFreq,
+                    vPotential=pot,
+                    periodicBCX=periodicBCX,
+                    periodicBCY=periodicBCY,
+                    mu=Mu,
+                    exactEnergy=True,
+                    slicesSet=[0.0,0.25,0.5,0.75],
+                )
+                phi=initPhi()
+                tau=0
+                phi,initEnergy,_,_,_,_=integrator.integrate(phi)
+                initEnergyThreshold=(initEnergy-0.05*abs(initEnergy))
+                gameState=handleStateChange(gameState,'start')
+                print('SHOULD STARTED')
+            elif tkey=='1':
+                print('SET TO ONEP')
+            elif tkey=='2':
+                print('SET TO TWOP')
+            elif tkey in arrowKeyMap: # arrow key
                 targetPlayer=arrowKeyMap[tkey]['player']
                 playerInfo[targetPlayer]['patchPos']=fixCursorPosition(
                     playerInfo[targetPlayer]['patchPos'],
@@ -261,13 +323,19 @@ if __name__=='__main__':
                     patchRadii,
                     playerInfo[targetPlayer]['bbox'],
                 )
-        pot,damping=assemblePotentials(
-            patchPosList=[
-                plInfo['patchPos']
-                for plInfo in playerInfo.values()
-            ],
-            patchPot=patchPot,
-            backgroundPot=basePot,
-            matrixRepo=globalMatrixRepo,
-        )
-        integrator.setPotential(pot)
+            else:
+                print('Uncaught keypress in state "%s": "%s"' % (
+                    gameState['name'],tkey
+                ))
+
+        if gameState['integrate']:
+            pot,damping=assemblePotentials(
+                patchPosList=[
+                    plInfo['patchPos']
+                    for plInfo in playerInfo.values()
+                ],
+                patchPot=patchPot,
+                backgroundPot=basePot,
+                matrixRepo=globalMatrixRepo,
+            )
+            integrator.setPotential(pot)

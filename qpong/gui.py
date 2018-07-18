@@ -99,13 +99,15 @@ def doPlot(wfunction,replotting=None,artifacts=[],keysToCatch=set(),keysToSend=s
     '''
     if replotting is None:
         # create everything
-        maxMod2=mod2(wfunction).max()
+        maxMod2=mod2(wfunction).max() if wfunction is not None else 0.0
         # setup the plot
         # return handles to refresh the plot
         replotting={
+            # FIXME is this still used? (NO!)
             'maxMod2': maxMod2,
         }
         replotting['pygame']=initPyGame(specialColors,panelHeight=panelHeight)
+        replotting['panelHeight']=panelHeight
         replotting['keyqueue']=[]
         replotting['paletteRange']=256-len(specialColors)
         replotting['specialColors']=specialColors
@@ -113,13 +115,15 @@ def doPlot(wfunction,replotting=None,artifacts=[],keysToCatch=set(),keysToSend=s
     # refresh the plotting window
     # (including responding to events)
     # 1. recalculate the integer wf
-    maxMod2=mod2(wfunction).max()
-    intMod2=integerize(wfunction,maxMod2,paletteRange=replotting['paletteRange'])
+    if wfunction is not None:
+        maxMod2=mod2(wfunction).max()
+        intMod2=integerize(wfunction,maxMod2,paletteRange=replotting['paletteRange'])
 
-    pygame.pixelcopy.array_to_surface(
-        replotting['pygame']['bufferSurf'],
-        intMod2.reshape((Nx,Ny)),
-    )
+    if wfunction is not None:
+        pygame.pixelcopy.array_to_surface(
+            replotting['pygame']['bufferSurf'],
+            intMod2.reshape((Nx,Ny)),
+        )
     # artifacts
     for art in artifacts:
         replotting['pygame']['bufferSurf'].blit(
@@ -137,13 +141,13 @@ def doPlot(wfunction,replotting=None,artifacts=[],keysToCatch=set(),keysToSend=s
     )
     replotting['pygame']['window'].blit(
         replotting['pygame']['screen'],
-        (0,panelHeight),
+        (0,replotting['panelHeight']),
     )
     #
     if panelInfo is not None:
         i=12
         def _makeTop(i):
-            canvas=np.zeros((Nx*tileX,panelHeight),dtype=int)
+            canvas=np.zeros((Nx*tileX,replotting['panelHeight']),dtype=int)
             canvas[:][:]=170
             return canvas
         # for now a message
