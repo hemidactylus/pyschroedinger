@@ -58,7 +58,7 @@ intPlayerColors=[
 
 winningFraction=0.35
 
-debugSleepTime=0.02
-# debugSleepTime=0
+# debugSleepTime=0.02
+debugSleepTime=0
 
 panelHeight=80 # pixels

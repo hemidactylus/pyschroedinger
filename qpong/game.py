@@ -185,69 +185,69 @@ if __name__=='__main__':
     for i in count() if framesToDraw is None else range(framesToDraw):
         if debugSleepTime>0:
             time.sleep(debugSleepTime)
-            phi,energy,eComp,normDev,tauIncr,normMap=integrator.integrate(phi)
-            tau+=tauIncr
+        phi,energy,eComp,normDev,tauIncr,normMap=integrator.integrate(phi)
+        tau+=tauIncr
 
-            scorePos=scorePosition(normMap)
-            scorePosInteger=int(Nx*(fieldBevelX+scorePos*(1-2*fieldBevelX)))
-            scoreMarkers[0]['offset']=(
-                scorePosInteger,
-                0,
+        scorePos=scorePosition(normMap)
+        scorePosInteger=int(Nx*(fieldBevelX+scorePos*(1-2*fieldBevelX)))
+        scoreMarkers[0]['offset']=(
+            scorePosInteger,
+            0,
+        )
+        scoreMarkers[1]['offset']=(
+            scorePosInteger,
+            0,
+        )
+        # scoring check
+        if nPlayers>1:
+            aboveThreshold={
+                i: normMap[3*i]
+                for i in range(nPlayers)
+                if normMap[3*i]>=winningFraction
+            }
+            if len(aboveThreshold)>0:
+                winner=max(aboveThreshold.items(),key=lambda kf: kf[1])[0]
+                print(' *** [%9i] Player %i scored a point! ***' % (i,winner))
+        #
+        for plInfo in playerInfo.values():
+            plInfo['pad']['pos']=(
+                int((plInfo['patchPos'][0])*Nx),
+                int((plInfo['patchPos'][1])*Nx),
             )
-            scoreMarkers[1]['offset']=(
-                scorePosInteger,
-                0,
-            )
-            # scoring check
-            if nPlayers>1:
-                aboveThreshold={
-                    i: normMap[3*i]
-                    for i in range(nPlayers)
-                    if normMap[3*i]>=winningFraction
-                }
-                if len(aboveThreshold)>0:
-                    winner=max(aboveThreshold.items(),key=lambda kf: kf[1])[0]
-                    print(' *** [%9i] Player %i scored a point! ***' % (i,winner))
-            #
-            for plInfo in playerInfo.values():
-                plInfo['pad']['pos']=(
-                    int((plInfo['patchPos'][0])*Nx),
-                    int((plInfo['patchPos'][1])*Nx),
-                )
 
-            # smoothing step
-            if energy < initEnergyThreshold:
-                # this does not seem to be doable in-place (why?)
-                phi=phiSmoothingMatrix.dot(phi)
-            # potential-induced damping step, in-place
-            phi*=damping
-            titleMessage=[
-                'Iter %04i, t=%.1E fs' % (
-                    i,
-                    toTime_fs(tau),
-                ),
-                'E=%.1E MeV (%.1f)' % (
-                    toEnergy_MeV(energy),
-                    eComp,
-                ),
-                'nDev=%.2E' % (
-                    normDev,
-                ),
-            ]
-            doPlot(
-                phi,
-                replotting,
-                artifacts=[
-                    plInfo['pad']
-                    for plInfo in playerInfo.values()
-                ]+frameArtifacts+[
-                    halfField
-                ]+scoreMarkers,
-                keysToCatch=arrowKeyMap.keys(),
-                keysToSend=keysToSend,
-                panelHeight=panelHeight,
-                panelInfo=titleMessage,
-            )
+        # smoothing step
+        if energy < initEnergyThreshold:
+            # this does not seem to be doable in-place (why?)
+            phi=phiSmoothingMatrix.dot(phi)
+        # potential-induced damping step, in-place
+        phi*=damping
+        titleMessage=[
+            'Iter %04i, t=%.1E fs' % (
+                i,
+                toTime_fs(tau),
+            ),
+            'E=%.1E MeV (%.1f)' % (
+                toEnergy_MeV(energy),
+                eComp,
+            ),
+            'nDev=%.2E' % (
+                normDev,
+            ),
+        ]
+        doPlot(
+            phi,
+            replotting,
+            artifacts=[
+                plInfo['pad']
+                for plInfo in playerInfo.values()
+            ]+frameArtifacts+[
+                halfField
+            ]+scoreMarkers,
+            keysToCatch=arrowKeyMap.keys(),
+            keysToSend=keysToSend,
+            panelHeight=panelHeight,
+            panelInfo=titleMessage,
+        )
         #
         while replotting['keyqueue']:
             tkey=replotting['keyqueue'].pop(0)
