@@ -59,6 +59,10 @@ intPlayerColors=[
 winningFraction=0.35
 
 # debugSleepTime=0.02
-debugSleepTime=0
+debugSleepTime=0.1
 
 panelHeight=80 # pixels
+
+# do we use the global matrix once-allocated repository?
+# (True = some speedup)
+useMRepo=True

@@ -34,6 +34,7 @@ from qpong.interactiveSettings import (
     intPlayerColors,
     winningFraction,
     panelHeight,
+    useMRepo,
 )
 
 from qpong.gui import (
@@ -81,11 +82,6 @@ if __name__=='__main__':
         nPlayers=1
     else:
         nPlayers=2
-
-    if '-norepo' in sys.argv[1:]:
-        useMRepo=False
-    else:
-        useMRepo=True
     
     # preparation of once-per-run tools
     basePot=prepareBasePotential()
@@ -136,6 +132,7 @@ if __name__=='__main__':
     )
 
     # here the action starts
+    arrowKeyMap={}
     gameState=initState()
     replotting=doPlot(
         None,
@@ -147,53 +144,12 @@ if __name__=='__main__':
         ],
     )
 
-    if False:
-        # per-match tools
-        arrowKeyMap={
-            k: v
-            for k,v in fullArrowKeyMap.items()
-            if v['player'] in playerInfo
-        }
-        playerInfo=preparePlayerInfo(nPlayers)
-        pot,damping=assemblePotentials(
-            patchPosList=[
-                plInfo['patchInitPos']
-                for plInfo in playerInfo.values()
-            ],
-            patchPot=patchPot,
-            backgroundPot=basePot,
-            matrixRepo=globalMatrixRepo,
-        )
-        integrator=VariablePotSparseRK4Integrator(
-            wfSizeX=Nx,
-            wfSizeY=Ny,
-            deltaTau=deltaTau,
-            deltaLambdaX=deltaLambdaX,
-            deltaLambdaY=deltaLambdaY,
-            nIntegrationSteps=drawFreq,
-            vPotential=pot,
-            periodicBCX=periodicBCX,
-            periodicBCY=periodicBCY,
-            mu=Mu,
-            exactEnergy=True,
-            slicesSet=[0.0,0.25,0.5,0.75],
-        )
-        phi=initPhi()
-        tau=0
-        doPlot(phi,replotting,specialColors=intPlayerColors+[intPotentialColor],panelHeight=panelHeight)
-
     # some info
     phLenX,phLenY=toLength_fm(LambdaX),toLength_fm(LambdaY)
     print('Lengths: LX=%4.3E, LY=%4.3E' % (phLenX,phLenY))
 
-    # not here
-    # if gameState['integrate']:
-    #     phi,initEnergy,_,_,_,_=integrator.integrate(phi)
-    #     initEnergyThreshold=(initEnergy-0.05*abs(initEnergy))
-
     for i in count() if framesToDraw is None else range(framesToDraw):
-        if gameState['sleep']>0:
-            time.sleep(gameState['sleep'])
+        time.sleep(gameState['sleep'])
         if gameState['integrate']:
             phi,energy,eComp,normDev,tauIncr,normMap=integrator.integrate(phi)
             tau+=tauIncr
@@ -272,61 +228,55 @@ if __name__=='__main__':
         #
         while replotting['keyqueue']:
             tkey=replotting['keyqueue'].pop(0)
-            if tkey=='i':
-                sys.exit()
-            elif tkey=='g':
-                print('SHOULD START')
-                playerInfo=preparePlayerInfo(nPlayers)
-                arrowKeyMap={
-                    k: v
-                    for k,v in fullArrowKeyMap.items()
-                    if v['player'] in playerInfo
-                }
-                pot,damping=assemblePotentials(
-                    patchPosList=[
-                        plInfo['patchInitPos']
-                        for plInfo in playerInfo.values()
-                    ],
-                    patchPot=patchPot,
-                    backgroundPot=basePot,
-                    matrixRepo=globalMatrixRepo,
-                )
-                integrator=VariablePotSparseRK4Integrator(
-                    wfSizeX=Nx,
-                    wfSizeY=Ny,
-                    deltaTau=deltaTau,
-                    deltaLambdaX=deltaLambdaX,
-                    deltaLambdaY=deltaLambdaY,
-                    nIntegrationSteps=drawFreq,
-                    vPotential=pot,
-                    periodicBCX=periodicBCX,
-                    periodicBCY=periodicBCY,
-                    mu=Mu,
-                    exactEnergy=True,
-                    slicesSet=[0.0,0.25,0.5,0.75],
-                )
-                phi=initPhi()
-                tau=0
-                phi,initEnergy,_,_,_,_=integrator.integrate(phi)
-                initEnergyThreshold=(initEnergy-0.05*abs(initEnergy))
-                gameState=handleStateChange(gameState,'start')
-                print('SHOULD STARTED')
-            elif tkey=='1':
-                print('SET TO ONEP')
-            elif tkey=='2':
-                print('SET TO TWOP')
-            elif tkey in arrowKeyMap: # arrow key
-                targetPlayer=arrowKeyMap[tkey]['player']
-                playerInfo[targetPlayer]['patchPos']=fixCursorPosition(
-                    playerInfo[targetPlayer]['patchPos'],
-                    arrowKeyMap[tkey]['incr'],
-                    patchRadii,
-                    playerInfo[targetPlayer]['bbox'],
-                )
+            if tkey in arrowKeyMap: # arrow key
+                if gameState['moveCursors']:
+                    targetPlayer=arrowKeyMap[tkey]['player']
+                    playerInfo[targetPlayer]['patchPos']=fixCursorPosition(
+                        playerInfo[targetPlayer]['patchPos'],
+                        arrowKeyMap[tkey]['incr'],
+                        patchRadii,
+                        playerInfo[targetPlayer]['bbox'],
+                    )
             else:
-                print('Uncaught keypress in state "%s": "%s"' % (
-                    gameState['name'],tkey
-                ))
+                gameState,actionsToPerform=handleStateChange(gameState,('key',tkey))
+                for ac in actionsToPerform:
+                    print('TO PERFORM %s' % str(ac))
+                    if ac=='initMatch':
+                        playerInfo=preparePlayerInfo(nPlayers)
+                        arrowKeyMap={
+                            k: v
+                            for k,v in fullArrowKeyMap.items()
+                            if v['player'] in playerInfo
+                        }
+                        pot,damping=assemblePotentials(
+                            patchPosList=[
+                                plInfo['patchInitPos']
+                                for plInfo in playerInfo.values()
+                            ],
+                            patchPot=patchPot,
+                            backgroundPot=basePot,
+                            matrixRepo=globalMatrixRepo,
+                        )
+                        integrator=VariablePotSparseRK4Integrator(
+                            wfSizeX=Nx,
+                            wfSizeY=Ny,
+                            deltaTau=deltaTau,
+                            deltaLambdaX=deltaLambdaX,
+                            deltaLambdaY=deltaLambdaY,
+                            nIntegrationSteps=drawFreq,
+                            vPotential=pot,
+                            periodicBCX=periodicBCX,
+                            periodicBCY=periodicBCY,
+                            mu=Mu,
+                            exactEnergy=True,
+                            slicesSet=[0.0,0.25,0.5,0.75],
+                        )
+                        phi=initPhi()
+                        tau=0
+                        phi,initEnergy,_,_,_,_=integrator.integrate(phi)
+                        initEnergyThreshold=(initEnergy-0.05*abs(initEnergy))
+                    elif ac=='quitGame':
+                        sys.exit()
 
         if gameState['integrate']:
             pot,damping=assemblePotentials(

@@ -124,6 +124,11 @@ def doPlot(wfunction,replotting=None,artifacts=[],keysToCatch=set(),keysToSend=s
             replotting['pygame']['bufferSurf'],
             intMod2.reshape((Nx,Ny)),
         )
+    else:
+        pygame.pixelcopy.array_to_surface(
+            replotting['pygame']['bufferSurf'],
+            np.zeros((Nx,Ny),dtype=int),
+        )
     # artifacts
     for art in artifacts:
         replotting['pygame']['bufferSurf'].blit(
