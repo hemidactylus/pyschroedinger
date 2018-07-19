@@ -37,32 +37,32 @@ gameStates={
 def initState():
     return gameStates['still']
 
-def handleStateChange(curState, scEvent):
+def handleStateChange(curState, scEvent, mutableGameState):
     '''
         scEvent=(type,item), such as:
             ('key','p')
             ('action','start') ?
         etc
 
-        Returns a pair (new_state,list_of_actions_to_perform)
+        Returns a triple (new_state,list_of_actions_to_perform, newMutableGameState)
     '''
+    newState=curState
+    actions=[]
     if curState['name']=='still':
         if scEvent==('action','start'):
-            return gameStates['play'],['initPlay']
+            newState=gameStates['play']
+            actions.append('initPlay')
         elif scEvent[0]=='key':
             print('PRESSED <%s>' % scEvent[1])
             if scEvent[1]=='i':
-                print('SHOULD LEAVE GAME')
-                return curState,['quitGame']
+                actions.append('quitGame')
             elif scEvent[1]=='g':
-                print('SHOULD START')
-                return gameStates['play'],['initMatch']
+                newState=gameStates['play']
+                actions.append('initMatch')
             elif scEvent[1]=='1':
-                print('SHOULD SET TO 1')
-                return curState,[]
+                mutableGameState['nPlayers']=1
             elif scEvent[1]=='2':
-                print('SHOULD SET TO 2')
-                return curState,[]
+                mutableGameState['nPlayers']=2
             else:
                 raise NotImplementedError
         else:
@@ -71,27 +71,25 @@ def handleStateChange(curState, scEvent):
         if scEvent[0]=='key':
             print('PRESSED <%s>' % scEvent[1])
             if scEvent[1]=='i':
-                print('SHOULD STOP MATCH')
-                return gameStates['still'],[]
+                newState=gameStates['still']
             elif scEvent[1]==' ':
                 print('SHOULD PAUSE')
-                return gameStates['paused'],[]
+                newState=gameStates['paused']
             else:
                 raise NotImplementedError
         else:
             raise NotImplementedError
     elif curState['name']=='paused':
         if scEvent[0]=='key':
-            print('PRESSED <%s>' % scEvent[1])
             if scEvent[1]=='i':
-                print('SHOULD STOP MATCH')
-                return gameStates['still'],[]
+                newState=gameStates['still']
             elif scEvent[1]==' ':
-                print('SHOULD UNPAUSE')
-                return gameStates['play'],[]
+                newState=gameStates['play']
             else:
                 raise NotImplementedError
         else:
             raise NotImplementedError
     else:
         raise NotImplementedError
+
+    return newState,actions,mutableGameState

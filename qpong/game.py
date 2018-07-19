@@ -243,7 +243,11 @@ if __name__=='__main__':
                         playerInfo[targetPlayer]['bbox'],
                     )
             else:
-                gameState,actionsToPerform=handleStateChange(gameState,('key',tkey))
+                gameState,actionsToPerform,mutableGameState=handleStateChange(
+                    gameState,
+                    ('key',tkey),
+                    mutableGameState,
+                )
                 for ac in actionsToPerform:
                     print('TO PERFORM %s' % str(ac))
                     if ac=='initMatch':
