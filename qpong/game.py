@@ -76,64 +76,69 @@ from qpong.stateMachine import (
     handleStateChange,
 )
 
+def initMutableGameState():
+    '''
+        initializes the big structure, containing
+        all mutable game state features, to be later
+        passed around
+    '''
+    mutableGameState={
+        'nPlayers': 2,
+        'basePot': prepareBasePotential(),
+        'patchPot': initPatchPotential(),
+        'globalMatrixRepo': prepareMatrixRepository() if useMRepo else None,
+        'phiSmoothingMatrix': makeSmoothingMatrix(
+            wfSizeX=Nx,
+            wfSizeY=Ny,
+            periodicBCX=periodicBCX,
+            periodicBCY=periodicBCY,
+            smoothingMap=[
+                (( 0, 0),1.0),
+                (( 0,+1),0.1),
+                (( 0,-1),0.1),
+                ((+1, 0),0.1),
+                ((-1, 0),0.1),
+            ]
+        ),
+        'halfField': makeCheckerboardRectangularArtifact(
+            Nx=Nx,
+            Ny=Ny,
+            posX=0.5-0.5*fieldBevelX,
+            posY=fieldBevelX,
+            widthX=fieldBevelX,
+            heightY=1-2*fieldBevelX,
+            color=255,
+            transparentKey=0,
+        ),
+        'scoreMarkers': [
+            makeFilledBlockArtifact(
+                (0,0),
+                (1,3),
+                color=255,
+            ),
+            makeFilledBlockArtifact(
+                (0,Ny-3),
+                (1,3),
+                color=255,
+            ),
+        ],
+        'frameArtifacts': makeRectangularArtifactList(
+            Nx=Nx,
+            Ny=Ny,
+            posX=fieldBevelX,
+            posY=fieldBevelY,
+            color=255,
+            transparentKey=0,
+        ),
+        'arrowKeyMap':{},
+    }
+    return mutableGameState
+
 if __name__=='__main__':
 
-    if '-1' in sys.argv[1:]:
-        nPlayers=1
-    else:
-        nPlayers=2
-    
-    # preparation of once-per-run tools
-    basePot=prepareBasePotential()
-    patchPot=initPatchPotential()
-    globalMatrixRepo=prepareMatrixRepository() if useMRepo else None
-    phiSmoothingMatrix=makeSmoothingMatrix(
-        wfSizeX=Nx,
-        wfSizeY=Ny,
-        periodicBCX=periodicBCX,
-        periodicBCY=periodicBCY,
-        smoothingMap=[
-            (( 0, 0),1.0),
-            (( 0,+1),0.1),
-            (( 0,-1),0.1),
-            ((+1, 0),0.1),
-            ((-1, 0),0.1),
-        ]
-    )
-    halfField=makeCheckerboardRectangularArtifact(
-        Nx=Nx,
-        Ny=Ny,
-        posX=0.5-0.5*fieldBevelX,
-        posY=fieldBevelX,
-        widthX=fieldBevelX,
-        heightY=1-2*fieldBevelX,
-        color=255,
-        transparentKey=0,
-    )
-    scoreMarkers=[
-        makeFilledBlockArtifact(
-            (0,0),
-            (1,3),
-            color=255,
-        ),
-        makeFilledBlockArtifact(
-            (0,Ny-3),
-            (1,3),
-            color=255,
-        ),
-    ]
-    frameArtifacts=makeRectangularArtifactList(
-        Nx=Nx,
-        Ny=Ny,
-        posX=fieldBevelX,
-        posY=fieldBevelY,
-        color=255,
-        transparentKey=0,
-    )
-
-    # here the action starts
-    arrowKeyMap={}
+    mutableGameState=initMutableGameState()
     gameState=initState()
+
     replotting=doPlot(
         None,
         # with this choice of color palette: 255=pot, 254=player0, 253=player1
@@ -155,19 +160,19 @@ if __name__=='__main__':
             tau+=tauIncr
             scorePos=scorePosition(normMap)
             scorePosInteger=int(Nx*(fieldBevelX+scorePos*(1-2*fieldBevelX)))
-            scoreMarkers[0]['offset']=(
+            mutableGameState['scoreMarkers'][0]['offset']=(
                 scorePosInteger,
                 0,
             )
-            scoreMarkers[1]['offset']=(
+            mutableGameState['scoreMarkers'][1]['offset']=(
                 scorePosInteger,
                 0,
             )
             # scoring check
-            if nPlayers>1:
+            if mutableGameState['nPlayers']>1:
                 aboveThreshold={
                     i: normMap[3*i]
-                    for i in range(nPlayers)
+                    for i in range(mutableGameState['nPlayers'])
                     if normMap[3*i]>=winningFraction
                 }
                 if len(aboveThreshold)>0:
@@ -182,7 +187,7 @@ if __name__=='__main__':
             # smoothing step
             if energy < initEnergyThreshold:
                 # this does not seem to be doable in-place (why?)
-                phi=phiSmoothingMatrix.dot(phi)
+                phi=mutableGameState['phiSmoothingMatrix'].dot(phi)
             # potential-induced damping step, in-place
             phi*=damping
             titleMessage=[
@@ -205,10 +210,10 @@ if __name__=='__main__':
                 artifacts=[
                     plInfo['pad']
                     for plInfo in playerInfo.values()
-                ]+frameArtifacts+[
-                    halfField
-                ]+scoreMarkers,
-                keysToCatch=arrowKeyMap.keys(),
+                ]+mutableGameState['frameArtifacts']+[
+                    mutableGameState['halfField']
+                ]+mutableGameState['scoreMarkers'],
+                keysToCatch=mutableGameState['arrowKeyMap'].keys(),
                 keysToSend=gameState['keysToSend'],
                 # panelHeight=panelHeight,
                 panelInfo=titleMessage,
@@ -228,12 +233,12 @@ if __name__=='__main__':
         #
         while replotting['keyqueue']:
             tkey=replotting['keyqueue'].pop(0)
-            if tkey in arrowKeyMap: # arrow key
+            if tkey in mutableGameState['arrowKeyMap']: # arrow key
                 if gameState['moveCursors']:
-                    targetPlayer=arrowKeyMap[tkey]['player']
+                    targetPlayer=mutableGameState['arrowKeyMap'][tkey]['player']
                     playerInfo[targetPlayer]['patchPos']=fixCursorPosition(
                         playerInfo[targetPlayer]['patchPos'],
-                        arrowKeyMap[tkey]['incr'],
+                        mutableGameState['arrowKeyMap'][tkey]['incr'],
                         patchRadii,
                         playerInfo[targetPlayer]['bbox'],
                     )
@@ -242,8 +247,8 @@ if __name__=='__main__':
                 for ac in actionsToPerform:
                     print('TO PERFORM %s' % str(ac))
                     if ac=='initMatch':
-                        playerInfo=preparePlayerInfo(nPlayers)
-                        arrowKeyMap={
+                        playerInfo=preparePlayerInfo(mutableGameState['nPlayers'])
+                        mutableGameState['arrowKeyMap']={
                             k: v
                             for k,v in fullArrowKeyMap.items()
                             if v['player'] in playerInfo
@@ -253,9 +258,9 @@ if __name__=='__main__':
                                 plInfo['patchInitPos']
                                 for plInfo in playerInfo.values()
                             ],
-                            patchPot=patchPot,
-                            backgroundPot=basePot,
-                            matrixRepo=globalMatrixRepo,
+                            patchPot=mutableGameState['patchPot'],
+                            backgroundPot=mutableGameState['basePot'],
+                            matrixRepo=mutableGameState['globalMatrixRepo'],
                         )
                         integrator=VariablePotSparseRK4Integrator(
                             wfSizeX=Nx,
@@ -284,8 +289,8 @@ if __name__=='__main__':
                     plInfo['patchPos']
                     for plInfo in playerInfo.values()
                 ],
-                patchPot=patchPot,
-                backgroundPot=basePot,
-                matrixRepo=globalMatrixRepo,
+                patchPot=mutableGameState['patchPot'],
+                backgroundPot=mutableGameState['basePot'],
+                matrixRepo=mutableGameState['globalMatrixRepo'],
             )
             integrator.setPotential(pot)
