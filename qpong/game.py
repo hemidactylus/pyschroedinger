@@ -22,7 +22,6 @@ from twoD.settings import (
     drawFreq,
     LambdaX,
     LambdaY,
-    framesToDraw,
 )
 
 from qpong.interactiveSettings import (
@@ -34,29 +33,28 @@ from qpong.interactiveSettings import (
     intPlayerColors,
     winningFraction,
     panelHeight,
-    useMRepo,
+    # useMRepo,
 )
 
 from qpong.gui import (
     doPlot,
 )
 
-from qpong.artifacts import (
-    makeRectangularArtifactList,
-    # makeCircleArtifact,
-    makeCheckerboardRectangularArtifact,
-    makeFilledBlockArtifact,
-)
+# from qpong.artifacts import (
+#     makeRectangularArtifactList,
+#     makeCheckerboardRectangularArtifact,
+#     makeFilledBlockArtifact,
+# )
 
 from twoD.dynamics import (
     VariablePotSparseRK4Integrator,
-    makeSmoothingMatrix,
+    # makeSmoothingMatrix,
 )
 
 from utils.units import (
     toLength_fm,
-    toTime_fs,
-    toEnergy_MeV,
+    # toTime_fs,
+    # toEnergy_MeV,
 )
 
 from qpong.interactive import (
@@ -65,100 +63,49 @@ from qpong.interactive import (
     fixCursorPosition,
     preparePlayerInfo,
     scorePosition,
-    prepareBasePotential,
-    initPatchPotential,
-    prepareMatrixRepository,
+#     prepareBasePotential,
+#     initPatchPotential,
+#     prepareMatrixRepository,
 )
 
 from qpong.stateMachine import (
     initState,
-    # gameStates,
-    handleStateChange,
+    handleStateUpdate,
+    calculatePanelInfo,
+    initMutableGameState,
 )
-
-def initMutableGameState():
-    '''
-        initializes the big structure, containing
-        all mutable game state features, to be later
-        passed around
-    '''
-    mutableGameState={
-        'nPlayers': 2,
-        'basePot': prepareBasePotential(),
-        'patchPot': initPatchPotential(),
-        'globalMatrixRepo': prepareMatrixRepository() if useMRepo else None,
-        'phiSmoothingMatrix': makeSmoothingMatrix(
-            wfSizeX=Nx,
-            wfSizeY=Ny,
-            periodicBCX=periodicBCX,
-            periodicBCY=periodicBCY,
-            smoothingMap=[
-                (( 0, 0),1.0),
-                (( 0,+1),0.1),
-                (( 0,-1),0.1),
-                ((+1, 0),0.1),
-                ((-1, 0),0.1),
-            ]
-        ),
-        'halfField': makeCheckerboardRectangularArtifact(
-            Nx=Nx,
-            Ny=Ny,
-            posX=0.5-0.5*fieldBevelX,
-            posY=fieldBevelX,
-            widthX=fieldBevelX,
-            heightY=1-2*fieldBevelX,
-            color=255,
-            transparentKey=0,
-        ),
-        'scoreMarkers': [
-            makeFilledBlockArtifact(
-                (0,0),
-                (1,3),
-                color=255,
-            ),
-            makeFilledBlockArtifact(
-                (0,Ny-3),
-                (1,3),
-                color=255,
-            ),
-        ],
-        'frameArtifacts': makeRectangularArtifactList(
-            Nx=Nx,
-            Ny=Ny,
-            posX=fieldBevelX,
-            posY=fieldBevelY,
-            color=255,
-            transparentKey=0,
-        ),
-        'arrowKeyMap':{},
-    }
-    return mutableGameState
 
 if __name__=='__main__':
 
-    mutableGameState=initMutableGameState()
     gameState=initState()
+    mutableGameState=initMutableGameState(gameState)
 
     replotting=doPlot(
         None,
         # with this choice of color palette: 255=pot, 254=player0, 253=player1
         specialColors=intPlayerColors+[intPotentialColor],
         panelHeight=panelHeight,
-        panelInfo=[
-            'Initialization.',
-        ],
+        panelInfo=mutableGameState['panelInfo'],
     )
 
     # some info
     phLenX,phLenY=toLength_fm(LambdaX),toLength_fm(LambdaY)
     print('Lengths: LX=%4.3E, LY=%4.3E' % (phLenX,phLenY))
 
-    for i in count() if framesToDraw is None else range(framesToDraw):
+    while True:
         time.sleep(gameState['sleep'])
         if gameState['integrate']:
-            phi,energy,eComp,normDev,tauIncr,normMap=integrator.integrate(phi)
-            tau+=tauIncr
-            scorePos=scorePosition(normMap)
+            (
+                mutableGameState['physics']['phi'],
+                mutableGameState['physics']['energy'],
+                mutableGameState['physics']['eComp'],
+                mutableGameState['physics']['normDev'],
+                mutableGameState['physics']['tauIncr'],
+                mutableGameState['physics']['normMap'],
+            )=integrator.integrate(mutableGameState['physics']['phi'])
+            mutableGameState['iteration']+=1
+            mutableGameState['physics']['tau']+=mutableGameState['physics']['tauIncr']
+            scorePos=scorePosition(mutableGameState['physics']['normMap'])
             scorePosInteger=int(Nx*(fieldBevelX+scorePos*(1-2*fieldBevelX)))
             mutableGameState['scoreMarkers'][0]['offset']=(
                 scorePosInteger,
@@ -171,13 +118,16 @@ if __name__=='__main__':
             # scoring check
             if mutableGameState['nPlayers']>1:
                 aboveThreshold={
-                    i: normMap[3*i]
+                    i: mutableGameState['physics']['normMap'][3*i]
                     for i in range(mutableGameState['nPlayers'])
-                    if normMap[3*i]>=winningFraction
+                    if mutableGameState['physics']['normMap'][3*i]>=winningFraction
                 }
                 if len(aboveThreshold)>0:
                     winner=max(aboveThreshold.items(),key=lambda kf: kf[1])[0]
-                    print(' *** [%9i] Player %i scored a point! ***' % (i,winner))
+                    print(' *** [%9i] Player %i scored a point! ***' % (
+                        mutableGameState['iteration'],
+                        winner
+                    ))
             #
             for plInfo in playerInfo.values():
                 plInfo['pad']['pos']=(
@@ -185,27 +135,17 @@ if __name__=='__main__':
                     int((plInfo['patchPos'][1])*Nx),
                 )
             # smoothing step
-            if energy < initEnergyThreshold:
+            if mutableGameState['physics']['energy'] < mutableGameState['physics']['initEnergyThreshold']:
                 # this does not seem to be doable in-place (why?)
-                phi=mutableGameState['phiSmoothingMatrix'].dot(phi)
+                mutableGameState['physics']['phi']=mutableGameState['phiSmoothingMatrix'].dot(
+                    mutableGameState['physics']['phi']
+                )
             # potential-induced damping step, in-place
-            phi*=damping
-            titleMessage=[
-                'Iter %04i, t=%.1E fs' % (
-                    i,
-                    toTime_fs(tau),
-                ),
-                'E=%.1E MeV (%.1f)' % (
-                    toEnergy_MeV(energy),
-                    eComp,
-                ),
-                'nDev=%.2E' % (
-                    normDev,
-                ),
-            ]
+            mutableGameState['physics']['phi']*=damping
+
         if gameState['displaywf']:
             doPlot(
-                phi,
+                mutableGameState['physics']['phi'],
                 replotting,
                 artifacts=[
                     plInfo['pad']
@@ -215,22 +155,22 @@ if __name__=='__main__':
                 ]+mutableGameState['scoreMarkers'],
                 keysToCatch=mutableGameState['arrowKeyMap'].keys(),
                 keysToSend=gameState['keysToSend'],
-                # panelHeight=panelHeight,
-                panelInfo=titleMessage,
+                panelInfo=mutableGameState['panelInfo'],
+                # panelInfo=titleMessage,
             )
         else: # some other static screen
             doPlot(
                 None,
                 replotting,
-                # panelHeight=panelHeight,
-                panelInfo=[
-                    'Welcome to Quantum Pong. (%i)' % i,
-                    'Press G to start a game, I to quit.',
-                    'Switch Nplayers with "1", "2".',
-                ],                
+                panelInfo=mutableGameState['panelInfo'],
                 keysToSend=gameState['keysToSend'],
             )
         #
+        gameState,actionsToPerform,mutableGameState=handleStateUpdate(
+            gameState,
+            ('ticker',0),
+            mutableGameState,
+        )
         while replotting['keyqueue']:
             tkey=replotting['keyqueue'].pop(0)
             if tkey in mutableGameState['arrowKeyMap']: # arrow key
@@ -243,7 +183,7 @@ if __name__=='__main__':
                         playerInfo[targetPlayer]['bbox'],
                     )
             else:
-                gameState,actionsToPerform,mutableGameState=handleStateChange(
+                gameState,actionsToPerform,mutableGameState=handleStateUpdate(
                     gameState,
                     ('key',tkey),
                     mutableGameState,
@@ -251,6 +191,7 @@ if __name__=='__main__':
                 for ac in actionsToPerform:
                     print('TO PERFORM %s' % str(ac))
                     if ac=='initMatch':
+                        mutableGameState['iteration']=0
                         playerInfo=preparePlayerInfo(mutableGameState['nPlayers'])
                         mutableGameState['arrowKeyMap']={
                             k: v
@@ -280,10 +221,19 @@ if __name__=='__main__':
                             exactEnergy=True,
                             slicesSet=[0.0,0.25,0.5,0.75],
                         )
-                        phi=initPhi()
-                        tau=0
-                        phi,initEnergy,_,_,_,_=integrator.integrate(phi)
-                        initEnergyThreshold=(initEnergy-0.05*abs(initEnergy))
+                        mutableGameState['physics']['phi']=initPhi()
+                        mutableGameState['physics']['tau']=0
+                        (
+                            mutableGameState['physics']['phi'],
+                            mutableGameState['physics']['initEnergy'],_,_,_,_
+                        )=integrator.integrate(
+                            mutableGameState['physics']['phi']
+                        )
+                        mutableGameState['physics']['initEnergyThreshold']=(
+                            mutableGameState['physics']['initEnergy']-0.05*abs(
+                                mutableGameState['physics']['initEnergy']
+                            )
+                        )
                     elif ac=='quitGame':
                         sys.exit()
 
