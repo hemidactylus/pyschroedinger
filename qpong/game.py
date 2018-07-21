@@ -89,8 +89,11 @@ if __name__=='__main__':
     )
 
     # some info
-    phLenX,phLenY=toLength_fm(LambdaX),toLength_fm(LambdaY)
-    print('Lengths: LX=%4.3E, LY=%4.3E' % (phLenX,phLenY))
+    (
+        mutableGameState['physics']['phLenX'],
+        mutableGameState['physics']['phLenY'],
+    )=toLength_fm(LambdaX),toLength_fm(LambdaY)
+    # print('Lengths: LX=%4.3E, LY=%4.3E' % (phLenX,phLenY))
 
     while True:
         time.sleep(gameState['sleep'])

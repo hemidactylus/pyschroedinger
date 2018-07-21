@@ -158,7 +158,14 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
 
 def calculatePanelInfo(gState,mState):
     if gState['name']=='paused':
-        return ['PAUSED']
+        return [
+            ''
+            'Paused',
+            '(Field size: %.2E fm * %.2E fm)' % (
+                mState['physics']['phLenX'],
+                mState['physics']['phLenY'],
+            )
+        ]
     elif gState['name']=='still':
         return [
             'Welcome to Quantum Pong.',
@@ -168,18 +175,24 @@ def calculatePanelInfo(gState,mState):
     elif gState['name']=='play':
         if 'iteration' in mState:
             return [
-                'Iter %04i, t=%.1E fs' % (
-                    mState['iteration'],
+                '',
+                'Time elapsed: %.3E femtoseconds' % (
                     toTime_fs(mState['physics']['tau']),
                 ),
-                'E=%.1E MeV (%.1f)' % (
-                    toEnergy_MeV(mState['physics']['energy']),
-                    mState['physics']['eComp'],
-                ),
-                'nDev=%.2E' % (
-                    mState['physics']['normDev'],
-                ),
             ]
+            # return [
+            #     'Iter %04i, t=%.1E fs' % (
+            #         mState['iteration'],
+            #         toTime_fs(mState['physics']['tau']),
+            #     ),
+            #     'E=%.1E MeV (%.1f)' % (
+            #         toEnergy_MeV(mState['physics']['energy']),
+            #         mState['physics']['eComp'],
+            #     ),
+            #     'nDev=%.2E' % (
+            #         mState['physics']['normDev'],
+            #     ),
+            # ]
         else:
             return [
                 'About to start',
