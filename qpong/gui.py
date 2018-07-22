@@ -131,10 +131,11 @@ def doPlot(wfunction,replotting=None,artifacts=[],keysToCatch=set(),keysToSend=s
         )
     # artifacts
     for art in artifacts:
-        replotting['pygame']['bufferSurf'].blit(
-            art['surface'],
-            tuple(p+o for p,o in zip(art['pos'],art['offset'])),
-        )
+        if art['visible']:
+            replotting['pygame']['bufferSurf'].blit(
+                art['surface'],
+                tuple(p+o for p,o in zip(art['pos'],art['offset'])),
+            )
     #
     pygame.transform.scale(
         replotting['pygame']['bufferSurf'],

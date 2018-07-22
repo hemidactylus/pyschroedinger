@@ -131,6 +131,7 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
             elif scEvent[1]==' ':
                 print('SHOULD PAUSE')
                 newState=gameStates['paused']
+                actions.append('pause')
             else:
                 raise NotImplementedError
         elif scEvent[0]=='ticker':
@@ -143,6 +144,7 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
                 newState=gameStates['still']
             elif scEvent[1]==' ':
                 newState=gameStates['play']
+                actions.append('unpause')
             else:
                 raise NotImplementedError
         elif scEvent[0]=='ticker':

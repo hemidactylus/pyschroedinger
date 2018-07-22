@@ -23,6 +23,7 @@ def makeFilledBlockArtifact(pPos,pSize,color):
         'pos': pPos,
         'surface': art,
         'offset': (0,0),
+        'visible': True,
     }
 
 def makeCheckerboardRectangularArtifact(Nx,Ny,posX,posY,widthX,heightY,color,transparentKey):
@@ -50,6 +51,7 @@ def makeCheckerboardRectangularArtifact(Nx,Ny,posX,posY,widthX,heightY,color,tra
         'pos': pPos,
         'surface': art,
         'offset': (0,0),
+        'visible': True,
     }
 
 def makeRectangularArtifactList(Nx,Ny,posX,posY,color,transparentKey):
@@ -111,5 +113,6 @@ def makeCircleArtifact(Nx,Ny,centerX,centerY,radiusX,radiusY,color,transparentKe
     return {
         'pos': (pCenterX,pCenterY),
         'surface': circle,
-        'offset': (-pRadiusX,-pRadiusY)
+        'offset': (-pRadiusX,-pRadiusY),
+        'visible': True,
     }

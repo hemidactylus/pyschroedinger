@@ -40,12 +40,6 @@ from qpong.gui import (
     doPlot,
 )
 
-# from qpong.artifacts import (
-#     makeRectangularArtifactList,
-#     makeCheckerboardRectangularArtifact,
-#     makeFilledBlockArtifact,
-# )
-
 from twoD.dynamics import (
     VariablePotSparseRK4Integrator,
     # makeSmoothingMatrix,
@@ -132,7 +126,7 @@ if __name__=='__main__':
                         winner
                     ))
             #
-            for plInfo in playerInfo.values():
+            for plInfo in mutableGameState['playerInfo'].values():
                 plInfo['pad']['pos']=(
                     int((plInfo['patchPos'][0])*Nx),
                     int((plInfo['patchPos'][1])*Nx),
@@ -152,7 +146,7 @@ if __name__=='__main__':
                 replotting,
                 artifacts=[
                     plInfo['pad']
-                    for plInfo in playerInfo.values()
+                    for plInfo in mutableGameState['playerInfo'].values()
                 ]+mutableGameState['frameArtifacts']+[
                     mutableGameState['halfField']
                 ]+mutableGameState['scoreMarkers'],
@@ -179,11 +173,11 @@ if __name__=='__main__':
             if tkey in mutableGameState['arrowKeyMap']: # arrow key
                 if gameState['moveCursors']:
                     targetPlayer=mutableGameState['arrowKeyMap'][tkey]['player']
-                    playerInfo[targetPlayer]['patchPos']=fixCursorPosition(
-                        playerInfo[targetPlayer]['patchPos'],
+                    mutableGameState['playerInfo'][targetPlayer]['patchPos']=fixCursorPosition(
+                        mutableGameState['playerInfo'][targetPlayer]['patchPos'],
                         mutableGameState['arrowKeyMap'][tkey]['incr'],
                         patchRadii,
-                        playerInfo[targetPlayer]['bbox'],
+                        mutableGameState['playerInfo'][targetPlayer]['bbox'],
                     )
             else:
                 gameState,actionsToPerform,mutableGameState=handleStateUpdate(
@@ -195,16 +189,16 @@ if __name__=='__main__':
                     print('TO PERFORM %s' % str(ac))
                     if ac=='initMatch':
                         mutableGameState['iteration']=0
-                        playerInfo=preparePlayerInfo(mutableGameState['nPlayers'])
+                        mutableGameState['playerInfo']=preparePlayerInfo(mutableGameState['nPlayers'])
                         mutableGameState['arrowKeyMap']={
                             k: v
                             for k,v in fullArrowKeyMap.items()
-                            if v['player'] in playerInfo
+                            if v['player'] in mutableGameState['playerInfo']
                         }
                         pot,damping=assemblePotentials(
                             patchPosList=[
                                 plInfo['patchInitPos']
-                                for plInfo in playerInfo.values()
+                                for plInfo in mutableGameState['playerInfo'].values()
                             ],
                             patchPot=mutableGameState['patchPot'],
                             backgroundPot=mutableGameState['basePot'],
@@ -239,12 +233,24 @@ if __name__=='__main__':
                         )
                     elif ac=='quitGame':
                         sys.exit()
+                    elif ac=='pause':
+                        for pInfo in mutableGameState['playerInfo'].values():
+                            pInfo['pad']['visible']=False
+                        for scM in mutableGameState['scoreMarkers']:
+                            scM['visible']=False
+                    elif ac=='unpause':
+                        for pInfo in mutableGameState['playerInfo'].values():
+                            pInfo['pad']['visible']=True
+                        for scM in mutableGameState['scoreMarkers']:
+                            scM['visible']=True
+                    else:
+                        print('*** UNKNOWN ACTION TO PERFORM ***')
 
         if gameState['integrate']:
             pot,damping=assemblePotentials(
                 patchPosList=[
                     plInfo['patchPos']
-                    for plInfo in playerInfo.values()
+                    for plInfo in mutableGameState['playerInfo'].values()
                 ],
                 patchPot=mutableGameState['patchPot'],
                 backgroundPot=mutableGameState['basePot'],
