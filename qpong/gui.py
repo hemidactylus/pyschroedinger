@@ -20,6 +20,12 @@ from twoD.settings import (
     potentialColor,
 )
 
+from qpong.interactiveSettings import (
+    panelBackgroundColor,
+    panelForegroundColor,
+    screenForegroundColor,
+)
+
 from twoD.tools import (
     mod2,
 )
@@ -57,13 +63,20 @@ def initPyGame(specialColors=[],panelHeight=0):
     if panelHeight>0:
         startArrayTopPanel=np.zeros((Nx*tileX,panelHeight)).astype(int)
         topPanel=pygame.surfarray.make_surface(startArrayTopPanel).convert()
+        npTopPanel=np.zeros((Nx*tileX,panelHeight),dtype=int)
+        npTopPanel[:][:]=panelBackgroundColor
+        labelFont=pygame.font.SysFont("Courier New", 20, bold=True)
     else:
         topPanel=None
+        npTopPanel=None
+        labelFont=None
     return {
         'screen': screen,
         'window': window,
         'bufferSurf': bufferSurf,
         'topPanel': topPanel,
+        'npTopPanel': npTopPanel,
+        'labelFont': labelFont,
     }
 
 def setDrawPalette(specialColors=[]):
@@ -151,34 +164,34 @@ def doPlot(wfunction,replotting=None,artifacts=[],keysToCatch=set(),keysToSend=s
     )
     #
     if panelInfo is not None:
-        i=12
-        def _makeTop(i):
-            canvas=np.zeros((Nx*tileX,replotting['panelHeight']),dtype=int)
-            canvas[:][:]=170
-            return canvas
-        # for now a message
-        _tp=_makeTop(i)
         pygame.pixelcopy.array_to_surface(
             replotting['pygame']['topPanel'],
-            _tp,
+            replotting['pygame']['npTopPanel'],
         )
-        #
-        # pick a font you have and set its size
-        myfont = pygame.font.SysFont("Courier New", 20, bold=True)
-        # apply it to text on a label
+        # creation of the rendered labels
         labelList=[
-            myfont.render(panelLine,False,(80,100,50),0)
+            replotting['pygame']['labelFont'].render(panelLine,False,panelForegroundColor,0)
             for ind,panelLine in enumerate(panelInfo)
         ]
         for ind,l in enumerate(labelList):
             l.convert(8)
             l.set_colorkey(0)
             replotting['pygame']['topPanel'].blit(l,(5,5+20*ind))
+        # finally, draw the completed top panel on the window
         replotting['pygame']['window'].blit(
             replotting['pygame']['topPanel'],
             (0,0),
         )
-        #
+        # TEST to write below
+        onScreenLabelList=[
+            replotting['pygame']['labelFont'].render(panelLine,False,screenForegroundColor,0)
+            for ind,panelLine in enumerate(panelInfo)
+        ]
+        for ind,l in enumerate(onScreenLabelList):
+            replotting['pygame']['window'].blit(
+                l,
+                (15,replotting['panelHeight']+10+20*ind),
+            )
 
     pygame.display.flip()
 

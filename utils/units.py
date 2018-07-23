@@ -24,3 +24,6 @@ def toEnergy_MeV(aE):
         energy in MeV
     '''
     return aE*m_e
+
+def toMass_MeV_overC2(mu):
+    return m_e*mu

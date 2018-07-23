@@ -7,6 +7,7 @@ from utils.units import (
     # toLength_fm,
     toTime_fs,
     toEnergy_MeV,
+    toMass_MeV_overC2,
 )
 
 from qpong.interactiveSettings import (
@@ -161,12 +162,14 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
 def calculatePanelInfo(gState,mState):
     if gState['name']=='paused':
         return [
-            ''
-            'Paused',
+            '    Paused',
             '(Field size: %.2E fm * %.2E fm)' % (
                 mState['physics']['phLenX'],
                 mState['physics']['phLenY'],
-            )
+            ),
+            '(Particle mass: %.2E MeV/c^2)' % (
+                toMass_MeV_overC2(Mu),
+            ),
         ]
     elif gState['name']=='still':
         return [
@@ -182,19 +185,6 @@ def calculatePanelInfo(gState,mState):
                     toTime_fs(mState['physics']['tau']),
                 ),
             ]
-            # return [
-            #     'Iter %04i, t=%.1E fs' % (
-            #         mState['iteration'],
-            #         toTime_fs(mState['physics']['tau']),
-            #     ),
-            #     'E=%.1E MeV (%.1f)' % (
-            #         toEnergy_MeV(mState['physics']['energy']),
-            #         mState['physics']['eComp'],
-            #     ),
-            #     'nDev=%.2E' % (
-            #         mState['physics']['normDev'],
-            #     ),
-            # ]
         else:
             return [
                 'About to start',

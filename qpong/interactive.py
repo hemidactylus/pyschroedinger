@@ -7,10 +7,18 @@ import numpy as np
 from twoD.settings import (
     Nx,
     Ny,
+    Mu,
+    deltaTau,
     deltaLambdaX,
     deltaLambdaY,
+    periodicBCX,
+    periodicBCY,
+    drawFreq,
+    LambdaX,
+    LambdaY,
 )
 from qpong.interactiveSettings import (
+    fullArrowKeyMap,
     fieldBevelX,
     fieldBevelY,
     potPlayerPadHeight,
@@ -27,6 +35,10 @@ from twoD.wfunctions import (
 from twoD.potentials import (
     ellipticHolePotential,
     rectangularHolePotential,
+)
+
+from twoD.dynamics import (
+    VariablePotSparseRK4Integrator,
 )
 
 from qpong.artifacts import (
@@ -239,3 +251,52 @@ def prepareMatrixRepository():
         'dampingFactor': dampingFactor,
         'fullPotential': fullPotential,
     }
+
+def initialiseMatch(mutableGameState):
+    mutableGameState['iteration']=0
+    mutableGameState['playerInfo']=preparePlayerInfo(mutableGameState['nPlayers'])
+    mutableGameState['arrowKeyMap']={
+        k: v
+        for k,v in fullArrowKeyMap.items()
+        if v['player'] in mutableGameState['playerInfo']
+    }
+    (
+        mutableGameState['physics']['pot'],
+        mutableGameState['physics']['damping'],
+    )=assemblePotentials(
+        patchPosList=[
+            plInfo['patchInitPos']
+            for plInfo in mutableGameState['playerInfo'].values()
+        ],
+        patchPot=mutableGameState['patchPot'],
+        backgroundPot=mutableGameState['basePot'],
+        matrixRepo=mutableGameState['globalMatrixRepo'],
+    )
+    mutableGameState['physics']['integrator']=VariablePotSparseRK4Integrator(
+        wfSizeX=Nx,
+        wfSizeY=Ny,
+        deltaTau=deltaTau,
+        deltaLambdaX=deltaLambdaX,
+        deltaLambdaY=deltaLambdaY,
+        nIntegrationSteps=drawFreq,
+        vPotential=mutableGameState['physics']['pot'],
+        periodicBCX=periodicBCX,
+        periodicBCY=periodicBCY,
+        mu=Mu,
+        exactEnergy=True,
+        slicesSet=[0.0,0.25,0.5,0.75],
+    )
+    mutableGameState['physics']['phi']=initPhi()
+    mutableGameState['physics']['tau']=0
+    (
+        mutableGameState['physics']['phi'],
+        mutableGameState['physics']['initEnergy'],_,_,_,_
+    )=mutableGameState['physics']['integrator'].integrate(
+        mutableGameState['physics']['phi']
+    )
+    mutableGameState['physics']['initEnergyThreshold']=(
+        mutableGameState['physics']['initEnergy']-0.05*abs(
+            mutableGameState['physics']['initEnergy']
+        )
+    )
+    return mutableGameState

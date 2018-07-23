@@ -19,13 +19,12 @@ from twoD.settings import (
     deltaLambdaY,
     periodicBCX,
     periodicBCY,
-    drawFreq,
     LambdaX,
     LambdaY,
 )
 
 from qpong.interactiveSettings import (
-    fullArrowKeyMap,
+    # fullArrowKeyMap,
     patchRadii,
     fieldBevelX,
     fieldBevelY,
@@ -40,11 +39,6 @@ from qpong.gui import (
     doPlot,
 )
 
-from twoD.dynamics import (
-    VariablePotSparseRK4Integrator,
-    # makeSmoothingMatrix,
-)
-
 from utils.units import (
     toLength_fm,
     # toTime_fs,
@@ -57,6 +51,7 @@ from qpong.interactive import (
     fixCursorPosition,
     preparePlayerInfo,
     scorePosition,
+    initialiseMatch,
 #     prepareBasePotential,
 #     initPatchPotential,
 #     prepareMatrixRepository,
@@ -82,12 +77,10 @@ if __name__=='__main__':
         panelInfo=mutableGameState['panelInfo'],
     )
 
-    # some info
     (
         mutableGameState['physics']['phLenX'],
         mutableGameState['physics']['phLenY'],
     )=toLength_fm(LambdaX),toLength_fm(LambdaY)
-    # print('Lengths: LX=%4.3E, LY=%4.3E' % (phLenX,phLenY))
 
     while True:
         time.sleep(gameState['sleep'])
@@ -99,7 +92,7 @@ if __name__=='__main__':
                 mutableGameState['physics']['normDev'],
                 mutableGameState['physics']['tauIncr'],
                 mutableGameState['physics']['normMap'],
-            )=integrator.integrate(mutableGameState['physics']['phi'])
+            )=mutableGameState['physics']['integrator'].integrate(mutableGameState['physics']['phi'])
             mutableGameState['iteration']+=1
             mutableGameState['physics']['tau']+=mutableGameState['physics']['tauIncr']
             scorePos=scorePosition(mutableGameState['physics']['normMap'])
@@ -138,7 +131,7 @@ if __name__=='__main__':
                     mutableGameState['physics']['phi']
                 )
             # potential-induced damping step, in-place
-            mutableGameState['physics']['phi']*=damping
+            mutableGameState['physics']['phi']*=mutableGameState['physics']['damping']
 
         if gameState['displaywf']:
             doPlot(
@@ -188,49 +181,7 @@ if __name__=='__main__':
                 for ac in actionsToPerform:
                     print('TO PERFORM %s' % str(ac))
                     if ac=='initMatch':
-                        mutableGameState['iteration']=0
-                        mutableGameState['playerInfo']=preparePlayerInfo(mutableGameState['nPlayers'])
-                        mutableGameState['arrowKeyMap']={
-                            k: v
-                            for k,v in fullArrowKeyMap.items()
-                            if v['player'] in mutableGameState['playerInfo']
-                        }
-                        pot,damping=assemblePotentials(
-                            patchPosList=[
-                                plInfo['patchInitPos']
-                                for plInfo in mutableGameState['playerInfo'].values()
-                            ],
-                            patchPot=mutableGameState['patchPot'],
-                            backgroundPot=mutableGameState['basePot'],
-                            matrixRepo=mutableGameState['globalMatrixRepo'],
-                        )
-                        integrator=VariablePotSparseRK4Integrator(
-                            wfSizeX=Nx,
-                            wfSizeY=Ny,
-                            deltaTau=deltaTau,
-                            deltaLambdaX=deltaLambdaX,
-                            deltaLambdaY=deltaLambdaY,
-                            nIntegrationSteps=drawFreq,
-                            vPotential=pot,
-                            periodicBCX=periodicBCX,
-                            periodicBCY=periodicBCY,
-                            mu=Mu,
-                            exactEnergy=True,
-                            slicesSet=[0.0,0.25,0.5,0.75],
-                        )
-                        mutableGameState['physics']['phi']=initPhi()
-                        mutableGameState['physics']['tau']=0
-                        (
-                            mutableGameState['physics']['phi'],
-                            mutableGameState['physics']['initEnergy'],_,_,_,_
-                        )=integrator.integrate(
-                            mutableGameState['physics']['phi']
-                        )
-                        mutableGameState['physics']['initEnergyThreshold']=(
-                            mutableGameState['physics']['initEnergy']-0.05*abs(
-                                mutableGameState['physics']['initEnergy']
-                            )
-                        )
+                        mutableGameState=initialiseMatch(mutableGameState)
                     elif ac=='quitGame':
                         sys.exit()
                     elif ac=='pause':
@@ -247,7 +198,10 @@ if __name__=='__main__':
                         print('*** UNKNOWN ACTION TO PERFORM ***')
 
         if gameState['integrate']:
-            pot,damping=assemblePotentials(
+            (
+                mutableGameState['physics']['pot'],
+                mutableGameState['physics']['damping'],
+            )=assemblePotentials(
                 patchPosList=[
                     plInfo['patchPos']
                     for plInfo in mutableGameState['playerInfo'].values()
@@ -256,4 +210,4 @@ if __name__=='__main__':
                 backgroundPot=mutableGameState['basePot'],
                 matrixRepo=mutableGameState['globalMatrixRepo'],
             )
-            integrator.setPotential(pot)
+            mutableGameState['physics']['integrator'].setPotential(mutableGameState['physics']['pot'])

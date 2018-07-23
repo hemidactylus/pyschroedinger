@@ -56,6 +56,10 @@ intPlayerColors=[
     [50,50,180],
 ]
 
+panelBackgroundColor=170
+panelForegroundColor=(80,100,50)
+screenForegroundColor=(255,255,255)
+
 winningFraction=0.35
 
 # debugSleepTime=0.02
