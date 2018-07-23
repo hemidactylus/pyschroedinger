@@ -60,7 +60,7 @@ from qpong.interactive import (
 from qpong.stateMachine import (
     initState,
     handleStateUpdate,
-    calculatePanelInfo,
+    # calculatePanelInfo,
     initMutableGameState,
 )
 
@@ -75,6 +75,7 @@ if __name__=='__main__':
         specialColors=intPlayerColors+[intPotentialColor],
         panelHeight=panelHeight,
         panelInfo=mutableGameState['panelInfo'],
+        screenInfo=mutableGameState['screenInfo'],
     )
 
     (
@@ -146,13 +147,14 @@ if __name__=='__main__':
                 keysToCatch=mutableGameState['arrowKeyMap'].keys(),
                 keysToSend=gameState['keysToSend'],
                 panelInfo=mutableGameState['panelInfo'],
-                # panelInfo=titleMessage,
+                screenInfo=mutableGameState['screenInfo'],
             )
         else: # some other static screen
             doPlot(
                 None,
                 replotting,
                 panelInfo=mutableGameState['panelInfo'],
+                screenInfo=mutableGameState['screenInfo'],
                 keysToSend=gameState['keysToSend'],
             )
         #

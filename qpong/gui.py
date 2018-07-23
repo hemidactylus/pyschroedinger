@@ -65,11 +65,13 @@ def initPyGame(specialColors=[],panelHeight=0):
         topPanel=pygame.surfarray.make_surface(startArrayTopPanel).convert()
         npTopPanel=np.zeros((Nx*tileX,panelHeight),dtype=int)
         npTopPanel[:][:]=panelBackgroundColor
-        labelFont=pygame.font.SysFont("Courier New", 20, bold=True)
+        labelFont=pygame.font.SysFont("Courier New", 20,  bold=True)
+        titleFont=pygame.font.SysFont("Courier New", 120, bold=True)
     else:
         topPanel=None
         npTopPanel=None
         labelFont=None
+        titleFont=None
     return {
         'screen': screen,
         'window': window,
@@ -77,6 +79,7 @@ def initPyGame(specialColors=[],panelHeight=0):
         'topPanel': topPanel,
         'npTopPanel': npTopPanel,
         'labelFont': labelFont,
+        'titleFont': titleFont,
     }
 
 def setDrawPalette(specialColors=[]):
@@ -103,7 +106,17 @@ def integerize(wfunction,maxMod2,paletteRange):
     # nMat[nMat<0]=0
     # return nMat
 
-def doPlot(wfunction,replotting=None,artifacts=[],keysToCatch=set(),keysToSend=set(),specialColors=[potentialColor],panelHeight=0,panelInfo=None):
+def doPlot(
+        wfunction,
+        replotting=None,
+        artifacts=[],
+        keysToCatch=set(),
+        keysToSend=set(),
+        specialColors=[potentialColor],
+        panelHeight=0,
+        panelInfo=None,
+        screenInfo=None,
+    ):
     '''
         all information on the x,y-scale
         is implicit.
@@ -162,7 +175,8 @@ def doPlot(wfunction,replotting=None,artifacts=[],keysToCatch=set(),keysToSend=s
         replotting['pygame']['screen'],
         (0,replotting['panelHeight']),
     )
-    #
+
+    # in-panel written text
     if panelInfo is not None:
         pygame.pixelcopy.array_to_surface(
             replotting['pygame']['topPanel'],
@@ -182,16 +196,27 @@ def doPlot(wfunction,replotting=None,artifacts=[],keysToCatch=set(),keysToSend=s
             replotting['pygame']['topPanel'],
             (0,0),
         )
-        # TEST to write below
-        onScreenLabelList=[
-            replotting['pygame']['labelFont'].render(panelLine,False,screenForegroundColor,0)
-            for ind,panelLine in enumerate(panelInfo)
+
+    # on-screen written text
+    if screenInfo is not None:
+        screenLabelList=[
+            (
+                replotting['pygame']['titleFont'] if largeLine else replotting['pygame']['labelFont']
+            ).render(panelLine,False,screenForegroundColor,0)
+            for ind,(panelLine,largeLine) in enumerate(screenInfo)
         ]
-        for ind,l in enumerate(onScreenLabelList):
+        # centering and positioning
+        sizes={lblInd: lbl.get_size() for lblInd,lbl in enumerate(screenLabelList)}
+        totalHeight=sum(s[1] for s in sizes.values())
+        hLinePos=int(0.5*(Ny*tileY-totalHeight))
+        #
+        for ind,l in enumerate(screenLabelList):
+            wLinePos=int(0.5*(Nx*tileX-sizes[ind][0]))
             replotting['pygame']['window'].blit(
                 l,
-                (15,replotting['panelHeight']+10+20*ind),
+                (wLinePos,replotting['panelHeight']+hLinePos),
             )
+            hLinePos+=sizes[ind][1]
 
     pygame.display.flip()
 

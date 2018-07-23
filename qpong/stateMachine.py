@@ -155,14 +155,18 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
     else:
         raise NotImplementedError
 
-    mutableGameState['panelInfo']=calculatePanelInfo(newState,mutableGameState)
+    (
+        mutableGameState['panelInfo'],
+        mutableGameState['screenInfo'],
+    )=calculatePanelInfo(newState,mutableGameState)
 
     return newState,actions,mutableGameState
 
 def calculatePanelInfo(gState,mState):
+    pnlInfo=None
+    scnInfo=None
     if gState['name']=='paused':
-        return [
-            '    Paused',
+        pnlInfo=[
             '(Field size: %.2E fm * %.2E fm)' % (
                 mState['physics']['phLenX'],
                 mState['physics']['phLenY'],
@@ -171,27 +175,37 @@ def calculatePanelInfo(gState,mState):
                 toMass_MeV_overC2(Mu),
             ),
         ]
+        scnInfo=[
+            ('Paused',True)
+        ]
     elif gState['name']=='still':
-        return [
+        pnlInfo=[
             'Welcome to Quantum Pong.',
             'Press G to start a game, I to quit.',
             'Switch Nplayers with "1", "2". (now: %i)' % mState['nPlayers'],
         ]
     elif gState['name']=='play':
         if 'iteration' in mState:
-            return [
+            pnlInfo=[
                 '',
                 'Time elapsed: %.3E femtoseconds' % (
                     toTime_fs(mState['physics']['tau']),
                 ),
             ]
+            scnInfo=[
+                ('Play',True),
+                ('Ing',False),
+                ('Ue!',True),
+            ]
         else:
-            return [
+            pnlInfo=[
                 'About to start',
                 '      ...',
             ]
     else:
         raise NotImplementedError
+
+    return pnlInfo,scnInfo
 
 
 def initMutableGameState(gState):
@@ -251,7 +265,10 @@ def initMutableGameState(gState):
         'arrowKeyMap':{},
         'physics': {}
     }
-    mutableGameState['panelInfo']=calculatePanelInfo(
+    (
+        mutableGameState['panelInfo'],
+        mutableGameState['screenInfo'],
+    )=calculatePanelInfo(
         gState,
         mutableGameState,
     )

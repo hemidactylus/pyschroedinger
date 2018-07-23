@@ -58,7 +58,7 @@ intPlayerColors=[
 
 panelBackgroundColor=170
 panelForegroundColor=(80,100,50)
-screenForegroundColor=(255,255,255)
+screenForegroundColor=(232,232,232)
 
 winningFraction=0.35
 
