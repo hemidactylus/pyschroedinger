@@ -64,6 +64,26 @@ from qpong.stateMachine import (
     initMutableGameState,
 )
 
+def performActions(actionsToPerform,mutableGameState):
+    for ac in actionsToPerform:
+        print('TO PERFORM %s' % str(ac))
+        if ac=='initMatch':
+            mutableGameState=initialiseMatch(mutableGameState)
+        elif ac=='quitGame':
+            sys.exit()
+        elif ac=='pause':
+            for pInfo in mutableGameState['playerInfo'].values():
+                pInfo['pad']['visible']=False
+            for scM in mutableGameState['scoreMarkers']:
+                scM['visible']=False
+        elif ac=='unpause':
+            for pInfo in mutableGameState['playerInfo'].values():
+                pInfo['pad']['visible']=True
+            for scM in mutableGameState['scoreMarkers']:
+                scM['visible']=True
+        else:
+            print('*** UNKNOWN ACTION TO PERFORM ***')
+
 if __name__=='__main__':
 
     gameState=initState()
@@ -163,6 +183,7 @@ if __name__=='__main__':
             ('ticker',0),
             mutableGameState,
         )
+        performActions(actionsToPerform,mutableGameState)
         while replotting['keyqueue']:
             tkey=replotting['keyqueue'].pop(0)
             if tkey in mutableGameState['arrowKeyMap']: # arrow key
@@ -180,24 +201,7 @@ if __name__=='__main__':
                     ('key',tkey),
                     mutableGameState,
                 )
-                for ac in actionsToPerform:
-                    print('TO PERFORM %s' % str(ac))
-                    if ac=='initMatch':
-                        mutableGameState=initialiseMatch(mutableGameState)
-                    elif ac=='quitGame':
-                        sys.exit()
-                    elif ac=='pause':
-                        for pInfo in mutableGameState['playerInfo'].values():
-                            pInfo['pad']['visible']=False
-                        for scM in mutableGameState['scoreMarkers']:
-                            scM['visible']=False
-                    elif ac=='unpause':
-                        for pInfo in mutableGameState['playerInfo'].values():
-                            pInfo['pad']['visible']=True
-                        for scM in mutableGameState['scoreMarkers']:
-                            scM['visible']=True
-                    else:
-                        print('*** UNKNOWN ACTION TO PERFORM ***')
+                performActions(actionsToPerform,mutableGameState)
 
         if gameState['integrate']:
             (

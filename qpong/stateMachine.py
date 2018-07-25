@@ -3,6 +3,8 @@
     game state machine and its transitions.
 '''
 
+import time
+
 from utils.units import (
     # toLength_fm,
     toTime_fs,
@@ -46,6 +48,8 @@ from qpong.interactiveSettings import (
     # winningFraction,
     # panelHeight,
     useMRepo,
+    matchCountdownSteps,
+    matchCountdownSpan,
 )
 
 from twoD.settings import (
@@ -87,6 +91,30 @@ gameStates={
         'sleep': 0.05,
         'moveCursors': False,
     },
+    'quitting': {
+        'name': 'quitting',
+        'integrate': False,
+        'displaywf': False,
+        'keysToSend': {'y','n'},
+        'sleep': 0.05,
+        'moveCursors': False,
+    },
+    'prestarting': {
+        'name': 'prestarting',
+        'integrate': False,
+        'displaywf': False,
+        'keysToSend': {},
+        'sleep': 0.01,
+        'moveCursors': False,
+    },
+    'starting': {
+        'name': 'starting',
+        'integrate': False,
+        'displaywf': True,
+        'keysToSend': {},
+        'sleep': 0.05,
+        'moveCursors': False,
+    },
 }
 
 def initState():
@@ -101,7 +129,7 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
 
         Returns a triple (new_state,list_of_actions_to_perform, newMutableGameState)
     '''
-    newState=curState
+    newState=None
     actions=[]
     if curState['name']=='still':
         if scEvent==('action','start'):
@@ -110,10 +138,9 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
         elif scEvent[0]=='key':
             print('PRESSED <%s>' % scEvent[1])
             if scEvent[1]=='i':
-                actions.append('quitGame')
+                newState=gameStates['quitting']
             elif scEvent[1]=='g':
-                newState=gameStates['play']
-                actions.append('initMatch')
+                newState=gameStates['prestarting']
             elif scEvent[1]=='1':
                 mutableGameState['nPlayers']=1
             elif scEvent[1]=='2':
@@ -121,7 +148,7 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
             else:
                 raise NotImplementedError
         elif scEvent[0]=='ticker':
-            pass
+            print('Ticker Elapsed %.2f' % (time.time()-mutableGameState['stateInitTime']))
         else:
             raise NotImplementedError
     elif curState['name']=='play':
@@ -136,7 +163,7 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
             else:
                 raise NotImplementedError
         elif scEvent[0]=='ticker':
-            pass
+            print('Ticker Elapsed %.2f' % (time.time()-mutableGameState['stateInitTime']))
         else:
             raise NotImplementedError
     elif curState['name']=='paused':
@@ -149,11 +176,45 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
             else:
                 raise NotImplementedError
         elif scEvent[0]=='ticker':
-            pass
+            print('Ticker Elapsed %.2f' % (time.time()-mutableGameState['stateInitTime']))
+        else:
+            raise NotImplementedError
+    elif curState['name']=='quitting':
+        if scEvent[0]=='key':
+            if scEvent[1]=='y':
+                actions.append('quitGame')
+            elif scEvent[1]=='n':
+                newState=gameStates['still']
+            else:
+                raise NotImplementedError
+        elif scEvent[0]=='ticker':
+            print('Ticker Elapsed %.2f' % (time.time()-mutableGameState['stateInitTime']))
+        else:
+            raise NotImplementedError
+    elif curState['name']=='prestarting':
+        if scEvent[0]=='ticker':
+            print('Ticker Elapsed %.2f' % (time.time()-mutableGameState['stateInitTime']))
+            newState=gameStates['starting']
+            actions.append('initMatch')
+        else:
+            raise NotImplementedError
+    elif curState['name']=='starting':
+        if scEvent[0]=='ticker':
+            elapsed=time.time()-mutableGameState['stateInitTime']
+            print('Ticker Elapsed %.2f' % (time.time()-mutableGameState['stateInitTime']))
+            if elapsed>= (matchCountdownSteps+1)*matchCountdownSpan:
+                newState=gameStates['play']
         else:
             raise NotImplementedError
     else:
         raise NotImplementedError
+
+    # if a new state was explicitly reached
+    mutableGameState['currentTime']=time.time()
+    if newState is not None:
+        mutableGameState['stateInitTime']=time.time()
+    else:
+        newState=curState
 
     (
         mutableGameState['panelInfo'],
@@ -180,9 +241,18 @@ def calculatePanelInfo(gState,mState):
         ]
     elif gState['name']=='still':
         pnlInfo=[
-            'Welcome to Quantum Pong.',
-            'Press G to start a game, I to quit.',
-            'Switch Nplayers with "1", "2". (now: %i)' % mState['nPlayers'],
+            '',
+            '    Welcome to Quantum Pong.',
+        ]
+        scnInfo=[
+            ('Quantum',True),
+            ('Pong',True),
+            ('Press "g" to start a game',False),
+            ('',False),
+            ('Press "1"/"2" to change number of players',False),
+            ('(currently: %i players)' % mState['nPlayers'],False),
+            ('',False),
+            ('Press "i" to quit',False),
         ]
     elif gState['name']=='play':
         if 'iteration' in mState:
@@ -192,16 +262,44 @@ def calculatePanelInfo(gState,mState):
                     toTime_fs(mState['physics']['tau']),
                 ),
             ]
-            scnInfo=[
-                ('Play',True),
-                ('Ing',False),
-                ('Ue!',True),
-            ]
+            scnInfo=[]
         else:
             pnlInfo=[
-                'About to start',
-                '      ...',
+                '    About to start',
+                '          ...',
             ]
+    elif gState['name']=='quitting':
+        pnlInfo=[
+            '',
+            '    Quitting game'
+        ]
+        scnInfo=[
+            ('Quit',True),
+            ('game?',True),
+            ('(y/n)',True),
+        ]
+    elif gState['name']=='prestarting':
+        pnlInfo=[
+            '',
+            '    Initializing ...'
+        ]
+    elif gState['name']=='starting':
+        pnlInfo=[
+            '',
+            '    Initializing ...'
+        ]
+        print('this MIN is a big mess, fix this')
+        # and also the pads are shown at the centre?
+        timeStep=min(
+            matchCountdownSteps-int(
+                (mState['currentTime']-mState['stateInitTime']) /\
+                (matchCountdownSpan)
+            ),
+            matchCountdownSteps,
+        )
+        scnInfo=[
+            ('%i' % timeStep,True),
+        ]
     else:
         raise NotImplementedError
 
@@ -215,6 +313,8 @@ def initMutableGameState(gState):
         passed around
     '''
     mutableGameState={
+        'currentTime': time.time(),
+        'stateInitTime': time.time(),
         'nPlayers': 2,
         'basePot': prepareBasePotential(),
         'patchPot': initPatchPotential(),

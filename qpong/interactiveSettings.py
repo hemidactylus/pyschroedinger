@@ -70,3 +70,6 @@ panelHeight=80 # pixels
 # do we use the global matrix once-allocated repository?
 # (True = some speedup)
 useMRepo=True
+
+matchCountdownSteps=3
+matchCountdownSpan=1
