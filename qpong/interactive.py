@@ -219,6 +219,10 @@ def preparePlayerInfo(nPlayers):
             transparentKey=0,
         )
         plInfo['patchPos']=plInfo['patchInitPos']
+        plInfo['pad']['pos']=(
+            int((plInfo['patchPos'][0])*Nx),
+            int((plInfo['patchPos'][1])*Nx),
+        )
     return playerInfo
 
 def scorePosition(normMap):

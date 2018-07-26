@@ -148,7 +148,7 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
             else:
                 raise NotImplementedError
         elif scEvent[0]=='ticker':
-            print('Ticker Elapsed %.2f' % (time.time()-mutableGameState['stateInitTime']))
+            pass
         else:
             raise NotImplementedError
     elif curState['name']=='play':
@@ -163,7 +163,7 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
             else:
                 raise NotImplementedError
         elif scEvent[0]=='ticker':
-            print('Ticker Elapsed %.2f' % (time.time()-mutableGameState['stateInitTime']))
+            pass
         else:
             raise NotImplementedError
     elif curState['name']=='paused':
@@ -176,7 +176,7 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
             else:
                 raise NotImplementedError
         elif scEvent[0]=='ticker':
-            print('Ticker Elapsed %.2f' % (time.time()-mutableGameState['stateInitTime']))
+            pass
         else:
             raise NotImplementedError
     elif curState['name']=='quitting':
@@ -188,12 +188,12 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
             else:
                 raise NotImplementedError
         elif scEvent[0]=='ticker':
-            print('Ticker Elapsed %.2f' % (time.time()-mutableGameState['stateInitTime']))
+            pass
         else:
             raise NotImplementedError
     elif curState['name']=='prestarting':
         if scEvent[0]=='ticker':
-            print('Ticker Elapsed %.2f' % (time.time()-mutableGameState['stateInitTime']))
+            pass
             newState=gameStates['starting']
             actions.append('initMatch')
         else:
@@ -201,9 +201,9 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
     elif curState['name']=='starting':
         if scEvent[0]=='ticker':
             elapsed=time.time()-mutableGameState['stateInitTime']
-            print('Ticker Elapsed %.2f' % (time.time()-mutableGameState['stateInitTime']))
             if elapsed>= (matchCountdownSteps+1)*matchCountdownSpan:
                 newState=gameStates['play']
+                actions.append('startPlay')
         else:
             raise NotImplementedError
     else:
@@ -228,11 +228,12 @@ def calculatePanelInfo(gState,mState):
     scnInfo=None
     if gState['name']=='paused':
         pnlInfo=[
-            '(Field size: %.2E fm * %.2E fm)' % (
+            '',
+            '  (Field size: %.2E * %.2E fm^2)' % (
                 mState['physics']['phLenX'],
                 mState['physics']['phLenY'],
             ),
-            '(Particle mass: %.2E MeV/c^2)' % (
+            '  (Particle mass: %.2E MeV/c^2)' % (
                 toMass_MeV_overC2(Mu),
             ),
         ]
@@ -258,7 +259,7 @@ def calculatePanelInfo(gState,mState):
         if 'iteration' in mState:
             pnlInfo=[
                 '',
-                'Time elapsed: %.3E femtoseconds' % (
+                '  Time elapsed: %.3E femtoseconds' % (
                     toTime_fs(mState['physics']['tau']),
                 ),
             ]
@@ -288,10 +289,8 @@ def calculatePanelInfo(gState,mState):
             '',
             '    Initializing ...'
         ]
-        print('this MIN is a big mess, fix this')
-        # and also the pads are shown at the centre?
         timeStep=min(
-            matchCountdownSteps-int(
+            1+matchCountdownSteps-int(
                 (mState['currentTime']-mState['stateInitTime']) /\
                 (matchCountdownSpan)
             ),

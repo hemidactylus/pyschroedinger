@@ -63,7 +63,7 @@ screenForegroundColor=(232,232,232)
 winningFraction=0.35
 
 # debugSleepTime=0.02
-debugSleepTime=0.1
+debugSleepTime=0
 
 panelHeight=80 # pixels
 
@@ -72,4 +72,4 @@ panelHeight=80 # pixels
 useMRepo=True
 
 matchCountdownSteps=3
-matchCountdownSpan=1
+matchCountdownSpan=0.66

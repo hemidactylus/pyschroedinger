@@ -69,6 +69,11 @@ def performActions(actionsToPerform,mutableGameState):
         print('TO PERFORM %s' % str(ac))
         if ac=='initMatch':
             mutableGameState=initialiseMatch(mutableGameState)
+            for scM in mutableGameState['scoreMarkers']:
+                scM['visible']=False
+        elif ac=='startPlay':
+            for scM in mutableGameState['scoreMarkers']:
+                scM['visible']=True
         elif ac=='quitGame':
             sys.exit()
         elif ac=='pause':
@@ -139,7 +144,7 @@ if __name__=='__main__':
                         mutableGameState['iteration'],
                         winner
                     ))
-            #
+            # here we make the real-valued position info into pixel integer values
             for plInfo in mutableGameState['playerInfo'].values():
                 plInfo['pad']['pos']=(
                     int((plInfo['patchPos'][0])*Nx),
