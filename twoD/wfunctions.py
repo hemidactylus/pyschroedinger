@@ -36,5 +36,4 @@ def roundWaveNumber(ph,axis):
         sign=+1 if ph>0 else -1
         #
         roundedM = sign*int(0.5+abs(ph/waveNumber0[axis]))
-        print('Rounding %f => %i times h0' % (ph/waveNumber0[axis],roundedM))
         return roundedM * waveNumber0[axis]

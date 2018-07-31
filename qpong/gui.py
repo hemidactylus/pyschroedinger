@@ -24,6 +24,8 @@ from qpong.interactiveSettings import (
     panelBackgroundColor,
     panelForegroundColor,
     screenForegroundColor,
+    labelFontSize,
+    titleFontSize,
 )
 
 from twoD.tools import (
@@ -65,8 +67,8 @@ def initPyGame(specialColors=[],panelHeight=0):
         topPanel=pygame.surfarray.make_surface(startArrayTopPanel).convert()
         npTopPanel=np.zeros((Nx*tileX,panelHeight),dtype=int)
         npTopPanel[:][:]=panelBackgroundColor
-        labelFont=pygame.font.SysFont("Courier New", 20,  bold=True)
-        titleFont=pygame.font.SysFont("Courier New", 120, bold=True)
+        labelFont=pygame.font.SysFont("Courier New", labelFontSize, bold=True)
+        titleFont=pygame.font.SysFont("Courier New", titleFontSize, bold=True)
     else:
         topPanel=None
         npTopPanel=None

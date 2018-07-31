@@ -6,7 +6,7 @@
 import time
 
 from utils.units import (
-    # toLength_fm,
+    toLength_fm,
     toTime_fs,
     toEnergy_MeV,
     toMass_MeV_overC2,
@@ -74,6 +74,7 @@ gameStates={
         'keysToSend': {'g','i','1','2'},
         'sleep': 0.05,
         'moveCursors': False,
+        'limitFrameRate': False,
     },
     'play': {
         'name': 'play',
@@ -82,6 +83,7 @@ gameStates={
         'keysToSend': {'i', ' '},
         'sleep': debugSleepTime,
         'moveCursors': True,
+        'limitFrameRate': True,
     },
     'paused': {
         'name': 'paused',
@@ -90,6 +92,7 @@ gameStates={
         'keysToSend': {'i', ' '},
         'sleep': 0.05,
         'moveCursors': False,
+        'limitFrameRate': False,
     },
     'quitting': {
         'name': 'quitting',
@@ -98,6 +101,7 @@ gameStates={
         'keysToSend': {'y','n'},
         'sleep': 0.05,
         'moveCursors': False,
+        'limitFrameRate': False,
     },
     'prestarting': {
         'name': 'prestarting',
@@ -106,6 +110,7 @@ gameStates={
         'keysToSend': {},
         'sleep': 0.01,
         'moveCursors': False,
+        'limitFrameRate': False,
     },
     'starting': {
         'name': 'starting',
@@ -114,6 +119,7 @@ gameStates={
         'keysToSend': {},
         'sleep': 0.05,
         'moveCursors': False,
+        'limitFrameRate': False,
     },
 }
 
@@ -136,11 +142,11 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
             newState=gameStates['play']
             actions.append('initPlay')
         elif scEvent[0]=='key':
-            print('PRESSED <%s>' % scEvent[1])
             if scEvent[1]=='i':
                 newState=gameStates['quitting']
             elif scEvent[1]=='g':
                 newState=gameStates['prestarting']
+                actions.append('initMatch')
             elif scEvent[1]=='1':
                 mutableGameState['nPlayers']=1
             elif scEvent[1]=='2':
@@ -153,16 +159,22 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
             raise NotImplementedError
     elif curState['name']=='play':
         if scEvent[0]=='key':
-            print('PRESSED <%s>' % scEvent[1])
             if scEvent[1]=='i':
                 newState=gameStates['still']
             elif scEvent[1]==' ':
-                print('SHOULD PAUSE')
                 newState=gameStates['paused']
                 actions.append('pause')
             else:
                 raise NotImplementedError
         elif scEvent[0]=='ticker':
+            spf=mutableGameState['currentIntegrate']-mutableGameState['prevIntegrate']
+            print('FrameRate = %.4f frames/s' % (
+                1/spf if spf>0 else 0
+            ))
+            print('%.4f    %.4f\n' % (
+                mutableGameState['prevIntegrate'],
+                mutableGameState['currentIntegrate'],
+            ))
             pass
         else:
             raise NotImplementedError
@@ -195,13 +207,12 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
         if scEvent[0]=='ticker':
             pass
             newState=gameStates['starting']
-            actions.append('initMatch')
         else:
             raise NotImplementedError
     elif curState['name']=='starting':
         if scEvent[0]=='ticker':
-            elapsed=time.time()-mutableGameState['stateInitTime']
-            if elapsed>= (matchCountdownSteps+1)*matchCountdownSpan:
+            elapsed=mutableGameState['currentTime']-mutableGameState['stateInitTime']
+            if elapsed>= matchCountdownSteps*matchCountdownSpan:
                 newState=gameStates['play']
                 actions.append('startPlay')
         else:
@@ -210,9 +221,14 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
         raise NotImplementedError
 
     # if a new state was explicitly reached
-    mutableGameState['currentTime']=time.time()
+    if scEvent[0]=='ticker':
+        mutableGameState['currentTime']=time.time()
     if newState is not None:
         mutableGameState['stateInitTime']=time.time()
+        mutableGameState['currentTime']=mutableGameState['stateInitTime']
+        if newState['name']=='play':
+            mutableGameState['currentIntegrate']=time.time()
+            mutableGameState['prevIntegrate']=mutableGameState['currentIntegrate']
     else:
         newState=curState
 
@@ -253,7 +269,9 @@ def calculatePanelInfo(gState,mState):
             ('Press "1"/"2" to change number of players',False),
             ('(currently: %i players)' % mState['nPlayers'],False),
             ('',False),
-            ('Press "i" to quit',False),
+            ('Press "i" to quit/interrupt match',False),
+            ('Press spacebar to pause match',False),
+            ('Arrows and "a/w/s/d" move the pads',False),
         ]
     elif gState['name']=='play':
         if 'iteration' in mState:
@@ -287,17 +305,13 @@ def calculatePanelInfo(gState,mState):
     elif gState['name']=='starting':
         pnlInfo=[
             '',
-            '    Initializing ...'
+            '    Ready?'
         ]
-        timeStep=min(
-            1+matchCountdownSteps-int(
-                (mState['currentTime']-mState['stateInitTime']) /\
+        timeStep=(mState['currentTime']-mState['stateInitTime']) /\
                 (matchCountdownSpan)
-            ),
-            matchCountdownSteps,
-        )
+        ctDisplay=max(1,matchCountdownSteps-int(timeStep))
         scnInfo=[
-            ('%i' % timeStep,True),
+            ('%i' % ctDisplay,True),
         ]
     else:
         raise NotImplementedError
@@ -311,9 +325,10 @@ def initMutableGameState(gState):
         all mutable game state features, to be later
         passed around
     '''
+    tNow=time.time()
     mutableGameState={
-        'currentTime': time.time(),
-        'stateInitTime': time.time(),
+        'currentTime': tNow,
+        'stateInitTime': tNow,
         'nPlayers': 2,
         'basePot': prepareBasePotential(),
         'patchPot': initPatchPotential(),
@@ -371,4 +386,8 @@ def initMutableGameState(gState):
         gState,
         mutableGameState,
     )
+    (
+        mutableGameState['physics']['phLenX'],
+        mutableGameState['physics']['phLenY'],
+    )=toLength_fm(LambdaX),toLength_fm(LambdaY)
     return mutableGameState

@@ -56,5 +56,4 @@ def roundWaveNumber(ph):
         sign=+1 if ph>0 else -1
         #
         roundedM = sign*int(0.5+abs(ph/waveNumber0))
-        print('Rounding %f => %i times h0' % (ph/waveNumber0,roundedM))
         return roundedM * waveNumber0

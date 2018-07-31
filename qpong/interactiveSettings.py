@@ -56,14 +56,20 @@ intPlayerColors=[
     [50,50,180],
 ]
 
+labelFontSize=20
+titleFontSize=100
+
 panelBackgroundColor=170
 panelForegroundColor=(80,100,50)
 screenForegroundColor=(232,232,232)
 
+# higher = harder to score a point
 winningFraction=0.35
 
 # debugSleepTime=0.02
 debugSleepTime=0
+
+maxFrameRate=1500000 # frames/sec - when playing
 
 panelHeight=80 # pixels
 
@@ -72,4 +78,4 @@ panelHeight=80 # pixels
 useMRepo=True
 
 matchCountdownSteps=3
-matchCountdownSpan=0.66
+matchCountdownSpan=0.6667

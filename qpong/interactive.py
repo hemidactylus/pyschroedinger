@@ -58,8 +58,10 @@ def initPhi():
     # STILL TO MAKE WELL CONFIGURABLE
     phi=combineWFunctions(
         [
-            wavePacket(Nx,Ny,c=(0.25,0.25),ph0=(+10,+5),sigma2=(0.002,0.002),weight=1),
-            wavePacket(Nx,Ny,c=(0.75,0.75),ph0=(-10,-5),sigma2=(0.002,0.002),weight=1),
+            wavePacket(Nx,Ny,c=(0.25,0.25),ph0=(  0,+20),sigma2=(0.006,0.006),weight=1),
+            wavePacket(Nx,Ny,c=(0.75,0.75),ph0=(  0,-20),sigma2=(0.006,0.006),weight=1),
+            wavePacket(Nx,Ny,c=(0.75,0.25),ph0=(-20,  0),sigma2=(0.006,0.006),weight=1),
+            wavePacket(Nx,Ny,c=(0.25,0.75),ph0=(+20,  0),sigma2=(0.006,0.006),weight=1),
         ],
         deltaLambdaXY=deltaLambdaX*deltaLambdaY,
     )

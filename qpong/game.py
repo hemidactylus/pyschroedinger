@@ -33,16 +33,11 @@ from qpong.interactiveSettings import (
     winningFraction,
     panelHeight,
     # useMRepo,
+    maxFrameRate,
 )
 
 from qpong.gui import (
     doPlot,
-)
-
-from utils.units import (
-    toLength_fm,
-    # toTime_fs,
-    # toEnergy_MeV,
 )
 
 from qpong.interactive import (
@@ -66,7 +61,6 @@ from qpong.stateMachine import (
 
 def performActions(actionsToPerform,mutableGameState):
     for ac in actionsToPerform:
-        print('TO PERFORM %s' % str(ac))
         if ac=='initMatch':
             mutableGameState=initialiseMatch(mutableGameState)
             for scM in mutableGameState['scoreMarkers']:
@@ -87,12 +81,13 @@ def performActions(actionsToPerform,mutableGameState):
             for scM in mutableGameState['scoreMarkers']:
                 scM['visible']=True
         else:
-            print('*** UNKNOWN ACTION TO PERFORM ***')
+            raise ValueError('Unknown action "%s"' % ac)
 
 if __name__=='__main__':
 
     gameState=initState()
     mutableGameState=initMutableGameState(gameState)
+    minPlaySleepTime=1.0/maxFrameRate
 
     replotting=doPlot(
         None,
@@ -103,13 +98,19 @@ if __name__=='__main__':
         screenInfo=mutableGameState['screenInfo'],
     )
 
-    (
-        mutableGameState['physics']['phLenX'],
-        mutableGameState['physics']['phLenY'],
-    )=toLength_fm(LambdaX),toLength_fm(LambdaY)
-
     while True:
-        time.sleep(gameState['sleep'])
+        # maxFrameRate
+        if gameState['limitFrameRate']:
+            fSleepTime=max(
+                gameState['sleep'],
+                minPlaySleepTime-(
+                    mutableGameState['currentIntegrate']-mutableGameState['prevIntegrate']
+                ),
+            )
+        else:
+            fSleepTime=gameState['sleep']
+        time.sleep(fSleepTime)
+        #
         if gameState['integrate']:
             (
                 mutableGameState['physics']['phi'],
@@ -119,6 +120,12 @@ if __name__=='__main__':
                 mutableGameState['physics']['tauIncr'],
                 mutableGameState['physics']['normMap'],
             )=mutableGameState['physics']['integrator'].integrate(mutableGameState['physics']['phi'])
+            #
+            mutableGameState['prevIntegrate']=mutableGameState['currentIntegrate']
+            mutableGameState['currentIntegrate']=time.time()
+            print(mutableGameState['currentIntegrate']-mutableGameState['prevIntegrate'])
+            print('***')
+            #
             mutableGameState['iteration']+=1
             mutableGameState['physics']['tau']+=mutableGameState['physics']['tauIncr']
             scorePos=scorePosition(mutableGameState['physics']['normMap'])
