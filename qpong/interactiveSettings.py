@@ -69,7 +69,7 @@ winningFraction=0.35
 # debugSleepTime=0.02
 debugSleepTime=0
 
-maxFrameRate=1500000 # frames/sec - when playing
+maxFrameRate=5 # frames/sec - when playing
 
 panelHeight=80 # pixels
 

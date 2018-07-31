@@ -146,6 +146,7 @@ class VariablePotSparseRK4Integrator(WFIntegrator):
             nSteps is used (even though it should match nIntegrationSteps)
             and the returned elapsedTime accordingly
         '''
+        #
         newPhi=phi
         for _ in range(self.nIntegrationSteps):
             newPhi=self._performSingleRKStep(newPhi)

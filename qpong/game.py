@@ -99,13 +99,12 @@ if __name__=='__main__':
     )
 
     while True:
+        loopStartTime=time.time()
         # maxFrameRate
-        if gameState['limitFrameRate']:
+        if gameState['limitFrameRate'] and gameState['integrate']:
             fSleepTime=max(
                 gameState['sleep'],
-                minPlaySleepTime-(
-                    mutableGameState['currentIntegrate']-mutableGameState['prevIntegrate']
-                ),
+                minPlaySleepTime-mutableGameState['integrateTime'],
             )
         else:
             fSleepTime=gameState['sleep']
@@ -120,11 +119,8 @@ if __name__=='__main__':
                 mutableGameState['physics']['tauIncr'],
                 mutableGameState['physics']['normMap'],
             )=mutableGameState['physics']['integrator'].integrate(mutableGameState['physics']['phi'])
-            #
-            mutableGameState['prevIntegrate']=mutableGameState['currentIntegrate']
-            mutableGameState['currentIntegrate']=time.time()
-            print(mutableGameState['currentIntegrate']-mutableGameState['prevIntegrate'])
-            print('***')
+            mutableGameState['prevFrameDrawTime']=mutableGameState['lastFrameDrawTime']
+            mutableGameState['lastFrameDrawTime']=time.time()
             #
             mutableGameState['iteration']+=1
             mutableGameState['physics']['tau']+=mutableGameState['physics']['tauIncr']
@@ -229,3 +225,4 @@ if __name__=='__main__':
                 matrixRepo=mutableGameState['globalMatrixRepo'],
             )
             mutableGameState['physics']['integrator'].setPotential(mutableGameState['physics']['pot'])
+            mutableGameState['integrateTime']=time.time()-loopStartTime

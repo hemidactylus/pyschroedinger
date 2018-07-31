@@ -167,15 +167,8 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
             else:
                 raise NotImplementedError
         elif scEvent[0]=='ticker':
-            spf=mutableGameState['currentIntegrate']-mutableGameState['prevIntegrate']
-            print('FrameRate = %.4f frames/s' % (
-                1/spf if spf>0 else 0
-            ))
-            print('%.4f    %.4f\n' % (
-                mutableGameState['prevIntegrate'],
-                mutableGameState['currentIntegrate'],
-            ))
-            pass
+            timeBetweenFrames=mutableGameState['lastFrameDrawTime']-mutableGameState['prevFrameDrawTime']
+            mutableGameState['framerate']=1/timeBetweenFrames if timeBetweenFrames>0 else 0
         else:
             raise NotImplementedError
     elif curState['name']=='paused':
@@ -227,8 +220,9 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
         mutableGameState['stateInitTime']=time.time()
         mutableGameState['currentTime']=mutableGameState['stateInitTime']
         if newState['name']=='play':
-            mutableGameState['currentIntegrate']=time.time()
-            mutableGameState['prevIntegrate']=mutableGameState['currentIntegrate']
+            mutableGameState['lastFrameDrawTime']=time.time()
+            mutableGameState['prevFrameDrawTime']=mutableGameState['lastFrameDrawTime']
+            mutableGameState['integrateTime']=0.0
     else:
         newState=curState
 
@@ -244,13 +238,15 @@ def calculatePanelInfo(gState,mState):
     scnInfo=None
     if gState['name']=='paused':
         pnlInfo=[
-            '',
             '  (Field size: %.2E * %.2E fm^2)' % (
                 mState['physics']['phLenX'],
                 mState['physics']['phLenY'],
             ),
             '  (Particle mass: %.2E MeV/c^2)' % (
                 toMass_MeV_overC2(Mu),
+            ),
+            '  (Framerate: %.2f frames/sec)' % (
+                mState['framerate']
             ),
         ]
         scnInfo=[
