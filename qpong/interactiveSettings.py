@@ -46,7 +46,7 @@ patchThickness=0.01
 fieldBevelX=0.03
 fieldBevelY=0.03
 
-potWavefunctionDampingDivider=220000
+potWavefunctionDampingDivider=420000
 potBorderWallHeight=8000
 potPlayerPadHeight=10000
 
@@ -64,12 +64,12 @@ panelForegroundColor=(80,100,50)
 screenForegroundColor=(232,232,232)
 
 # higher = harder to score a point
-winningFraction=0.35
+winningFraction=0.45
 
 # debugSleepTime=0.02
 debugSleepTime=0
 
-maxFrameRate=5 # frames/sec - when playing
+maxFrameRate=36 # frames/sec - when playing
 
 panelHeight=80 # pixels
 

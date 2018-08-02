@@ -121,19 +121,15 @@ def assemblePotentials(patchPosList,patchPot,backgroundPot,matrixRepo=None):
     if matrixRepo is not None:
         dampingFactor=matrixRepo['dampingFactor']
         # in-place linear approx
-        maxP,minP=np.max(fPot),np.min(fPot)
-        dampingFactor-=minP
-        dampingFactor/=(maxP-minP)
-        dampingFactor**=16
-        dampingFactor-=1
+        # maxP,minP=np.max(fPot),np.min(fPot)
+        # dampingFactor-=minP
+        # dampingFactor/=(maxP-minP)
+        # dampingFactor**=16
+        # dampingFactor-=1
         # in-place exp damping
-        # np.exp(-fPot/potWavefunctionDampingDivider,dampingFactor)
+        np.exp(-fPot/potWavefunctionDampingDivider,dampingFactor)
     else:
         dampingFactor=np.exp(-fPot/potWavefunctionDampingDivider)
-    # _mx=np.max(fPot/potWavefunctionDampingDivider)
-    # dampingFactor=1-(fPot/potWavefunctionDampingDivider)
-    # dampingFactor[dampingFactor<0]=0
-    #
     return fPot,dampingFactor
 
 def prepareBasePotential():
@@ -259,6 +255,7 @@ def prepareMatrixRepository():
     }
 
 def initialiseMatch(mutableGameState):
+
     mutableGameState['iteration']=0
     mutableGameState['playerInfo']=preparePlayerInfo(mutableGameState['nPlayers'])
     mutableGameState['arrowKeyMap']={
