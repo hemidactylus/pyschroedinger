@@ -4,6 +4,7 @@
 '''
 
 import time
+import sys
 
 from utils.units import (
     toLength_fm,
@@ -25,6 +26,9 @@ from qpong.interactive import (
     prepareBasePotential,
     initPatchPotential,
     prepareMatrixRepository,
+    #
+    initialisePlay,
+    initialiseMatch,
 )
 
 from qpong.artifacts import (
@@ -112,6 +116,15 @@ gameStates={
         'moveCursors': False,
         'limitFrameRate': False,
     },
+    'initplay': {
+        'name': 'initplay',
+        'integrate': False,
+        'displaywf': False,
+        'keysToSend': {},
+        'sleep': 0.01,
+        'moveCursors': False,
+        'limitFrameRate': False,
+    },
     'starting': {
         'name': 'starting',
         'integrate': False,
@@ -122,6 +135,36 @@ gameStates={
         'limitFrameRate': False,
     },
 }
+
+
+def performActions(actionsToPerform,mState):
+    for ac in actionsToPerform:
+        if ac=='hideMarkers':
+            for scM in mState['scoreMarkers']:
+                scM['visible']=False
+        elif ac=='showMarkers':
+            for scM in mState['scoreMarkers']:
+                scM['visible']=True
+        elif ac=='initMatch':
+            mState=initialiseMatch(mState)
+        elif ac=='startPlay':
+            mState=initialisePlay(mState)
+            a=1
+        elif ac=='quitGame':
+            sys.exit()
+        elif ac=='pause':
+            for pInfo in mState['playerInfo'].values():
+                pInfo['pad']['visible']=False
+            for scM in mState['scoreMarkers']:
+                scM['visible']=False
+        elif ac=='unpause':
+            for pInfo in mState['playerInfo'].values():
+                pInfo['pad']['visible']=True
+            for scM in mState['scoreMarkers']:
+                scM['visible']=True
+        else:
+            raise ValueError('Unknown action "%s"' % ac)
+    return mState
 
 def initState():
     return gameStates['still']
@@ -140,12 +183,12 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
     if curState['name']=='still':
         if scEvent==('action','start'):
             newState=gameStates['play']
-            actions.append('initPlay')
         elif scEvent[0]=='key':
             if scEvent[1]=='i':
                 newState=gameStates['quitting']
             elif scEvent[1]=='g':
-                newState=gameStates['prestarting']
+                newState=gameStates['initplay']
+                actions.append('hideMarkers')
                 actions.append('initMatch')
             elif scEvent[1]=='1':
                 mutableGameState['nPlayers']=1
@@ -169,6 +212,15 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
         elif scEvent[0]=='ticker':
             timeBetweenFrames=mutableGameState['lastFrameDrawTime']-mutableGameState['prevFrameDrawTime']
             mutableGameState['framerate']=1/timeBetweenFrames if timeBetweenFrames>0 else 0
+        elif scEvent[0]=='matchWin':
+            winner=scEvent[1]
+            mutableGameState['playScores']['matchScores'].append(winner)
+            print(' *** Player %i wins match ***' % (
+                winner,
+            ))
+            newState=gameStates['prestarting']
+            actions.append('hideMarkers')
+            actions.append('initMatch')
         else:
             raise NotImplementedError
     elif curState['name']=='paused':
@@ -198,16 +250,21 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
             raise NotImplementedError
     elif curState['name']=='prestarting':
         if scEvent[0]=='ticker':
-            pass
             newState=gameStates['starting']
+        else:
+            raise NotImplementedError
+    elif curState['name']=='initplay':
+        if scEvent[0]=='ticker':
+            newState=gameStates['prestarting']
+            actions.append('startPlay')
         else:
             raise NotImplementedError
     elif curState['name']=='starting':
         if scEvent[0]=='ticker':
             elapsed=mutableGameState['currentTime']-mutableGameState['stateInitTime']
             if elapsed>= matchCountdownSteps*matchCountdownSpan:
+                actions.append('showMarkers')
                 newState=gameStates['play']
-                actions.append('startPlay')
         else:
             raise NotImplementedError
     else:
@@ -226,12 +283,13 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
     else:
         newState=curState
 
+    mutableGameState=performActions(actions,mutableGameState)
     (
         mutableGameState['panelInfo'],
         mutableGameState['screenInfo'],
     )=calculatePanelInfo(newState,mutableGameState)
 
-    return newState,actions,mutableGameState
+    return newState,mutableGameState
 
 def calculatePanelInfo(gState,mState):
     pnlInfo=None
@@ -271,8 +329,25 @@ def calculatePanelInfo(gState,mState):
         ]
     elif gState['name']=='play':
         if 'iteration' in mState:
+            #
+            playScores={k: 0 for k in range(mState['nPlayers'])}
+            for mtc in mState['playScores']['matchScores']:
+                playScores[mtc]+=1
+            curMatch=1+len(mState['playScores']['matchScores'])
+            if mState['nPlayers']==1:
+                scrInfo='%s    (%i)' % (
+                    '*'*playScores[0],
+                    curMatch,
+                )
+            else:
+                scrInfo='%s    (%i)    %s' % (
+                    '*'*playScores[0],
+                    curMatch,
+                    '*'*playScores[1],
+                )
+            #
             pnlInfo=[
-                '',
+                scrInfo,
                 '  Time elapsed: %.3E femtoseconds' % (
                     toTime_fs(mState['physics']['tau']),
                 ),
@@ -294,6 +369,11 @@ def calculatePanelInfo(gState,mState):
             ('(y/n)',True),
         ]
     elif gState['name']=='prestarting':
+        pnlInfo=[
+            '',
+            '    Initializing ...'
+        ]
+    elif gState['name']=='initplay':
         pnlInfo=[
             '',
             '    Initializing ...'

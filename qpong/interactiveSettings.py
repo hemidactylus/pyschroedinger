@@ -46,7 +46,8 @@ patchThickness=0.01
 fieldBevelX=0.03
 fieldBevelY=0.03
 
-potWavefunctionDampingDivider=420000
+potWavefunctionDampingDivider=20000
+# potWavefunctionDampingDivider=420000
 potBorderWallHeight=8000
 potPlayerPadHeight=10000
 

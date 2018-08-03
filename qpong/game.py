@@ -7,7 +7,6 @@
 
 from itertools import count
 import time
-import sys
 import numpy as np
 
 from twoD.settings import (
@@ -46,7 +45,8 @@ from qpong.interactive import (
     fixCursorPosition,
     preparePlayerInfo,
     scorePosition,
-    initialiseMatch,
+    # initialiseMatch,
+    # initialisePlay,
 #     prepareBasePotential,
 #     initPatchPotential,
 #     prepareMatrixRepository,
@@ -55,33 +55,8 @@ from qpong.interactive import (
 from qpong.stateMachine import (
     initState,
     handleStateUpdate,
-    # calculatePanelInfo,
     initMutableGameState,
 )
-
-def performActions(actionsToPerform,mutableGameState):
-    for ac in actionsToPerform:
-        if ac=='initMatch':
-            mutableGameState=initialiseMatch(mutableGameState)
-            for scM in mutableGameState['scoreMarkers']:
-                scM['visible']=False
-        elif ac=='startPlay':
-            for scM in mutableGameState['scoreMarkers']:
-                scM['visible']=True
-        elif ac=='quitGame':
-            sys.exit()
-        elif ac=='pause':
-            for pInfo in mutableGameState['playerInfo'].values():
-                pInfo['pad']['visible']=False
-            for scM in mutableGameState['scoreMarkers']:
-                scM['visible']=False
-        elif ac=='unpause':
-            for pInfo in mutableGameState['playerInfo'].values():
-                pInfo['pad']['visible']=True
-            for scM in mutableGameState['scoreMarkers']:
-                scM['visible']=True
-        else:
-            raise ValueError('Unknown action "%s"' % ac)
 
 if __name__=='__main__':
 
@@ -143,10 +118,17 @@ if __name__=='__main__':
                 }
                 if len(aboveThreshold)>0:
                     winner=max(aboveThreshold.items(),key=lambda kf: kf[1])[0]
-                    print(' *** [%9i] Player %i scored a point! ***' % (
-                        mutableGameState['iteration'],
-                        winner
-                    ))
+                    #
+                    gameState,mutableGameState=handleStateUpdate(
+                        gameState,
+                        ('matchWin',winner),
+                        mutableGameState,
+                    )
+                    # print(' *** [%9i] Player %i scored a point! ***' % (
+                    #     mutableGameState['iteration'],
+                    #     winner
+                    # ))
+
             # here we make the real-valued position info into pixel integer values
             for plInfo in mutableGameState['playerInfo'].values():
                 plInfo['pad']['pos']=(
@@ -186,12 +168,12 @@ if __name__=='__main__':
                 keysToSend=gameState['keysToSend'],
             )
         #
-        gameState,actionsToPerform,mutableGameState=handleStateUpdate(
+        gameState,mutableGameState=handleStateUpdate(
             gameState,
             ('ticker',0),
             mutableGameState,
         )
-        performActions(actionsToPerform,mutableGameState)
+        # performActions(actionsToPerform,mutableGameState)
         while replotting['keyqueue']:
             tkey=replotting['keyqueue'].pop(0)
             if tkey in mutableGameState['arrowKeyMap']: # arrow key
@@ -204,12 +186,12 @@ if __name__=='__main__':
                         mutableGameState['playerInfo'][targetPlayer]['bbox'],
                     )
             else:
-                gameState,actionsToPerform,mutableGameState=handleStateUpdate(
+                gameState,mutableGameState=handleStateUpdate(
                     gameState,
                     ('key',tkey),
                     mutableGameState,
                 )
-                performActions(actionsToPerform,mutableGameState)
+                # performActions(actionsToPerform,mutableGameState)
 
         if gameState['integrate']:
             (

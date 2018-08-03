@@ -254,7 +254,22 @@ def prepareMatrixRepository():
         'fullPotential': fullPotential,
     }
 
+def initialisePlay(mutableGameState):
+    '''
+        this is called when the "play" starts,
+        i.e. the full set of N matches
+    '''
+    mutableGameState['playScores']={
+        'matchScores': [],
+    }
+    return mutableGameState
+
 def initialiseMatch(mutableGameState):
+    '''
+        this initialises the single match, the
+        one that has a single outcome
+        (a player scores 1 point and that's it)
+    '''
 
     mutableGameState['iteration']=0
     mutableGameState['playerInfo']=preparePlayerInfo(mutableGameState['nPlayers'])
