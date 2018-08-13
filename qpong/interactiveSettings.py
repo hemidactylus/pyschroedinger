@@ -78,5 +78,9 @@ panelHeight=80 # pixels
 # (True = some speedup)
 useMRepo=True
 
+# on-screen countdown before match starts
 matchCountdownSteps=3
-matchCountdownSpan=0.6667
+matchCountdownSpan=0.5
+
+# still-screen after player scores
+endMatchStillTime=1.0

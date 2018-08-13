@@ -54,6 +54,7 @@ from qpong.interactiveSettings import (
     useMRepo,
     matchCountdownSteps,
     matchCountdownSpan,
+    endMatchStillTime,
 )
 
 from twoD.settings import (
@@ -91,6 +92,15 @@ gameStates={
     },
     'paused': {
         'name': 'paused',
+        'integrate': False,
+        'displaywf': True,
+        'keysToSend': {'i', ' '},
+        'sleep': 0.05,
+        'moveCursors': False,
+        'limitFrameRate': False,
+    },
+    'showendmatch': {
+        'name': 'showendmatch',
         'integrate': False,
         'displaywf': True,
         'keysToSend': {'i', ' '},
@@ -215,12 +225,7 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
         elif scEvent[0]=='matchWin':
             winner=scEvent[1]
             mutableGameState['playScores']['matchScores'].append(winner)
-            print(' *** Player %i wins match ***' % (
-                winner,
-            ))
-            newState=gameStates['prestarting']
-            actions.append('hideMarkers')
-            actions.append('initMatch')
+            newState=gameStates['showendmatch']
         else:
             raise NotImplementedError
     elif curState['name']=='paused':
@@ -234,6 +239,20 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
                 raise NotImplementedError
         elif scEvent[0]=='ticker':
             pass
+        else:
+            raise NotImplementedError
+    elif curState['name']=='showendmatch':
+        if scEvent[0]=='key':
+            if scEvent[1]=='i':
+                newState=gameStates['still']
+            else:
+                raise NotImplementedError
+        elif scEvent[0]=='ticker':
+            elapsed=mutableGameState['currentTime']-mutableGameState['stateInitTime']
+            if elapsed>= endMatchStillTime:
+                newState=gameStates['prestarting']
+                actions.append('hideMarkers')
+                actions.append('initMatch')
         else:
             raise NotImplementedError
     elif curState['name']=='quitting':
@@ -388,6 +407,22 @@ def calculatePanelInfo(gState,mState):
         ctDisplay=max(1,matchCountdownSteps-int(timeStep))
         scnInfo=[
             ('%i' % ctDisplay,True),
+            ('match %i' % (1+len(
+                mState['playScores']['matchScores']
+            )), False)
+        ]
+    elif gState['name']=='showendmatch':
+        lastWinner=mState['playScores']['matchScores'][-1]
+        pnlInfo=[
+            '',
+            'Player %i wins match!' % lastWinner,
+        ]
+        scnInfo=[
+            ('Player %i' % lastWinner,True),
+            ('scores!',True),
+            ('match %i' % len(
+                mState['playScores']['matchScores']
+            ),False),
         ]
     else:
         raise NotImplementedError

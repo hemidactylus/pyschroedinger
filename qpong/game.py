@@ -124,10 +124,6 @@ if __name__=='__main__':
                         ('matchWin',winner),
                         mutableGameState,
                     )
-                    # print(' *** [%9i] Player %i scored a point! ***' % (
-                    #     mutableGameState['iteration'],
-                    #     winner
-                    # ))
 
             # here we make the real-valued position info into pixel integer values
             for plInfo in mutableGameState['playerInfo'].values():

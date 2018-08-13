@@ -7,13 +7,13 @@ A playground to learn something about numerical integration of the Schroedinger 
 
 ## To Do
 
-Deep refactoring of the qpong part
+Deep refactoring of the qpong part: make it readable, more smaller modules!
 
-A proper messaging system for on-screen: restore title also in init, better handling of message lines, formatting etc
+On-screen properly formatted display
 
-State machine to handle game
+To score a point, player must maintain goal for x frames (?)
 
-What can be made in-place in the integrator? Not much, apparently. This bites.
+Colors( <-> players ) and panel display
 
 ## Get it running
 
