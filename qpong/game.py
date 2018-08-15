@@ -33,6 +33,7 @@ from qpong.interactiveSettings import (
     panelHeight,
     # useMRepo,
     maxFrameRate,
+    winningSpreeNumIterations,
 )
 
 from qpong.gui import (
@@ -118,12 +119,21 @@ if __name__=='__main__':
                 }
                 if len(aboveThreshold)>0:
                     winner=max(aboveThreshold.items(),key=lambda kf: kf[1])[0]
-                    #
-                    gameState,mutableGameState=handleStateUpdate(
-                        gameState,
-                        ('matchWin',winner),
-                        mutableGameState,
-                    )
+                else:
+                    winner=None
+                #
+                if mutableGameState['lastWinningSpree']['winner']!=winner:
+                    mutableGameState['lastWinningSpree']={
+                        'winner': winner,
+                        'entered': mutableGameState['iteration'],
+                    }
+                elif winner is not None:
+                    if (mutableGameState['iteration']-mutableGameState['lastWinningSpree']['entered'])>=winningSpreeNumIterations:
+                        gameState,mutableGameState=handleStateUpdate(
+                            gameState,
+                            ('matchWin',winner),
+                            mutableGameState,
+                        )
 
             # here we make the real-valued position info into pixel integer values
             for plInfo in mutableGameState['playerInfo'].values():

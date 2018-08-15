@@ -317,4 +317,8 @@ def initialiseMatch(mutableGameState):
             mutableGameState['physics']['initEnergy']
         )
     )
+    mutableGameState['lastWinningSpree']={
+        'winner': None,
+        'entered': 0,
+    }
     return mutableGameState

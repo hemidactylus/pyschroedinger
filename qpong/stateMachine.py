@@ -55,6 +55,7 @@ from qpong.interactiveSettings import (
     matchCountdownSteps,
     matchCountdownSpan,
     endMatchStillTime,
+    winningSpreeNumIterations,
 )
 
 from twoD.settings import (
@@ -183,7 +184,7 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
     '''
         scEvent=(type,item), such as:
             ('key','p')
-            ('action','start') ?
+            ('ticker',<dummy_value>)
         etc
 
         Returns a triple (new_state,list_of_actions_to_perform, newMutableGameState)
@@ -315,14 +316,14 @@ def calculatePanelInfo(gState,mState):
     scnInfo=None
     if gState['name']=='paused':
         pnlInfo=[
-            '  (Field size: %.2E * %.2E fm^2)' % (
+            '(Field size: %.2E * %.2E fm^2)' % (
                 mState['physics']['phLenX'],
                 mState['physics']['phLenY'],
             ),
-            '  (Particle mass: %.2E MeV/c^2)' % (
+            '(Particle mass: %.2E MeV/c^2)' % (
                 toMass_MeV_overC2(Mu),
             ),
-            '  (Framerate: %.2f frames/sec)' % (
+            '(Framerate: %.2f frames/sec)' % (
                 mState['framerate']
             ),
         ]
@@ -331,8 +332,7 @@ def calculatePanelInfo(gState,mState):
         ]
     elif gState['name']=='still':
         pnlInfo=[
-            '',
-            '    Welcome to Quantum Pong.',
+            'Welcome to Quantum Pong.',
         ]
         scnInfo=[
             ('Quantum',True),
@@ -354,33 +354,41 @@ def calculatePanelInfo(gState,mState):
                 playScores[mtc]+=1
             curMatch=1+len(mState['playScores']['matchScores'])
             if mState['nPlayers']==1:
-                scrInfo='%s    (%i)' % (
-                    '*'*playScores[0],
-                    curMatch,
-                )
+                scrInfos=[]
             else:
-                scrInfo='%s    (%i)    %s' % (
-                    '*'*playScores[0],
-                    curMatch,
-                    '*'*playScores[1],
-                )
+                scrInfos=[
+                    '%s    (%i)    %s' % (
+                        '*'*playScores[0],
+                        curMatch,
+                        '*'*playScores[1],
+                    )
+                ]
+            # additional about-to-score warning
+            if mState['lastWinningSpree']['winner'] is not None:
+                spreeIterationsToGo=mState['iteration']-mState['lastWinningSpree']['entered']
+                closenessFraction=1.0-float(spreeIterationsToGo)/float(winningSpreeNumIterations)
+                if closenessFraction<0.33:
+                    dangerMessages=['DANGER!']
+                elif closenessFraction<0.67:
+                    dangerMessages=['danger ...']
+                else:
+                    dangerMessages=[]
+            else:
+                dangerMessages=[]
             #
-            pnlInfo=[
-                scrInfo,
-                '  Time elapsed: %.3E femtoseconds' % (
+            pnlInfo=scrInfos+[
+                'Time elapsed: %.3E femtoseconds' % (
                     toTime_fs(mState['physics']['tau']),
                 ),
-            ]
+            ] + dangerMessages
             scnInfo=[]
         else:
             pnlInfo=[
-                '    About to start',
-                '          ...',
+                'About to start ...',
             ]
     elif gState['name']=='quitting':
         pnlInfo=[
-            '',
-            '    Quitting game'
+            'Quitting game'
         ]
         scnInfo=[
             ('Quit',True),
@@ -389,18 +397,15 @@ def calculatePanelInfo(gState,mState):
         ]
     elif gState['name']=='prestarting':
         pnlInfo=[
-            '',
-            '    Initializing ...'
+            'Initializing ...'
         ]
     elif gState['name']=='initplay':
         pnlInfo=[
-            '',
-            '    Initializing ...'
+            'Initializing ...'
         ]
     elif gState['name']=='starting':
         pnlInfo=[
-            '',
-            '    Ready?'
+            'Ready?'
         ]
         timeStep=(mState['currentTime']-mState['stateInitTime']) /\
                 (matchCountdownSpan)
@@ -414,7 +419,6 @@ def calculatePanelInfo(gState,mState):
     elif gState['name']=='showendmatch':
         lastWinner=mState['playScores']['matchScores'][-1]
         pnlInfo=[
-            '',
             'Player %i wins match!' % lastWinner,
         ]
         scnInfo=[

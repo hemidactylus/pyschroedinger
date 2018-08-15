@@ -84,3 +84,6 @@ matchCountdownSpan=0.5
 
 # still-screen after player scores
 endMatchStillTime=1.0
+
+# iterations in a row in the 'winning' position for a player
+winningSpreeNumIterations=54
