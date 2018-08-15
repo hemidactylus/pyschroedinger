@@ -356,25 +356,27 @@ def calculatePanelInfo(gState,mState):
             if mState['nPlayers']==1:
                 scrInfos=[]
             else:
+                maxScore=max(playScores.values())
                 scrInfos=[
-                    '%s    (%i)    %s' % (
-                        '*'*playScores[0],
-                        curMatch,
+                    '< %s%s | Match %i | %s%s >' % (
                         '*'*playScores[1],
+                        ' '*(maxScore-playScores[1]),
+                        curMatch,
+                        ' '*(maxScore-playScores[0]),
+                        '*'*playScores[0],
                     )
                 ]
             # additional about-to-score warning
             if mState['lastWinningSpree']['winner'] is not None:
-                spreeIterationsToGo=mState['iteration']-mState['lastWinningSpree']['entered']
-                closenessFraction=1.0-float(spreeIterationsToGo)/float(winningSpreeNumIterations)
+                closenessFraction=mState['closenessFraction']
                 if closenessFraction<0.33:
-                    dangerMessages=['DANGER!']
+                    dangerMessages=['DANGER !']
                 elif closenessFraction<0.67:
                     dangerMessages=['danger ...']
                 else:
-                    dangerMessages=[]
+                    dangerMessages=[':)']
             else:
-                dangerMessages=[]
+                dangerMessages=[':)']
             #
             pnlInfo=scrInfos+[
                 'Time elapsed: %.3E femtoseconds' % (

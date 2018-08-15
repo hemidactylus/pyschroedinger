@@ -48,7 +48,8 @@ def makePalette(specialColors=[]):
 
 def initPyGame(specialColors=[],panelHeight=0):
     pygame.init()
-    pygame.display.set_caption('Pyschroedinger 2D. Click to close')
+    pygame.display.set_caption('')
+    pygame.mouse.set_visible(False)
     window=pygame.display.set_mode(
         (
             Nx*tileX,
@@ -107,6 +108,23 @@ def integerize(wfunction,maxMod2,paletteRange):
     # nMat[nMat>255]=255
     # nMat[nMat<0]=0
     # return nMat
+
+def rectanglePlacement(sizeList,panelAreaSize):
+    '''
+        given a list of rectangle sizes (e.g. message blocks)
+        and the size of a containing area,
+        prepares a list of offsets for each block's
+        top-left corner to achieve centering
+    '''
+    totalHeight=sum(s[1] for s in sizeList)
+    hLinePos=int(0.5*(panelAreaSize[1]-totalHeight))
+    positions=[]
+    #
+    for ind,l in enumerate(sizeList):
+        wLinePos=int(0.5*(panelAreaSize[0]-sizeList[ind][0]))
+        positions.append((wLinePos,hLinePos))
+        hLinePos+=sizeList[ind][1]
+    return positions
 
 def doPlot(
         wfunction,
@@ -185,14 +203,19 @@ def doPlot(
             replotting['pygame']['npTopPanel'],
         )
         # creation of the rendered labels
-        labelList=[
+        panelLabelList=[
             replotting['pygame']['labelFont'].render(panelLine,False,panelForegroundColor,0)
             for ind,panelLine in enumerate(panelInfo)
         ]
-        for ind,l in enumerate(labelList):
-            l.convert(8)
-            l.set_colorkey(0)
-            replotting['pygame']['topPanel'].blit(l,(5,5+20*ind))
+        panelsizes=[lbl.get_size() for lbl in panelLabelList]
+        panelAreaSize=(Nx*tileX,replotting['panelHeight'])
+        panelPositions=rectanglePlacement(panelsizes,panelAreaSize)
+
+        for l,sz in zip(panelLabelList,panelPositions):
+            replotting['pygame']['topPanel'].blit(
+                l,
+                sz,
+            )
         # finally, draw the completed top panel on the window
         replotting['pygame']['window'].blit(
             replotting['pygame']['topPanel'],
@@ -205,20 +228,17 @@ def doPlot(
             (
                 replotting['pygame']['titleFont'] if largeLine else replotting['pygame']['labelFont']
             ).render(panelLine,False,screenForegroundColor,0)
-            for ind,(panelLine,largeLine) in enumerate(screenInfo)
+            for panelLine,largeLine in screenInfo
         ]
         # centering and positioning
-        sizes={lblInd: lbl.get_size() for lblInd,lbl in enumerate(screenLabelList)}
-        totalHeight=sum(s[1] for s in sizes.values())
-        hLinePos=int(0.5*(Ny*tileY-totalHeight))
-        #
-        for ind,l in enumerate(screenLabelList):
-            wLinePos=int(0.5*(Nx*tileX-sizes[ind][0]))
+        screenSizes=[lbl.get_size() for lbl in screenLabelList]
+        screenAreaSize=(Nx*tileX,Ny*tileY)
+        screenPositions=rectanglePlacement(screenSizes,screenAreaSize)
+        for l,sz in zip(screenLabelList,screenPositions):
             replotting['pygame']['window'].blit(
                 l,
-                (wLinePos,replotting['panelHeight']+hLinePos),
+                (sz[0],replotting['panelHeight']+sz[1]),
             )
-            hLinePos+=sizes[ind][1]
 
     pygame.display.flip()
 

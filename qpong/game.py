@@ -101,6 +101,9 @@ if __name__=='__main__':
             mutableGameState['iteration']+=1
             mutableGameState['physics']['tau']+=mutableGameState['physics']['tauIncr']
             scorePos=scorePosition(mutableGameState['physics']['normMap'])
+            if mutableGameState['lastWinningSpree']['winner']!=None:
+                scorePos=[0.0,+1.0]\
+                    [mutableGameState['lastWinningSpree']['winner']]
             scorePosInteger=int(Nx*(fieldBevelX+scorePos*(1-2*fieldBevelX)))
             mutableGameState['scoreMarkers'][0]['offset']=(
                 scorePosInteger,
@@ -127,6 +130,10 @@ if __name__=='__main__':
                         'winner': winner,
                         'entered': mutableGameState['iteration'],
                     }
+                    spreeIterationsToGo=mutableGameState['iteration']-\
+                        mutableGameState['lastWinningSpree']['entered']
+                    mutableGameState['closenessFraction']=\
+                        1.0-float(spreeIterationsToGo)/float(winningSpreeNumIterations)
                 elif winner is not None:
                     if (mutableGameState['iteration']-mutableGameState['lastWinningSpree']['entered'])>=winningSpreeNumIterations:
                         gameState,mutableGameState=handleStateUpdate(
@@ -134,6 +141,13 @@ if __name__=='__main__':
                             ('matchWin',winner),
                             mutableGameState,
                         )
+                    else:
+                        spreeIterationsToGo=mutableGameState['iteration']-\
+                            mutableGameState['lastWinningSpree']['entered']
+                        mutableGameState['closenessFraction']=\
+                            1.0-float(spreeIterationsToGo)/float(winningSpreeNumIterations)
+                else:
+                    mutableGameState['closenessFraction']=0.0
 
             # here we make the real-valued position info into pixel integer values
             for plInfo in mutableGameState['playerInfo'].values():

@@ -9,11 +9,9 @@ A playground to learn something about numerical integration of the Schroedinger 
 
 Deep refactoring of the qpong part: make it readable, more smaller modules!
 
-On-screen properly formatted display
+Handle end-of-play (a player reaches N won matches)
 
-To score a point, player must maintain goal for x frames (?)
-
-Colors( <-> players ) and panel display
+Fix the calculation of the scoremarker in line with the actual scorechecks
 
 ## Get it running
 
