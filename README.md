@@ -11,8 +11,6 @@ Deep refactoring of the qpong part: make it readable, more smaller modules!
 
 Handle end-of-play (a player reaches N won matches)
 
-Fix the calculation of the scoremarker in line with the actual scorechecks
-
 ## Get it running
 
 Clone the repo, create the virtualenv
