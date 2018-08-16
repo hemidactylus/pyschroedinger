@@ -103,7 +103,7 @@ if __name__=='__main__':
             mutableGameState['physics']['tau']+=mutableGameState['physics']['tauIncr']
             scorePos=scorePosition(mutableGameState['physics']['normMap'])
             if mutableGameState['lastWinningSpree']['winner']!=None:
-                scorePos=[0.0,+1.0]\
+                scorePos=[+1.0,0.0]\
                     [mutableGameState['lastWinningSpree']['winner']]
             scorePosInteger=int(Nx*(fieldBevelX+scorePos*(1-2*fieldBevelX)))
             mutableGameState['scoreMarkers'][0]['offset']=(
@@ -143,20 +143,20 @@ if __name__=='__main__':
                     else:
                         spreeIterationsToGo=mutableGameState['iteration']-\
                             mutableGameState['lastWinningSpree']['entered']
-                        mutableGameState['closenessFraction']=\
+                        mutableGameState['lastWinningSpree']['closenessFraction']=\
                             1.0-float(spreeIterationsToGo)/float(winningSpreeNumIterations)
                 if winner is not None:
                     closenessFraction=1.0-float(spreeIterationsToGo)/float(winningSpreeNumIterations)
-                    mutableGameState['closenessFraction']=closenessFraction
+                    mutableGameState['lastWinningSpree']['closenessFraction']=closenessFraction
                     if closenessFraction<aboutToWinDangerSignSteps[0]:
-                        mutableGameState['closenessFractionStage']=2
+                        mutableGameState['lastWinningSpree']['closenessFractionStage']=2
                     elif closenessFraction<aboutToWinDangerSignSteps[1]:
-                        mutableGameState['closenessFractionStage']=1
+                        mutableGameState['lastWinningSpree']['closenessFractionStage']=1
                     else:
-                        mutableGameState['closenessFractionStage']=0
+                        mutableGameState['lastWinningSpree']['closenessFractionStage']=0
                 else:
-                    mutableGameState['closenessFraction']=0.0
-                    mutableGameState['closenessFractionStage']=0
+                    mutableGameState['lastWinningSpree']['closenessFraction']=0.0
+                    mutableGameState['lastWinningSpree']['closenessFractionStage']=0
 
             # here we make the real-valued position info into pixel integer values
             for plInfo in mutableGameState['playerInfo'].values():

@@ -370,7 +370,8 @@ def calculatePanelInfo(gState,mState):
             if mState['nPlayers']>1:
                 if mState['lastWinningSpree']['winner'] is not None:
                     dangerMessages=[
-                        [':)','danger ...','DANGER !'][mState['closenessFractionStage']]
+                        [':)','danger ...','DANGER !']\
+                            [mState['lastWinningSpree']['closenessFractionStage']]
                     ]
                 else:
                     dangerMessages=[':)']
