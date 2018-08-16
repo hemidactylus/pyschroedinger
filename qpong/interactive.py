@@ -192,7 +192,7 @@ def preparePlayerInfo(nPlayers):
         }
     elif nPlayers==2:
         playerInfo={
-            0: {
+            1: {
                 'bbox': [
                     0.5+0.5*fieldBevelX,
                     fieldBevelY,
@@ -201,7 +201,7 @@ def preparePlayerInfo(nPlayers):
                 ],
                 'patchInitPos': (0.75,0.5),
             },
-            1: {
+            0: {
                 'bbox': [
                     fieldBevelX,
                     fieldBevelY,
