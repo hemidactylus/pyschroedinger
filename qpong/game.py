@@ -117,7 +117,7 @@ if __name__=='__main__':
             # scoring check
             if mutableGameState['nPlayers']>1:
                 aboveThreshold={
-                    i: mutableGameState['physics']['normMap'][3*i]
+                    1-i: mutableGameState['physics']['normMap'][3*i]
                     for i in range(mutableGameState['nPlayers'])
                     if mutableGameState['physics']['normMap'][3*i]>=winningFraction
                 }

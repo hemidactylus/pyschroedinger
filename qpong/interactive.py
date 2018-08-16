@@ -285,8 +285,18 @@ def initialiseMatch(mutableGameState):
     mutableGameState['arrowKeyMap']={
         k: v
         for k,v in fullArrowKeyMap.items()
-        if v['player'] in mutableGameState['playerInfo']
+        if v['origPlayer'] in mutableGameState['playerInfo']
     }
+    # if two-players, we switch the associations arrows-player
+    # so that: when 1p, arrows; when 2p: player on the left
+    # has awsd and player on the right has arrows
+    if mutableGameState['nPlayers']>1:
+        for akm in mutableGameState['arrowKeyMap'].values():
+            akm['player']=1-akm['origPlayer']
+    else:
+        for akm in mutableGameState['arrowKeyMap'].values():
+            akm['player']=akm['origPlayer']
+    #
     (
         mutableGameState['physics']['pot'],
         mutableGameState['physics']['damping'],

@@ -359,20 +359,23 @@ def calculatePanelInfo(gState,mState):
                 maxScore=max(playScores.values())
                 scrInfos=[
                     '< %s%s | Match %i | %s%s >' % (
-                        '*'*playScores[1],
-                        ' '*(maxScore-playScores[1]),
-                        curMatch,
-                        ' '*(maxScore-playScores[0]),
                         '*'*playScores[0],
+                        ' '*(maxScore-playScores[0]),
+                        curMatch,
+                        ' '*(maxScore-playScores[1]),
+                        '*'*playScores[1],
                     )
                 ]
             # additional about-to-score warning
-            if mState['lastWinningSpree']['winner'] is not None:
-                dangerMessages=[
-                    [':)','danger ...','DANGER !'][mState['closenessFractionStage']]
-                ]
+            if mState['nPlayers']>1:
+                if mState['lastWinningSpree']['winner'] is not None:
+                    dangerMessages=[
+                        [':)','danger ...','DANGER !'][mState['closenessFractionStage']]
+                    ]
+                else:
+                    dangerMessages=[':)']
             else:
-                dangerMessages=[':)']
+                dangerMessages=[]
             #
             pnlInfo=scrInfos+[
                 'Time elapsed: %.3E femtoseconds' % (

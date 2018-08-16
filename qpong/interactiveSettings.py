@@ -9,35 +9,35 @@ padIncrement=0.03
 fullArrowKeyMap={
     pygame.K_LEFT:  {
         'incr': (-padIncrement,0),
-        'player': 0,
+        'origPlayer': 0,
     },
     pygame.K_RIGHT: {
         'incr': (+padIncrement,0),
-        'player': 0,
+        'origPlayer': 0,
     },
     pygame.K_UP:    {
         'incr': (0,-padIncrement),
-        'player': 0,
+        'origPlayer': 0,
     },
     pygame.K_DOWN:  {
         'incr': (0,+padIncrement),
-        'player': 0,
+        'origPlayer': 0,
     },
     pygame.K_a:  {
         'incr': (-padIncrement,0),
-        'player': 1,
+        'origPlayer': 1,
     },
     pygame.K_d: {
         'incr': (+padIncrement,0),
-        'player': 1,
+        'origPlayer': 1,
     },
     pygame.K_w:    {
         'incr': (0,-padIncrement),
-        'player': 1,
+        'origPlayer': 1,
     },
     pygame.K_s:  {
         'incr': (0,+padIncrement),
-        'player': 1,
+        'origPlayer': 1,
     },
 }
 
