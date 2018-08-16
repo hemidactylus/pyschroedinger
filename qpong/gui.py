@@ -12,7 +12,7 @@ from pygame.locals import (
     KEYDOWN as pgKeyDown,
 )
 
-from twoD.settings import (
+from qpong.settings import (
     Nx,
     Ny,
     tileX,

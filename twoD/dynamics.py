@@ -12,11 +12,6 @@ from twoD.tools import (
     im,
 )
 
-from twoD.settings import (
-    Nx,
-    Ny,
-)
-
 class WFIntegrator():
     def __init__(
         self,
@@ -223,8 +218,8 @@ class RK4StepByStepIntegrator(WFIntegrator):
             No normalisation is performed
         '''
         k1 = evolutionOperator(
-            phi.reshape((Nx,Ny)),
-            self.vPotential.reshape((Nx,Ny)),
+            phi.reshape((self.wfSizeX,self.wfSizeY)),
+            self.vPotential.reshape((self.wfSizeX,self.wfSizeY)),
             self.deltaLambdaX,
             self.deltaLambdaY,
             self.kineticFactor,
@@ -232,10 +227,10 @@ class RK4StepByStepIntegrator(WFIntegrator):
             self.periodicBCY,
             self.wfSizeX,
             self.wfSizeY,
-        ).reshape((Nx*Ny))
+        ).reshape((self.wfSizeX*self.wfSizeY))
         k2 = evolutionOperator(
-            (phi+k1*self.halfDeltaTau).reshape((Nx,Ny)),
-            self.vPotential.reshape((Nx,Ny)),
+            (phi+k1*self.halfDeltaTau).reshape((self.wfSizeX,self.wfSizeY)),
+            self.vPotential.reshape((self.wfSizeX,self.wfSizeY)),
             self.deltaLambdaX,
             self.deltaLambdaY,
             self.kineticFactor,
@@ -243,10 +238,10 @@ class RK4StepByStepIntegrator(WFIntegrator):
             self.periodicBCY,
             self.wfSizeX,
             self.wfSizeY,
-        ).reshape((Nx*Ny))
+        ).reshape((self.wfSizeX*self.wfSizeY))
         k3=evolutionOperator(
-            (phi+k2*self.halfDeltaTau).reshape((Nx,Ny)),
-            self.vPotential.reshape((Nx,Ny)),
+            (phi+k2*self.halfDeltaTau).reshape((self.wfSizeX,self.wfSizeY)),
+            self.vPotential.reshape((self.wfSizeX,self.wfSizeY)),
             self.deltaLambdaX,
             self.deltaLambdaY,
             self.kineticFactor,
@@ -254,10 +249,10 @@ class RK4StepByStepIntegrator(WFIntegrator):
             self.periodicBCY,
             self.wfSizeX,
             self.wfSizeY,
-        ).reshape((Nx*Ny))
+        ).reshape((self.wfSizeX*self.wfSizeY))
         k4=evolutionOperator(
-            (phi+self.deltaTau*k3).reshape((Nx,Ny)),
-            self.vPotential.reshape((Nx,Ny)),
+            (phi+self.deltaTau*k3).reshape((self.wfSizeX,self.wfSizeY)),
+            self.vPotential.reshape((self.wfSizeX,self.wfSizeY)),
             self.deltaLambdaX,
             self.deltaLambdaY,
             self.kineticFactor,
@@ -265,7 +260,7 @@ class RK4StepByStepIntegrator(WFIntegrator):
             self.periodicBCY,
             self.wfSizeX,
             self.wfSizeY,
-        ).reshape((Nx*Ny))
+        ).reshape((self.wfSizeX*self.wfSizeY))
         return (phi+self.deltaTau*(k1+2*k2+2*k3+k4)/6.0)
 
     def _baseIntegrate(self,phi):
@@ -302,10 +297,10 @@ class NaiveFiniteDifferenceIntegrator(WFIntegrator):
         return np.array([
             p+self.deltaTau*dp
             for p,dp in zip(
-                phi.reshape((Nx,Ny)),
+                phi.reshape((self.wfSizeX,self.wfSizeY)),
                 evolutionOperator(
-                    phi.reshape((Nx,Ny)),
-                    self.vPotential.reshape((Nx,Ny)),
+                    phi.reshape((self.wfSizeX,self.wfSizeY)),
+                    self.vPotential.reshape((self.wfSizeX,self.wfSizeY)),
                     self.deltaLambdaX,
                     self.deltaLambdaY,
                     self.kineticFactor,
@@ -315,7 +310,7 @@ class NaiveFiniteDifferenceIntegrator(WFIntegrator):
                     self.wfSizeY,
                 ),
             )
-        ]).reshape((Nx*Ny))
+        ]).reshape((self.wfSizeX*self.wfSizeY))
 
     def _baseIntegrate(self,phi):
         '''
@@ -374,9 +369,9 @@ def createEvolutionMatrixF(
             d phi / d tau = F[phi]
 
         Note: when the matrices [x][y] used here
-        undergo a reshape->(Nx*Ny),
+        undergo a reshape->(self.wfSizeX*self.wfSizeY),
         the index map is:
-            [x][y] -> x*Ny+y
+            [x][y] -> x*self.wfSizeY+y
     '''
     # the kinetic part
     fullSize=wfSizeX*wfSizeY

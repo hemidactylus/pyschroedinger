@@ -16,6 +16,7 @@ from twoD.settings import (
     deltaTau,
     deltaLambdaX,
     deltaLambdaY,
+    waveNumber0,
     periodicBCX,
     periodicBCY,
     drawFreq,
@@ -61,12 +62,23 @@ def initPhi():
     phi=combineWFunctions(
         [
             # 1. some interference
-            wavePacket(Nx,Ny,c=(0.25,0.25),ph0=(0,0),sigma2=(0.002,0.002),weight=1),
-            # wavePacket(Nx,Ny,c=(0.75,0.5),ph0=(-5,0),sigma2=(0.004,0.004),weight=1),
-            # wavePacket(Nx,Ny,c=(0.5,0.2),ph0=(0,+3),sigma2=(0.001,0.001),weight=0.8),
-            # wavePacket(Nx,Ny,c=(0.5,0.8),ph0=(0,-3),sigma2=(0.001,0.001),weight=0.8),
+            wavePacket(Nx,Ny,c=(0.25,0.25),ph0=(0,0),sigma2=(0.002,0.002),
+                waveNumber0=waveNumber0,deltaLambdaX=deltaLambdaX,
+                deltaLambdaY=deltaLambdaY,weight=1),
+            # wavePacket(Nx,Ny,c=(0.75,0.5),ph0=(-5,0),sigma2=(0.004,0.004),
+            #     waveNumber0=waveNumber0,deltaLambdaX=deltaLambdaX,
+            #     deltaLambdaY=deltaLambdaY,weight=1),
+            # wavePacket(Nx,Ny,c=(0.5,0.2),ph0=(0,+3),sigma2=(0.001,0.001),
+            #     waveNumber0=waveNumber0,deltaLambdaX=deltaLambdaX,
+            #     deltaLambdaY=deltaLambdaY,weight=0.8),
+            # wavePacket(Nx,Ny,c=(0.5,0.8),ph0=(0,-3),sigma2=(0.001,0.001),
+            #     waveNumber0=waveNumber0,deltaLambdaX=deltaLambdaX,
+            #     deltaLambdaY=deltaLambdaY,weight=0.8),
+
             # 2. a "plane wave"
-            # wavePacket(Nx,Ny,c=(0.9,0.5),ph0=(8,0),sigma2=(0.001,0.1),weight=0.8),
+            # wavePacket(Nx,Ny,c=(0.9,0.5),ph0=(8,0),sigma2=(0.001,0.1),
+            #     waveNumber0=waveNumber0,deltaLambdaX=deltaLambdaX,
+            #     deltaLambdaY=deltaLambdaY,weight=0.8),
         ],
         deltaLambdaXY=deltaLambdaX*deltaLambdaY,
     )

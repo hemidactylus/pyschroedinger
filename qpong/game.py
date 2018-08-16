@@ -9,7 +9,7 @@ from itertools import count
 import time
 import numpy as np
 
-from twoD.settings import (
+from qpong.settings import (
     Nx,
     Ny,
     Mu,

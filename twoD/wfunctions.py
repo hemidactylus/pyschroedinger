@@ -4,16 +4,12 @@
 
 import numpy as np
 
-from twoD.settings import (
-    waveNumber0,
-    deltaLambdaX,
-    deltaLambdaY,
-)
-
-def wavePacket(Nx,Ny,c,ph0,sigma2,phase=0.0,weight=1):
+def wavePacket(Nx,Ny,c,ph0,sigma2,
+    waveNumber0,deltaLambdaX,deltaLambdaY,
+    phase=0.0,weight=1):
     ph=(
-        roundWaveNumber(ph0[0],0),
-        roundWaveNumber(ph0[1],1),
+        roundWaveNumber(ph0[0],waveNumber0,0),
+        roundWaveNumber(ph0[1],waveNumber0,1),
     )
     # (Phi is the *complex* quantity)
     phi=np.zeros((Nx,Ny),dtype=complex)
@@ -26,7 +22,7 @@ def wavePacket(Nx,Ny,c,ph0,sigma2,phase=0.0,weight=1):
             phi[x][y]=complex(amp*np.cos(pha),amp*np.sin(pha))
     return phi.reshape((Nx*Ny))
 
-def roundWaveNumber(ph,axis):
+def roundWaveNumber(ph,waveNumber0,axis):
     '''
         axis=0 for x, 1 for y
     '''

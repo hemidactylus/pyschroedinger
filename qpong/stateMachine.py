@@ -58,7 +58,7 @@ from qpong.interactiveSettings import (
     winningSpreeNumIterations,
 )
 
-from twoD.settings import (
+from qpong.settings import (
     Nx,
     Ny,
     Mu,

@@ -4,13 +4,14 @@
 '''
 import numpy as np
 
-from twoD.settings import (
+from qpong.settings import (
     Nx,
     Ny,
     Mu,
     deltaTau,
     deltaLambdaX,
     deltaLambdaY,
+    waveNumber0,
     periodicBCX,
     periodicBCY,
     drawFreq,
@@ -58,10 +59,18 @@ def initPhi():
     # STILL TO MAKE WELL CONFIGURABLE
     phi=combineWFunctions(
         [
-            wavePacket(Nx,Ny,c=(0.25,0.25),ph0=(  0,+20),sigma2=(0.006,0.006),weight=1),
-            wavePacket(Nx,Ny,c=(0.75,0.75),ph0=(  0,-20),sigma2=(0.006,0.006),weight=1),
-            wavePacket(Nx,Ny,c=(0.75,0.25),ph0=(-20,  0),sigma2=(0.006,0.006),weight=1),
-            wavePacket(Nx,Ny,c=(0.25,0.75),ph0=(+20,  0),sigma2=(0.006,0.006),weight=1),
+            wavePacket(Nx,Ny,c=(0.25,0.25),ph0=(  0,+20),sigma2=(0.006,0.006),
+                waveNumber0=waveNumber0,deltaLambdaX=deltaLambdaX,
+                deltaLambdaY=deltaLambdaY,weight=1),
+            wavePacket(Nx,Ny,c=(0.75,0.75),ph0=(  0,-20),sigma2=(0.006,0.006),
+                waveNumber0=waveNumber0,deltaLambdaX=deltaLambdaX,
+                deltaLambdaY=deltaLambdaY,weight=1),
+            wavePacket(Nx,Ny,c=(0.75,0.25),ph0=(-20,  0),sigma2=(0.006,0.006),
+                waveNumber0=waveNumber0,deltaLambdaX=deltaLambdaX,
+                deltaLambdaY=deltaLambdaY,weight=1),
+            wavePacket(Nx,Ny,c=(0.25,0.75),ph0=(+20,  0),sigma2=(0.006,0.006),
+                waveNumber0=waveNumber0,deltaLambdaX=deltaLambdaX,
+                deltaLambdaY=deltaLambdaY,weight=1),
         ],
         deltaLambdaXY=deltaLambdaX*deltaLambdaY,
     )
