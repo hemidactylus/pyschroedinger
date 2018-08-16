@@ -34,6 +34,7 @@ from qpong.interactiveSettings import (
     # useMRepo,
     maxFrameRate,
     winningSpreeNumIterations,
+    aboutToWinDangerSignSteps,
 )
 
 from qpong.gui import (
@@ -132,8 +133,6 @@ if __name__=='__main__':
                     }
                     spreeIterationsToGo=mutableGameState['iteration']-\
                         mutableGameState['lastWinningSpree']['entered']
-                    mutableGameState['closenessFraction']=\
-                        1.0-float(spreeIterationsToGo)/float(winningSpreeNumIterations)
                 elif winner is not None:
                     if (mutableGameState['iteration']-mutableGameState['lastWinningSpree']['entered'])>=winningSpreeNumIterations:
                         gameState,mutableGameState=handleStateUpdate(
@@ -146,8 +145,18 @@ if __name__=='__main__':
                             mutableGameState['lastWinningSpree']['entered']
                         mutableGameState['closenessFraction']=\
                             1.0-float(spreeIterationsToGo)/float(winningSpreeNumIterations)
+                if winner is not None:
+                    closenessFraction=1.0-float(spreeIterationsToGo)/float(winningSpreeNumIterations)
+                    mutableGameState['closenessFraction']=closenessFraction
+                    if closenessFraction<aboutToWinDangerSignSteps[0]:
+                        mutableGameState['closenessFractionStage']=2
+                    elif closenessFraction<aboutToWinDangerSignSteps[1]:
+                        mutableGameState['closenessFractionStage']=1
+                    else:
+                        mutableGameState['closenessFractionStage']=0
                 else:
                     mutableGameState['closenessFraction']=0.0
+                    mutableGameState['closenessFractionStage']=0
 
             # here we make the real-valued position info into pixel integer values
             for plInfo in mutableGameState['playerInfo'].values():

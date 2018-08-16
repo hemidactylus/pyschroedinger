@@ -368,13 +368,9 @@ def calculatePanelInfo(gState,mState):
                 ]
             # additional about-to-score warning
             if mState['lastWinningSpree']['winner'] is not None:
-                closenessFraction=mState['closenessFraction']
-                if closenessFraction<0.33:
-                    dangerMessages=['DANGER !']
-                elif closenessFraction<0.67:
-                    dangerMessages=['danger ...']
-                else:
-                    dangerMessages=[':)']
+                dangerMessages=[
+                    [':)','danger ...','DANGER !'][mState['closenessFractionStage']]
+                ]
             else:
                 dangerMessages=[':)']
             #

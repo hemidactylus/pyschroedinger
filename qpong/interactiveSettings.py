@@ -87,3 +87,5 @@ endMatchStillTime=1.0
 
 # iterations in a row in the 'winning' position for a player
 winningSpreeNumIterations=54
+# fractions of closeness to trigger danger warnings
+aboutToWinDangerSignSteps=(0.33,0.67)
