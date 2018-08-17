@@ -5,11 +5,16 @@ quantum-mechanical wavefunction.
 
 A playground to learn something about numerical integration of the Schroedinger equation.
 
+**License**: [Creative Commons Attribution 4.0 International (CC BY-NC-SA 4.0)](https://creativecommons.org/licenses/by-nc-sa/4.0/). See [LICENSE.md](LICENSE.md) in this repository.
+
 ## To Do
 
-Deep refactoring of the qpong part: make it readable, more smaller modules!
+Refactor documentation: main (game + physics), physics, demo animations.
 
-Handle end-of-play (a player reaches N won matches)
+Deep refactoring of the qpong part: make it readable, more smaller modules!
+  (first step: just a smaller main code would be nice)
+
+Sound effects + music?
 
 ## Get it running
 

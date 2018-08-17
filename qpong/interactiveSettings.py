@@ -67,9 +67,6 @@ screenForegroundColor=(232,232,232)
 # higher = harder to score a point
 winningFraction=0.45
 
-# debugSleepTime=0.02
-debugSleepTime=0
-
 maxFrameRate=36 # frames/sec - when playing
 
 panelHeight=80 # pixels
@@ -84,8 +81,14 @@ matchCountdownSpan=0.5
 
 # still-screen after player scores
 endMatchStillTime=1.0
+# still-screen after whole play finishes
+endPlayStillTime=2.5
 
 # iterations in a row in the 'winning' position for a player
 winningSpreeNumIterations=54
 # fractions of closeness to trigger danger warnings
 aboutToWinDangerSignSteps=(0.33,0.67)
+
+# how many points a player must score to win the play
+defaultMatchesToWinAPlay=2
+maximumMatchesToWinAPlay=30

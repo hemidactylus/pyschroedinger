@@ -13,16 +13,7 @@ from utils.units import (
     toMass_MeV_overC2,
 )
 
-from qpong.interactiveSettings import (
-    debugSleepTime,
-)
-
 from qpong.interactive import (
-    # initPhi,
-    # assemblePotentials,
-    # fixCursorPosition,
-    # preparePlayerInfo,
-    # scorePosition,
     prepareBasePotential,
     initPatchPotential,
     prepareMatrixRepository,
@@ -38,24 +29,20 @@ from qpong.artifacts import (
 )
 
 from twoD.dynamics import (
-    # VariablePotSparseRK4Integrator,
     makeSmoothingMatrix,
 )
 
 from qpong.interactiveSettings import (
-    # fullArrowKeyMap,
-    # patchRadii,
     fieldBevelX,
     fieldBevelY,
-    # intPotentialColor,
-    # intPlayerColors,
-    # winningFraction,
-    # panelHeight,
     useMRepo,
     matchCountdownSteps,
     matchCountdownSpan,
     endMatchStillTime,
+    endPlayStillTime,
     winningSpreeNumIterations,
+    defaultMatchesToWinAPlay,
+    maximumMatchesToWinAPlay,
 )
 
 from qpong.settings import (
@@ -77,7 +64,7 @@ gameStates={
         'name': 'still',
         'integrate': False,
         'displaywf': False,
-        'keysToSend': {'g','i','1','2'},
+        'keysToSend': {'g','i','1','2','c','v'},
         'sleep': 0.05,
         'moveCursors': False,
         'limitFrameRate': False,
@@ -87,7 +74,7 @@ gameStates={
         'integrate': True,
         'displaywf': True,
         'keysToSend': {'i', ' '},
-        'sleep': debugSleepTime,
+        'sleep': 0.0,
         'moveCursors': True,
         'limitFrameRate': True,
     },
@@ -104,7 +91,16 @@ gameStates={
         'name': 'showendmatch',
         'integrate': False,
         'displaywf': True,
-        'keysToSend': {'i', ' '},
+        'keysToSend': {'i'},
+        'sleep': 0.05,
+        'moveCursors': False,
+        'limitFrameRate': False,
+    },
+    'showendplay': {
+        'name': 'showendplay',
+        'integrate': False,
+        'displaywf': True,
+        'keysToSend': {},
         'sleep': 0.05,
         'moveCursors': False,
         'limitFrameRate': False,
@@ -205,6 +201,12 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
                 mutableGameState['nPlayers']=1
             elif scEvent[1]=='2':
                 mutableGameState['nPlayers']=2
+            elif scEvent[1]=='c':
+                if mutableGameState['matchesToWinPlay']>1:
+                    mutableGameState['matchesToWinPlay']-=1
+            elif scEvent[1]=='v':
+                if mutableGameState['matchesToWinPlay']<maximumMatchesToWinAPlay:
+                    mutableGameState['matchesToWinPlay']+=1
             else:
                 raise NotImplementedError
         elif scEvent[0]=='ticker':
@@ -226,7 +228,21 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
         elif scEvent[0]=='matchWin':
             winner=scEvent[1]
             mutableGameState['playScores']['matchScores'].append(winner)
-            newState=gameStates['showendmatch']
+            playScores={k: 0 for k in range(mutableGameState['nPlayers'])}
+            for mtc in mutableGameState['playScores']['matchScores']:
+                playScores[mtc]+=1
+            mutableGameState['playWinner']['scores']=playScores
+            # did the current play finish?
+            winningPlayer,winningScore=sorted(
+                mutableGameState['playWinner']['scores'].items(),
+                key=lambda ps: ps[1],
+                reverse=True
+            )[0]
+            if winningScore>=mutableGameState['matchesToWinPlay']:
+                mutableGameState['playWinner']['winner']=winningPlayer
+                newState=gameStates['showendplay']
+            else:
+                newState=gameStates['showendmatch']
         else:
             raise NotImplementedError
     elif curState['name']=='paused':
@@ -254,6 +270,16 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
                 newState=gameStates['prestarting']
                 actions.append('hideMarkers')
                 actions.append('initMatch')
+        else:
+            raise NotImplementedError
+    elif curState['name']=='showendplay':
+        if scEvent[0]=='key':
+            raise NotImplementedError
+        elif scEvent[0]=='ticker':
+            elapsed=mutableGameState['currentTime']-mutableGameState['stateInitTime']
+            if elapsed>= endPlayStillTime:
+                newState=gameStates['still']
+                actions.append('hideMarkers')
         else:
             raise NotImplementedError
     elif curState['name']=='quitting':
@@ -339,42 +365,45 @@ def calculatePanelInfo(gState,mState):
             ('Pong',True),
             ('Press "g" to start a game',False),
             ('',False),
-            ('Press "1"/"2" to change number of players',False),
-            ('(currently: %i players)' % mState['nPlayers'],False),
-            ('',False),
             ('Press "i" to quit/interrupt match',False),
             ('Press spacebar to pause match',False),
             ('Arrows and "a/w/s/d" move the pads',False),
+            ('',False),
+            ('Press "c"/"v" to adjust victory threshold',False),
+            ('(currently: %i matches to win)' % mState['matchesToWinPlay'],False),
+            ('',False),
+            ('Press "1"/"2" to change number of players',False),
+            ('(currently: %i players)' % mState['nPlayers'],False),
         ]
     elif gState['name']=='play':
         if 'iteration' in mState:
-            #
-            playScores={k: 0 for k in range(mState['nPlayers'])}
-            for mtc in mState['playScores']['matchScores']:
-                playScores[mtc]+=1
             curMatch=1+len(mState['playScores']['matchScores'])
             if mState['nPlayers']==1:
                 scrInfos=[]
             else:
-                maxScore=max(playScores.values())
+                maxScore=max(mState['playWinner']['scores'].values())
                 scrInfos=[
                     '< %s%s | Match %i | %s%s >' % (
-                        '*'*playScores[0],
-                        ' '*(maxScore-playScores[0]),
+                        '*'*mState['playWinner']['scores'][0],
+                        ' '*(maxScore-mState['playWinner']['scores'][0]),
                         curMatch,
-                        ' '*(maxScore-playScores[1]),
-                        '*'*playScores[1],
+                        ' '*(maxScore-mState['playWinner']['scores'][1]),
+                        '*'*mState['playWinner']['scores'][1],
                     )
                 ]
             # additional about-to-score warning
             if mState['nPlayers']>1:
+                if max(mState['playWinner']['scores'].values())+1>=mState['matchesToWinPlay']:
+                    basePlayMessage='Matchpoint'
+                else:
+                    basePlayMessage=':)'
                 if mState['lastWinningSpree']['winner'] is not None:
                     dangerMessages=[
-                        [':)','danger ...','DANGER !']\
+                        [basePlayMessage,'danger ...','DANGER !']\
                             [mState['lastWinningSpree']['closenessFractionStage']]
                     ]
                 else:
-                    dangerMessages=[':)']
+                    dangerMessages=[basePlayMessage]
             else:
                 dangerMessages=[]
             #
@@ -430,6 +459,24 @@ def calculatePanelInfo(gState,mState):
                 mState['playScores']['matchScores']
             ),False),
         ]
+    elif gState['name']=='showendplay':
+        playScores=mState['playWinner']['scores']
+        maxScore=max(playScores.values())
+        scrInfos=[
+            '< %s%s | Final score | %s%s >' % (
+                '*'*playScores[0],
+                ' '*(maxScore-playScores[0]),
+                ' '*(maxScore-playScores[1]),
+                '*'*playScores[1],
+            )
+        ]
+        pnlInfo=scrInfos+[
+            'Victory for player %i' % mState['playWinner']['winner'],
+        ]
+        scnInfo=[
+            ('Victory!', True),
+            ('Player %i' % mState['playWinner']['winner'],True),
+        ]
     else:
         raise NotImplementedError
 
@@ -447,6 +494,7 @@ def initMutableGameState(gState):
         'currentTime': tNow,
         'stateInitTime': tNow,
         'nPlayers': 2,
+        'matchesToWinPlay': defaultMatchesToWinAPlay,
         'basePot': prepareBasePotential(),
         'patchPot': initPatchPotential(),
         'globalMatrixRepo': prepareMatrixRepository() if useMRepo else None,

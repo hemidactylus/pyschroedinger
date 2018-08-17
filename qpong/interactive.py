@@ -271,6 +271,13 @@ def initialisePlay(mutableGameState):
     mutableGameState['playScores']={
         'matchScores': [],
     }
+    mutableGameState['playWinner']={
+        'winner': None,
+        'scores': {
+            k: 0
+            for k in range(mutableGameState['nPlayers'])
+        }
+    }
     return mutableGameState
 
 def initialiseMatch(mutableGameState):
