@@ -156,7 +156,6 @@ def performActions(actionsToPerform,mState):
             mState=initialiseMatch(mState)
         elif ac=='startPlay':
             mState=initialisePlay(mState)
-            a=1
         elif ac=='quitGame':
             sys.exit()
         elif ac=='pause':
@@ -169,6 +168,12 @@ def performActions(actionsToPerform,mState):
                 pInfo['pad']['visible']=True
             for scM in mState['scoreMarkers']:
                 scM['visible']=True
+        elif ac=='playMatchMusic':
+            mState['sounder'].playMusic('game')
+        elif ac=='playStillMusic':
+            mState['sounder'].playMusic('menu')
+        elif ac=='stopMusic':
+            mState['sounder'].stopMusic()
         else:
             raise ValueError('Unknown action "%s"' % ac)
     return mState
@@ -190,6 +195,8 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
     if curState['name']=='still':
         if scEvent==('action','start'):
             newState=gameStates['play']
+        elif scEvent[0]=='injectAction':
+            actions.append(scEvent[1])
         elif scEvent[0]=='key':
             if scEvent[1]=='i':
                 newState=gameStates['quitting']
@@ -241,8 +248,14 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
             if winningScore>=mutableGameState['matchesToWinPlay']:
                 mutableGameState['playWinner']['winner']=winningPlayer
                 newState=gameStates['showendplay']
+                #
+                mutableGameState['sounder'].playSound('h')
+                #
             else:
                 newState=gameStates['showendmatch']
+                #
+                mutableGameState['sounder'].playSound('l')
+                #
         else:
             raise NotImplementedError
     elif curState['name']=='paused':
@@ -326,6 +339,12 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
             mutableGameState['lastFrameDrawTime']=time.time()
             mutableGameState['prevFrameDrawTime']=mutableGameState['lastFrameDrawTime']
             mutableGameState['integrateTime']=0.0
+        if newState['name']=='prestarting':
+            actions.append('playMatchMusic')
+        if newState['name']=='still':
+            actions.append('playStillMusic')
+        if newState['name']=='showendplay':
+            actions.append('stopMusic')
     else:
         newState=curState
 
@@ -483,7 +502,7 @@ def calculatePanelInfo(gState,mState):
     return pnlInfo,scnInfo
 
 
-def initMutableGameState(gState):
+def initMutableGameState(gState,snd):
     '''
         initializes the big structure, containing
         all mutable game state features, to be later
@@ -491,6 +510,7 @@ def initMutableGameState(gState):
     '''
     tNow=time.time()
     mutableGameState={
+        'sounder': snd,
         'currentTime': tNow,
         'stateInitTime': tNow,
         'nPlayers': 2,

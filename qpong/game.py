@@ -60,11 +60,20 @@ from qpong.stateMachine import (
     initMutableGameState,
 )
 
+from Sounder import Sounder
+
 if __name__=='__main__':
 
+    snd=Sounder()
     gameState=initState()
-    mutableGameState=initMutableGameState(gameState)
+    mutableGameState=initMutableGameState(gameState,snd)
     minPlaySleepTime=1.0/maxFrameRate
+
+    gameState,mutableGameState=handleStateUpdate(
+        gameState,
+        ('injectAction','playStillMusic'),
+        mutableGameState,
+    )
 
     replotting=doPlot(
         None,
@@ -151,6 +160,8 @@ if __name__=='__main__':
                     if closenessFraction<aboutToWinDangerSignSteps[0]:
                         mutableGameState['lastWinningSpree']['closenessFractionStage']=2
                     elif closenessFraction<aboutToWinDangerSignSteps[1]:
+                        if mutableGameState['lastWinningSpree']['closenessFractionStage']<1:
+                            mutableGameState['sounder'].playSound('b')
                         mutableGameState['lastWinningSpree']['closenessFractionStage']=1
                     else:
                         mutableGameState['lastWinningSpree']['closenessFractionStage']=0
