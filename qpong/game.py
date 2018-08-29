@@ -161,7 +161,7 @@ if __name__=='__main__':
                         mutableGameState['lastWinningSpree']['closenessFractionStage']=2
                     elif closenessFraction<aboutToWinDangerSignSteps[1]:
                         if mutableGameState['lastWinningSpree']['closenessFractionStage']<1:
-                            mutableGameState['sounder'].playSound('b')
+                            mutableGameState['sounder'].playSound('danger')
                         mutableGameState['lastWinningSpree']['closenessFractionStage']=1
                     else:
                         mutableGameState['lastWinningSpree']['closenessFractionStage']=0

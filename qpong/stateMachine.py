@@ -249,12 +249,12 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
                 mutableGameState['playWinner']['winner']=winningPlayer
                 newState=gameStates['showendplay']
                 #
-                mutableGameState['sounder'].playSound('h')
+                mutableGameState['sounder'].playSound('victory')
                 #
             else:
                 newState=gameStates['showendmatch']
                 #
-                mutableGameState['sounder'].playSound('l')
+                mutableGameState['sounder'].playSound('matchscore')
                 #
         else:
             raise NotImplementedError
@@ -341,7 +341,7 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
             mutableGameState['integrateTime']=0.0
         if newState['name']=='prestarting':
             actions.append('playMatchMusic')
-        if newState['name']=='still':
+        if newState['name']=='still' and curState['name']!='quitting':
             actions.append('playStillMusic')
         if newState['name']=='showendplay':
             actions.append('stopMusic')

@@ -5,24 +5,18 @@
 
 import pygame
 import os
+import random
 
+# directory settings
 musicDirs={
-    'game': 'music/menu',
-    'menu': 'music/game',
+    'game': 'music/game',
+    'menu': 'music/menu',
 }
-
-def listMp3Files(dir):
-    return [
-        os.path.join(dir,fname)
-        for fname in os.listdir(dir)
-        if fname[-4:].lower()=='.mp3'
-    ]
-
-def pickRandom(lst):
-    print('HERE RANDOMIZE AND REMEMBER STATUS TO AVOID REPEATING')
-    # and if list empty return none and so on
-    # and then reorganize the sound effects in a different way
-    return lst[0]
+soundDirs={
+    'danger': 'sound/danger',
+    'victory': 'sound/victory',
+    'matchscore': 'sound/matchscore',
+}
 
 class Sounder():
     def __init__(self):
@@ -34,28 +28,74 @@ class Sounder():
         )
         #
         self.musicFilesMap={
-            k: listMp3Files(os.path.join(self.resourcePath,v))
+            k: {
+                fname: fname
+                for fname in self.listMp3Files(os.path.join(self.resourcePath,v))
+            }
             for k,v in musicDirs.items()
         }
+        self.lastMusicPicked={
+            k: None
+            for k in musicDirs.keys()
+        }
         #
-        print(self.musicFilesMap)
-        #
-        self.sounds={
-            sname: pygame.mixer.Sound(os.path.join(
-                self.resourcePath,
-                fname,
-            ))
-            for sname,fname in zip(
-                ['h','l','b'],
-                ['high.wav','low.wav','beep.wav'],
-            )
+        self.soundMap={
+            k: {
+                fname: pygame.mixer.Sound(fname)
+                for fname in self.listWavFiles(os.path.join(self.resourcePath,v))
+            }
+            for k,v in soundDirs.items()
         }
 
+    @staticmethod
+    def listFilesByExt(dir,ext):
+        try:
+            return [
+                os.path.join(dir,fname)
+                for fname in os.listdir(dir)
+                if fname[-len(ext):].lower()==ext
+            ]
+        except:
+            print('** Cannot get <%s> files in %s' % (ext,dir))
+            return []
+
+    @staticmethod
+    def listMp3Files(dir):
+        return Sounder.listFilesByExt(dir,'.mp3')
+
+    @staticmethod
+    def listWavFiles(dir):
+        return Sounder.listFilesByExt(dir,'.wav')
+
+    def getSomeMusic(self,mode):
+        '''
+            if no songs, return None
+            if one, return it
+            if many, exclude the most recently
+                played and pick at random
+        '''
+        if len(self.musicFilesMap[mode])==0:
+            mChosen=None
+        elif len(self.musicFilesMap[mode])==1:
+            mChosen=self.musicFilesMap[mode][0]
+        else:
+            mPool=[
+                (mKey,mFile)
+                for mKey,mFile in self.musicFilesMap[mode].items()
+                if mKey!=self.lastMusicPicked[mode]
+            ]
+            nInPool=len(mPool)
+            mChosen=mPool[random.randint(0,nInPool-1)]
+        self.lastMusicPicked[mode]=mChosen[0]
+        return mChosen[1]
+
     def playSound(self,sName):
-        self.sounds[sName].play()
+        print('THIS MUST BE A GENERALISATION OF THE PICKER ABOVE')
+        qSound=list(self.soundMap[sName].items())[0][1]
+        qSound.play()
 
     def playMusic(self,mode):
-        qFilename=pickRandom(self.musicFilesMap[mode])
+        qFilename=self.getSomeMusic(mode)
         if qFilename is not None:
             pygame.mixer.music.load(qFilename)
             pygame.mixer.music.set_volume(0.3)
