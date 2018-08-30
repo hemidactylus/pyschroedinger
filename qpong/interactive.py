@@ -347,5 +347,7 @@ def initialiseMatch(mutableGameState):
     mutableGameState['lastWinningSpree']={
         'winner': None,
         'entered': 0,
+        'closenessFraction': None,
+        'closenessFractionStage': -1,
     }
     return mutableGameState

@@ -165,7 +165,6 @@ if __name__=='__main__':
             ('ticker',0),
             mutableGameState,
         )
-        # performActions(actionsToPerform,mutableGameState)
         while replotting['keyqueue']:
             tkey=replotting['keyqueue'].pop(0)
             if tkey in mutableGameState['arrowKeyMap']: # arrow key
@@ -183,7 +182,6 @@ if __name__=='__main__':
                     ('key',tkey),
                     mutableGameState,
                 )
-                # performActions(actionsToPerform,mutableGameState)
 
         if gameState['integrate']:
             (

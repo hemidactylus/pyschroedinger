@@ -594,12 +594,10 @@ def updateWinningInfo(gameState,mutableGameState):
         winner=None
     #
     if mutableGameState['lastWinningSpree']['winner']!=winner:
-        mutableGameState['lastWinningSpree']={
+        mutableGameState['lastWinningSpree'].update({
             'winner': winner,
             'entered': mutableGameState['iteration'],
-        }
-    spreeIterationsToGo=mutableGameState['iteration']-\
-        mutableGameState['lastWinningSpree']['entered']
+        })
     elif winner is not None:
         if (mutableGameState['iteration']-mutableGameState['lastWinningSpree']['entered'])>=winningSpreeNumIterations:
             gameState,mutableGameState=handleStateUpdate(
@@ -613,18 +611,20 @@ def updateWinningInfo(gameState,mutableGameState):
             mutableGameState['lastWinningSpree']['closenessFraction']=\
                 1.0-float(spreeIterationsToGo)/float(winningSpreeNumIterations)
     if winner is not None:
+        spreeIterationsToGo=mutableGameState['iteration']-\
+            mutableGameState['lastWinningSpree']['entered']
         closenessFraction=1.0-float(spreeIterationsToGo)/float(winningSpreeNumIterations)
         mutableGameState['lastWinningSpree']['closenessFraction']=closenessFraction
         if closenessFraction<aboutToWinDangerSignSteps[0]:
             mutableGameState['lastWinningSpree']['closenessFractionStage']=2
         elif closenessFraction<aboutToWinDangerSignSteps[1]:
-            if mutableGameState['lastWinningSpree']['closenessFractionStage']<1:
-                mutableGameState['sounder'].playSound('danger')
             mutableGameState['lastWinningSpree']['closenessFractionStage']=1
         else:
+            if mutableGameState['lastWinningSpree']['closenessFractionStage']<0:
+                mutableGameState['sounder'].playSound('danger')
             mutableGameState['lastWinningSpree']['closenessFractionStage']=0
     else:
         mutableGameState['lastWinningSpree']['closenessFraction']=0.0
-        mutableGameState['lastWinningSpree']['closenessFractionStage']=0
+        mutableGameState['lastWinningSpree']['closenessFractionStage']=-1
 
     return gameState,mutableGameState
