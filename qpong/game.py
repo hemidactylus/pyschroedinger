@@ -33,8 +33,6 @@ from qpong.interactiveSettings import (
     panelHeight,
     # useMRepo,
     maxFrameRate,
-    winningSpreeNumIterations,
-    aboutToWinDangerSignSteps,
 )
 
 from qpong.gui import (
@@ -47,15 +45,11 @@ from qpong.interactive import (
     fixCursorPosition,
     preparePlayerInfo,
     scorePosition,
-    # initialiseMatch,
-    # initialisePlay,
-#     prepareBasePotential,
-#     initPatchPotential,
-#     prepareMatrixRepository,
 )
 
 from qpong.stateMachine import (
     initState,
+    updateWinningInfo,
     handleStateUpdate,
     initMutableGameState,
 )
@@ -125,49 +119,7 @@ if __name__=='__main__':
             )
             # scoring check
             if mutableGameState['nPlayers']>1:
-                aboveThreshold={
-                    1-i: mutableGameState['physics']['normMap'][3*i]
-                    for i in range(mutableGameState['nPlayers'])
-                    if mutableGameState['physics']['normMap'][3*i]>=winningFraction
-                }
-                if len(aboveThreshold)>0:
-                    winner=max(aboveThreshold.items(),key=lambda kf: kf[1])[0]
-                else:
-                    winner=None
-                #
-                if mutableGameState['lastWinningSpree']['winner']!=winner:
-                    mutableGameState['lastWinningSpree']={
-                        'winner': winner,
-                        'entered': mutableGameState['iteration'],
-                    }
-                    spreeIterationsToGo=mutableGameState['iteration']-\
-                        mutableGameState['lastWinningSpree']['entered']
-                elif winner is not None:
-                    if (mutableGameState['iteration']-mutableGameState['lastWinningSpree']['entered'])>=winningSpreeNumIterations:
-                        gameState,mutableGameState=handleStateUpdate(
-                            gameState,
-                            ('matchWin',winner),
-                            mutableGameState,
-                        )
-                    else:
-                        spreeIterationsToGo=mutableGameState['iteration']-\
-                            mutableGameState['lastWinningSpree']['entered']
-                        mutableGameState['lastWinningSpree']['closenessFraction']=\
-                            1.0-float(spreeIterationsToGo)/float(winningSpreeNumIterations)
-                if winner is not None:
-                    closenessFraction=1.0-float(spreeIterationsToGo)/float(winningSpreeNumIterations)
-                    mutableGameState['lastWinningSpree']['closenessFraction']=closenessFraction
-                    if closenessFraction<aboutToWinDangerSignSteps[0]:
-                        mutableGameState['lastWinningSpree']['closenessFractionStage']=2
-                    elif closenessFraction<aboutToWinDangerSignSteps[1]:
-                        if mutableGameState['lastWinningSpree']['closenessFractionStage']<1:
-                            mutableGameState['sounder'].playSound('danger')
-                        mutableGameState['lastWinningSpree']['closenessFractionStage']=1
-                    else:
-                        mutableGameState['lastWinningSpree']['closenessFractionStage']=0
-                else:
-                    mutableGameState['lastWinningSpree']['closenessFraction']=0.0
-                    mutableGameState['lastWinningSpree']['closenessFractionStage']=0
+                gameState,mutableGameState=updateWinningInfo(gameState,mutableGameState)
 
             # here we make the real-valued position info into pixel integer values
             for plInfo in mutableGameState['playerInfo'].values():

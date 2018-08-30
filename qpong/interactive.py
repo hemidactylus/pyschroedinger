@@ -263,6 +263,7 @@ def prepareMatrixRepository():
         'fullPotential': fullPotential,
     }
 
+
 def initialisePlay(mutableGameState):
     '''
         this is called when the "play" starts,
