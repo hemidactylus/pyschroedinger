@@ -146,39 +146,38 @@ gameStates={
     },
 }
 
-
-def performActions(actionsToPerform,mState):
-    for ac in actionsToPerform:
-        if ac=='hideMarkers':
-            for scM in mState['scoreMarkers']:
-                scM['visible']=False
-        elif ac=='showMarkers':
-            for scM in mState['scoreMarkers']:
-                scM['visible']=True
-        elif ac=='initMatch':
-            mState=initialiseMatch(mState)
-        elif ac=='startPlay':
-            mState=initialisePlay(mState)
-        elif ac=='quitGame':
-            sys.exit()
-        elif ac=='pause':
-            for pInfo in mState['playerInfo'].values():
-                pInfo['pad']['visible']=False
-            for scM in mState['scoreMarkers']:
-                scM['visible']=False
-        elif ac=='unpause':
-            for pInfo in mState['playerInfo'].values():
-                pInfo['pad']['visible']=True
-            for scM in mState['scoreMarkers']:
-                scM['visible']=True
-        elif ac=='playMatchMusic':
-            mState['sound']['sounder'].playMusic('game')
-        elif ac=='playStillMusic':
-            mState['sound']['sounder'].playMusic('menu')
-        elif ac=='stopMusic':
+def performActions(mState):
+    while(len(mState['actionqueue'])>0):
+        ac,mState['actionqueue']=(
+            mState['actionqueue'][0],
+            mState['actionqueue'][1:],
+        )
+        #
+        acClass,acParam=ac
+        if acClass=='music':
+            mState['sound']['sounder'].playMusic(acParam)
+        elif acClass=='stopmusic':
             mState['sound']['sounder'].stopMusic()
+        elif acClass=='sound':
+            mState['sound']['sounder'].playSound(acParam)
+        elif acClass=='markers':
+            markerState={'show': True, 'hide': False}[acParam]
+            for scM in mState['scoreMarkers']:
+                scM['visible']=markerState
+        elif acClass=='pause':
+            pauseState={'pause':True,'unpause':False}[acParam]
+            for pInfo in mState['playerInfo'].values():
+                pInfo['pad']['visible']=not pauseState
+            for scM in mState['scoreMarkers']:
+                scM['visible']=not pauseState
+        elif acClass=='initmatch':
+            mState=initialiseMatch(mState)
+        elif acClass=='startplay':
+            mState=initialisePlay(mState)
+        elif acClass=='quitgame':
+            sys.exit()
         else:
-            raise ValueError('Unknown action "%s"' % ac)
+            raise ValueError('Unknown tuple action "%s"' % ac)
     return mState
 
 def initState():
@@ -191,22 +190,21 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
             ('ticker',<dummy_value>)
         etc
 
-        Returns a triple (new_state,list_of_actions_to_perform, newMutableGameState)
+        Returns 2-tuple (new_state, newMutableGameState)
     '''
     newState=None
-    actions=[]
     if curState['name']=='still':
         if scEvent==('action','start'):
             newState=gameStates['play']
         elif scEvent[0]=='injectAction':
-            actions.append(scEvent[1])
+            mutableGameState['actionqueue'].append(scEvent[1])
         elif scEvent[0]=='key':
             if scEvent[1]=='i':
                 newState=gameStates['quitting']
             elif scEvent[1]=='g':
                 newState=gameStates['initplay']
-                actions.append('hideMarkers')
-                actions.append('initMatch')
+                mutableGameState['actionqueue'].append(('markers','hide'))
+                mutableGameState['actionqueue'].append(('initmatch',''))
             elif scEvent[1]=='1':
                 mutableGameState['nPlayers']=1
             elif scEvent[1]=='2':
@@ -234,7 +232,7 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
                 newState=gameStates['still']
             elif scEvent[1]==' ':
                 newState=gameStates['paused']
-                actions.append('pause')
+                mutableGameState['actionqueue'].append(('pause','pause'))
             elif scEvent[1]=='b':
                 mutableGameState['sound']['active']=not mutableGameState['sound']['active']
                 mutableGameState['sound']['sounder'].setActive(
@@ -262,13 +260,11 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
                 mutableGameState['playWinner']['winner']=winningPlayer
                 newState=gameStates['showendplay']
                 #
-                mutableGameState['sound']['sounder'].playSound('victory')
-                #
+                mutableGameState['actionqueue'].append(('sound','victory'))
             else:
                 newState=gameStates['showendmatch']
                 #
-                mutableGameState['sound']['sounder'].playSound('matchscore')
-                #
+                mutableGameState['actionqueue'].append(('sound','matchscore'))
         else:
             raise NotImplementedError
     elif curState['name']=='paused':
@@ -277,7 +273,7 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
                 newState=gameStates['still']
             elif scEvent[1]==' ':
                 newState=gameStates['play']
-                actions.append('unpause')
+                mutableGameState['actionqueue'].append(('pause','unpause'))
             elif scEvent[1]=='b':
                 mutableGameState['sound']['active']=not mutableGameState['sound']['active']
                 mutableGameState['sound']['sounder'].setActive(
@@ -299,8 +295,8 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
             elapsed=mutableGameState['currentTime']-mutableGameState['stateInitTime']
             if elapsed>= endMatchStillTime:
                 newState=gameStates['prestarting']
-                actions.append('hideMarkers')
-                actions.append('initMatch')
+                mutableGameState['actionqueue'].append(('markers','hide'))
+                mutableGameState['actionqueue'].append(('initmatch',''))
         else:
             raise NotImplementedError
     elif curState['name']=='showendplay':
@@ -310,13 +306,13 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
             elapsed=mutableGameState['currentTime']-mutableGameState['stateInitTime']
             if elapsed>= endPlayStillTime:
                 newState=gameStates['still']
-                actions.append('hideMarkers')
+                mutableGameState['actionqueue'].append(('markers','hide'))
         else:
             raise NotImplementedError
     elif curState['name']=='quitting':
         if scEvent[0]=='key':
             if scEvent[1]=='y':
-                actions.append('quitGame')
+                mutableGameState['actionqueue'].append(('quitgame',''))
             elif scEvent[1]=='n':
                 newState=gameStates['still']
             else:
@@ -333,14 +329,14 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
     elif curState['name']=='initplay':
         if scEvent[0]=='ticker':
             newState=gameStates['prestarting']
-            actions.append('startPlay')
+            mutableGameState['actionqueue'].append(('startplay',''))
         else:
             raise NotImplementedError
     elif curState['name']=='starting':
         if scEvent[0]=='ticker':
             elapsed=mutableGameState['currentTime']-mutableGameState['stateInitTime']
             if elapsed>= matchCountdownSteps*matchCountdownSpan:
-                actions.append('showMarkers')
+                mutableGameState['actionqueue'].append(('markers','show'))
                 newState=gameStates['play']
         else:
             raise NotImplementedError
@@ -358,17 +354,17 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
             mutableGameState['prevFrameDrawTime']=mutableGameState['lastFrameDrawTime']
             mutableGameState['integrateTime']=0.0
         if newState['name']=='prestarting':
-            actions.append('playMatchMusic')
+            mutableGameState['actionqueue'].append(('music','game'))
         if newState['name']=='still' and curState['name']!='quitting':
-            actions.append('playStillMusic')
+            mutableGameState['actionqueue'].append(('music','menu'))
         if newState['name']=='showendplay':
-            actions.append('stopMusic')
+            mutableGameState['actionqueue'].append(('stopmusic',''))
         if newState['name']=='quitting':
-            mutableGameState['sound']['sounder'].playSound('quit')
+            mutableGameState['actionqueue'].append(('sound','quit'))
     else:
         newState=curState
 
-    mutableGameState=performActions(actions,mutableGameState)
+    mutableGameState=performActions(mutableGameState)
     (
         mutableGameState['panelInfo'],
         mutableGameState['screenInfo'],
@@ -533,6 +529,7 @@ def initMutableGameState(gState,sound):
     '''
     tNow=time.time()
     mutableGameState={
+        'actionqueue': [],
         'sound': sound,
         'currentTime': tNow,
         'stateInitTime': tNow,
@@ -639,7 +636,7 @@ def updateWinningInfo(gameState,mutableGameState):
             mutableGameState['lastWinningSpree']['closenessFractionStage']=1
         else:
             if mutableGameState['lastWinningSpree']['closenessFractionStage']<0:
-                mutableGameState['sound']['sounder'].playSound('danger')
+                mutableGameState['actionqueue'].append(('sound','danger'))
             mutableGameState['lastWinningSpree']['closenessFractionStage']=0
     else:
         mutableGameState['lastWinningSpree']['closenessFraction']=0.0

@@ -70,7 +70,7 @@ if __name__=='__main__':
 
     gameState,mutableGameState=handleStateUpdate(
         gameState,
-        ('injectAction','playStillMusic'),
+        ('injectAction',('music','menu')),
         mutableGameState,
     )
 
