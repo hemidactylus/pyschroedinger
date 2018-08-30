@@ -16,6 +16,7 @@ soundDirs={
     'danger': 'sound/danger',
     'victory': 'sound/victory',
     'matchscore': 'sound/matchscore',
+    'quit': 'sound/quit',
 }
 
 class Sounder():
@@ -27,24 +28,27 @@ class Sounder():
             'resources'
         )
         #
-        self.musicFilesMap={
-            k: {
-                fname: fname
-                for fname in self.listMp3Files(os.path.join(self.resourcePath,v))
-            }
-            for k,v in musicDirs.items()
-        }
-        self.lastMusicPicked={
-            k: None
-            for k in musicDirs.keys()
-        }
-        #
-        self.soundMap={
-            k: {
-                fname: pygame.mixer.Sound(fname)
-                for fname in self.listWavFiles(os.path.join(self.resourcePath,v))
-            }
-            for k,v in soundDirs.items()
+        self.soundResources={
+            'music': {
+                k: {
+                    'map': {
+                        fname: fname
+                        for fname in self.listMp3Files(os.path.join(self.resourcePath,v))
+                    },
+                    'lastPlayed': None,
+                }
+                for k,v in musicDirs.items()
+            },
+            'sound': {
+                k: {
+                    'map': {
+                        fname: pygame.mixer.Sound(fname)
+                        for fname in self.listWavFiles(os.path.join(self.resourcePath,v))
+                    },
+                    'lastPlayed': None,
+                }
+                for k,v in soundDirs.items()
+            },
         }
 
     @staticmethod
@@ -67,35 +71,45 @@ class Sounder():
     def listWavFiles(dir):
         return Sounder.listFilesByExt(dir,'.wav')
 
-    def getSomeMusic(self,mode):
+    def getAResource(self,kind,mode):
         '''
-            if no songs, return None
-            if one, return it
-            if many, exclude the most recently
-                played and pick at random
+            kind=sound, music
+            mode=the subtype (e.g. for music: 'menu')
+
+            if no items, return None
+            if one, returns it
+            if many, excludes the most recently
+                played and picks at random
+                (saving the choice for next time)
         '''
-        if len(self.musicFilesMap[mode])==0:
-            mChosen=None
-        elif len(self.musicFilesMap[mode])==1:
-            mChosen=self.musicFilesMap[mode][0]
+        if len(self.soundResources[kind][mode]['map'])==0:
+            mKey,mChosen=None,None
+        elif len(self.soundResources[kind][mode]['map'])==1:
+            mKey,mChosen=list(self.soundResources[kind][mode]['map'].items())[0]
         else:
             mPool=[
                 (mKey,mFile)
-                for mKey,mFile in self.musicFilesMap[mode].items()
-                if mKey!=self.lastMusicPicked[mode]
+                for mKey,mFile in self.soundResources[kind][mode]['map'].items()
+                if mKey!=self.soundResources[kind][mode]['lastPlayed']
             ]
             nInPool=len(mPool)
-            mChosen=mPool[random.randint(0,nInPool-1)]
-        self.lastMusicPicked[mode]=mChosen[0]
-        return mChosen[1]
+            mKey,mChosen=mPool[random.randint(0,nInPool-1)]
+        self.soundResources[kind][mode]['lastPlayed']=mKey
+        return mChosen
+
+    def getAMusic(self,mode):
+        return self.getAResource('music',mode)
+
+    def getASound(self,mode):
+        return self.getAResource('sound',mode)
 
     def playSound(self,sName):
-        print('THIS MUST BE A GENERALISATION OF THE PICKER ABOVE')
-        qSound=list(self.soundMap[sName].items())[0][1]
-        qSound.play()
+        qSound=self.getASound(sName)
+        if qSound is not None:
+            qSound.play()
 
     def playMusic(self,mode):
-        qFilename=self.getSomeMusic(mode)
+        qFilename=self.getAMusic(mode)
         if qFilename is not None:
             pygame.mixer.music.load(qFilename)
             pygame.mixer.music.set_volume(0.3)

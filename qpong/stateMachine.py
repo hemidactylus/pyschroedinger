@@ -345,6 +345,8 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
             actions.append('playStillMusic')
         if newState['name']=='showendplay':
             actions.append('stopMusic')
+        if newState['name']=='quitting':
+            mutableGameState['sounder'].playSound('quit')
     else:
         newState=curState
 
