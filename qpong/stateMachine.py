@@ -67,7 +67,7 @@ gameStates={
         'name': 'still',
         'integrate': False,
         'displaywf': False,
-        'keysToSend': {'g','i','1','2','c','v'},
+        'keysToSend': {'g','i','1','2','c','v','b'},
         'sleep': 0.05,
         'moveCursors': False,
         'limitFrameRate': False,
@@ -76,7 +76,7 @@ gameStates={
         'name': 'play',
         'integrate': True,
         'displaywf': True,
-        'keysToSend': {'i', ' '},
+        'keysToSend': {'i', ' ','b'},
         'sleep': 0.0,
         'moveCursors': True,
         'limitFrameRate': True,
@@ -85,7 +85,7 @@ gameStates={
         'name': 'paused',
         'integrate': False,
         'displaywf': True,
-        'keysToSend': {'i', ' '},
+        'keysToSend': {'i', ' ','b'},
         'sleep': 0.05,
         'moveCursors': False,
         'limitFrameRate': False,
@@ -172,11 +172,11 @@ def performActions(actionsToPerform,mState):
             for scM in mState['scoreMarkers']:
                 scM['visible']=True
         elif ac=='playMatchMusic':
-            mState['sounder'].playMusic('game')
+            mState['sound']['sounder'].playMusic('game')
         elif ac=='playStillMusic':
-            mState['sounder'].playMusic('menu')
+            mState['sound']['sounder'].playMusic('menu')
         elif ac=='stopMusic':
-            mState['sounder'].stopMusic()
+            mState['sound']['sounder'].stopMusic()
         else:
             raise ValueError('Unknown action "%s"' % ac)
     return mState
@@ -217,6 +217,11 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
             elif scEvent[1]=='v':
                 if mutableGameState['matchesToWinPlay']<maximumMatchesToWinAPlay:
                     mutableGameState['matchesToWinPlay']+=1
+            elif scEvent[1]=='b':
+                mutableGameState['sound']['active']=not mutableGameState['sound']['active']
+                mutableGameState['sound']['sounder'].setActive(
+                    mutableGameState['sound']['active']
+                )
             else:
                 raise NotImplementedError
         elif scEvent[0]=='ticker':
@@ -230,6 +235,11 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
             elif scEvent[1]==' ':
                 newState=gameStates['paused']
                 actions.append('pause')
+            elif scEvent[1]=='b':
+                mutableGameState['sound']['active']=not mutableGameState['sound']['active']
+                mutableGameState['sound']['sounder'].setActive(
+                    mutableGameState['sound']['active']
+                )
             else:
                 raise NotImplementedError
         elif scEvent[0]=='ticker':
@@ -252,12 +262,12 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
                 mutableGameState['playWinner']['winner']=winningPlayer
                 newState=gameStates['showendplay']
                 #
-                mutableGameState['sounder'].playSound('victory')
+                mutableGameState['sound']['sounder'].playSound('victory')
                 #
             else:
                 newState=gameStates['showendmatch']
                 #
-                mutableGameState['sounder'].playSound('matchscore')
+                mutableGameState['sound']['sounder'].playSound('matchscore')
                 #
         else:
             raise NotImplementedError
@@ -268,6 +278,11 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
             elif scEvent[1]==' ':
                 newState=gameStates['play']
                 actions.append('unpause')
+            elif scEvent[1]=='b':
+                mutableGameState['sound']['active']=not mutableGameState['sound']['active']
+                mutableGameState['sound']['sounder'].setActive(
+                    mutableGameState['sound']['active']
+                )
             else:
                 raise NotImplementedError
         elif scEvent[0]=='ticker':
@@ -349,7 +364,7 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
         if newState['name']=='showendplay':
             actions.append('stopMusic')
         if newState['name']=='quitting':
-            mutableGameState['sounder'].playSound('quit')
+            mutableGameState['sound']['sounder'].playSound('quit')
     else:
         newState=curState
 
@@ -398,6 +413,9 @@ def calculatePanelInfo(gState,mState):
             ('',False),
             ('Press "1"/"2" to change number of players',False),
             ('(currently: %i players)' % mState['nPlayers'],False),
+            ('',False),
+            ('Sound is %s' % ['OFF','ON'][int(mState['sound']['active'])],False),
+            ('(press "b" to toggle)',False),
         ]
     elif gState['name']=='play':
         if 'iteration' in mState:
@@ -507,7 +525,7 @@ def calculatePanelInfo(gState,mState):
     return pnlInfo,scnInfo
 
 
-def initMutableGameState(gState,snd):
+def initMutableGameState(gState,sound):
     '''
         initializes the big structure, containing
         all mutable game state features, to be later
@@ -515,7 +533,7 @@ def initMutableGameState(gState,snd):
     '''
     tNow=time.time()
     mutableGameState={
-        'sounder': snd,
+        'sound': sound,
         'currentTime': tNow,
         'stateInitTime': tNow,
         'nPlayers': 2,
@@ -621,7 +639,7 @@ def updateWinningInfo(gameState,mutableGameState):
             mutableGameState['lastWinningSpree']['closenessFractionStage']=1
         else:
             if mutableGameState['lastWinningSpree']['closenessFractionStage']<0:
-                mutableGameState['sounder'].playSound('danger')
+                mutableGameState['sound']['sounder'].playSound('danger')
             mutableGameState['lastWinningSpree']['closenessFractionStage']=0
     else:
         mutableGameState['lastWinningSpree']['closenessFraction']=0.0

@@ -92,3 +92,5 @@ aboutToWinDangerSignSteps=(0.33,0.67)
 # how many points a player must score to win the play
 defaultMatchesToWinAPlay=2
 maximumMatchesToWinAPlay=30
+
+defaultSoundActive=True

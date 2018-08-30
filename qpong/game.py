@@ -23,7 +23,6 @@ from qpong.settings import (
 )
 
 from qpong.interactiveSettings import (
-    # fullArrowKeyMap,
     patchRadii,
     fieldBevelX,
     fieldBevelY,
@@ -31,7 +30,7 @@ from qpong.interactiveSettings import (
     intPlayerColors,
     winningFraction,
     panelHeight,
-    # useMRepo,
+    defaultSoundActive,
     maxFrameRate,
 )
 
@@ -58,9 +57,15 @@ from Sounder import Sounder
 
 if __name__=='__main__':
 
-    snd=Sounder()
+    snd=Sounder(defaultSoundActive)
     gameState=initState()
-    mutableGameState=initMutableGameState(gameState,snd)
+    mutableGameState=initMutableGameState(
+        gameState,
+        {
+            'sounder': snd,
+            'active': defaultSoundActive,
+        }
+    )
     minPlaySleepTime=1.0/maxFrameRate
 
     gameState,mutableGameState=handleStateUpdate(

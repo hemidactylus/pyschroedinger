@@ -20,9 +20,11 @@ soundDirs={
 }
 
 class Sounder():
-    def __init__(self):
+    def __init__(self,active):
         pygame.init()
         pygame.mixer.init()
+        self.active=active
+        self.nominalMusicMode=None
         self.resourcePath = os.path.join(
             os.path.abspath(os.path.dirname(__file__)),
             'resources'
@@ -104,23 +106,36 @@ class Sounder():
         return self.getAResource('sound',mode)
 
     def playSound(self,sName):
-        qSound=self.getASound(sName)
-        if qSound is not None:
-            qSound.play()
+        if self.active:
+            qSound=self.getASound(sName)
+            if qSound is not None:
+                qSound.play()
 
     def playMusic(self,mode):
-        qFilename=self.getAMusic(mode)
-        if qFilename is not None:
-            pygame.mixer.music.load(qFilename)
-            pygame.mixer.music.set_volume(0.3)
-            pygame.mixer.music.play(-1)
+        self.nominalMusicMode=mode
+        if self.active:
+            qFilename=self.getAMusic(mode)
+            if qFilename is not None:
+                pygame.mixer.music.load(qFilename)
+                pygame.mixer.music.set_volume(0.3)
+                pygame.mixer.music.play(-1)
 
     def stopMusic(self):
+        self.nominalMusicMode=None
         if self.musicPlaying():
             pygame.mixer.music.stop()
 
     def musicPlaying(self):
         return pygame.mixer.music.get_busy()
+
+    def setActive(self,active):
+        self.active=active
+        if not self.active:
+            if self.musicPlaying():
+                pygame.mixer.music.stop()
+        else:
+            if self.nominalMusicMode is not None:
+                self.playMusic(self.nominalMusicMode)
 
 if __name__=='__main__':
 
