@@ -17,9 +17,11 @@ from qpong.interactive import (
     prepareBasePotential,
     initPatchPotential,
     prepareMatrixRepository,
-    #
+    scorePosition,
     initialisePlay,
     initialiseMatch,
+    calculateScorePosSector,
+    getScoreSectorSound,
 )
 
 from qpong.artifacts import (
@@ -194,6 +196,38 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
         Returns 2-tuple (new_state, newMutableGameState)
     '''
     newState=None
+    if curState['integrate']:
+        '''
+            
+        '''
+        mutableGameState['lastWinningSpree']['scorePos']=\
+            scorePosition(mutableGameState['physics']['normMap'])
+        if mutableGameState['lastWinningSpree']['winner']!=None:
+            mutableGameState['lastWinningSpree']['scorePos']=[+1.0,0.0]\
+                [mutableGameState['lastWinningSpree']['winner']]
+        mutableGameState['lastWinningSpree']['scorePosInteger']=int(
+            Nx*(fieldBevelX+mutableGameState['lastWinningSpree']['scorePos']*(1-2*fieldBevelX))
+        )
+        mutableGameState['scoreMarkers'][0]['offset']=(
+            mutableGameState['lastWinningSpree']['scorePosInteger'],
+            0,
+        )
+        mutableGameState['scoreMarkers'][1]['offset']=(
+            mutableGameState['lastWinningSpree']['scorePosInteger'],
+            0,
+        )
+        newPosSector=calculateScorePosSector(
+            mutableGameState['lastWinningSpree']['scorePos']
+        )
+        if newPosSector!=mutableGameState['lastWinningSpree']['scorePosSector']:
+            # enqueue sound if the transition warrants it
+            newSound=getScoreSectorSound(
+                mutableGameState['lastWinningSpree']['scorePosSector'],
+                newPosSector,
+            )
+            if newSound is not None:
+                mutableGameState['actionqueue'].append(('sound',newSound))
+            mutableGameState['lastWinningSpree']['scorePosSector']=newPosSector
     if curState['name']=='still':
         if scEvent==('action','start'):
             newState=gameStates['play']

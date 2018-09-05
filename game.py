@@ -43,7 +43,6 @@ from qpong.interactive import (
     assemblePotentials,
     fixCursorPosition,
     preparePlayerInfo,
-    scorePosition,
 )
 
 from qpong.stateMachine import (

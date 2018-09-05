@@ -255,6 +255,28 @@ def scorePosition(normMap):
         s=0.0
     return 0.5*(1+s)
 
+def calculateScorePosSector(scorePos):
+    if scorePos<0.35:
+        return 'l'
+    elif scorePos<=0.65:
+        return 'm'
+    else:
+        return 'r'
+
+def getScoreSectorSound(fromS,toS):
+    if fromS=='m':
+        if toS=='l' or toS=='r':
+            return 'skewing_balance'
+        else:
+            return None
+    elif fromS=='l' or fromS=='r':
+        if toS=='m':
+            return 'restoring_balance'
+        else:
+            return None
+    else:
+        return None
+
 def prepareMatrixRepository():
     varPot=np.zeros((Nx,Ny),dtype=float)
     dampingFactor=varPot.reshape((Nx*Ny))
@@ -351,5 +373,8 @@ def initialiseMatch(mutableGameState):
         'entered': 0,
         'closenessFraction': None,
         'closenessFractionStage': -1,
+        'scorePosSector': None,
+        'scorePos': None,
+        'scorePosInteger': None,
     }
     return mutableGameState

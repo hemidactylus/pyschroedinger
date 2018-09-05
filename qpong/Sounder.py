@@ -17,6 +17,8 @@ soundDirs={
     'victory': 'sound/victory',
     'matchscore': 'sound/matchscore',
     'quit': 'sound/quit',
+    'skewing_balance': 'sound/skewing_balance',
+    'restoring_balance': 'sound/restoring_balance',
 }
 
 class Sounder():
