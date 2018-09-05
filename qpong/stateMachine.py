@@ -35,6 +35,7 @@ from twoD.dynamics import (
 from qpong.interactiveSettings import (
     fieldBevelX,
     fieldBevelY,
+    halfFieldArtifactWidth,
     useMRepo,
     matchCountdownSteps,
     matchCountdownSpan,
@@ -554,10 +555,10 @@ def initMutableGameState(gState,sound):
         'halfField': makeCheckerboardRectangularArtifact(
             Nx=Nx,
             Ny=Ny,
-            posX=0.5-0.5*fieldBevelX,
-            posY=fieldBevelX,
-            widthX=fieldBevelX,
-            heightY=1-2*fieldBevelX,
+            posX=0.5*(1-halfFieldArtifactWidth/2),
+            posY=fieldBevelY,
+            widthX=halfFieldArtifactWidth,
+            heightY=1-2*fieldBevelY,
             color=255,
             transparentKey=0,
         ),

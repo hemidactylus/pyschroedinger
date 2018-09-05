@@ -44,7 +44,8 @@ fullArrowKeyMap={
 patchRadii=(0.08,0.08)
 patchThickness=0.01
 fieldBevelX=0.03
-fieldBevelY=0.03
+fieldBevelY=0.02
+halfFieldArtifactWidth=0.05
 
 potWavefunctionDampingDivider=20000
 # potWavefunctionDampingDivider=420000

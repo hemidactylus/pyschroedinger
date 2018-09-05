@@ -53,7 +53,7 @@ from qpong.stateMachine import (
     initMutableGameState,
 )
 
-from Sounder import Sounder
+from qpong.Sounder import Sounder
 
 if __name__=='__main__':
 
@@ -109,19 +109,6 @@ if __name__=='__main__':
             #
             mutableGameState['iteration']+=1
             mutableGameState['physics']['tau']+=mutableGameState['physics']['tauIncr']
-            scorePos=scorePosition(mutableGameState['physics']['normMap'])
-            if mutableGameState['lastWinningSpree']['winner']!=None:
-                scorePos=[+1.0,0.0]\
-                    [mutableGameState['lastWinningSpree']['winner']]
-            scorePosInteger=int(Nx*(fieldBevelX+scorePos*(1-2*fieldBevelX)))
-            mutableGameState['scoreMarkers'][0]['offset']=(
-                scorePosInteger,
-                0,
-            )
-            mutableGameState['scoreMarkers'][1]['offset']=(
-                scorePosInteger,
-                0,
-            )
             # scoring check
             if mutableGameState['nPlayers']>1:
                 gameState,mutableGameState=updateWinningInfo(gameState,mutableGameState)

@@ -93,6 +93,7 @@ def initPatchPotential():
         vOut=0,
         reshape=False,
     )
+    a=1
     return {
         'pot': pPot,
         'centre': (Nx,Ny),
@@ -139,6 +140,7 @@ def assemblePotentials(patchPosList,patchPot,backgroundPot,matrixRepo=None):
         np.exp(-fPot/potWavefunctionDampingDivider,dampingFactor)
     else:
         dampingFactor=np.exp(-fPot/potWavefunctionDampingDivider)
+    #
     return fPot,dampingFactor
 
 def prepareBasePotential():

@@ -10,13 +10,19 @@ A playground to learn something about numerical integration of the Schroedinger 
 ## To Do
 
 Refactor documentation: main (game + physics), physics, demo animations.
+Pictures of equations -> locally stored.
 
 Deep refactoring of the qpong part: make it readable, more smaller modules!
-  (first step: just a smaller main code would be nice)
 
-Sound effects + music?
+Credits/info page
+
+symmetry of evolution: minor bias to the right remains (?),
+strips for winning-checks.
+It must all be symmetrical.
 
 ## Get it running
+
+__TO UPDATE HEAVILY__
 
 Clone the repo, create the virtualenv
 (with python3) and set the repo's root

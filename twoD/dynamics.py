@@ -66,7 +66,6 @@ class WFIntegrator():
     def integrate(self,phi):
         newPhi=self._baseIntegrate(phi)
         newNorm,sliceNorm=norm(newPhi,self.deltaLambdaXY,slices=self.slices)
-        #
         if self.exactEnergy:
             energy=self.energyCalculator(phi,self.vPotential,self.lastEnergy)
         else:

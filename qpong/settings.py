@@ -18,8 +18,8 @@ Mu = 0.25#0.14
 # discretisation parameters
 # Nx=36
 # Ny=36
-Nx=64
-Ny=64
+Nx=65
+Ny=65
 # deltaTau = 0.000005
 deltaTau = 0.000003
 
