@@ -19,6 +19,13 @@ soundDirs={
     'quit': 'sound/quit',
     'skewing_balance': 'sound/skewing_balance',
     'restoring_balance': 'sound/restoring_balance',
+    'ct_1': 'sound/ct_1',
+    'ct_2': 'sound/ct_2',
+    'ct_3': 'sound/ct_3',
+    'nplayers': 'sound/nplayers',
+    'n_matches_up': 'sound/n_matches_up',
+    'n_matches_down': 'sound/n_matches_down',
+    'sound_on': 'sound/sound_on',
 }
 
 class Sounder():

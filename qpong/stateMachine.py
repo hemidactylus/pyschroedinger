@@ -143,7 +143,7 @@ gameStates={
         'integrate': False,
         'displaywf': True,
         'keysToSend': {},
-        'sleep': 0.05,
+        'sleep': 0.005,
         'moveCursors': False,
         'limitFrameRate': False,
     },
@@ -241,20 +241,28 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
                 mutableGameState['actionqueue'].append(('markers','hide'))
                 mutableGameState['actionqueue'].append(('initmatch',''))
             elif scEvent[1]=='1':
-                mutableGameState['nPlayers']=1
+                if mutableGameState['nPlayers']!=1:
+                    mutableGameState['actionqueue'].append(('sound','nplayers'))
+                    mutableGameState['nPlayers']=1
             elif scEvent[1]=='2':
-                mutableGameState['nPlayers']=2
+                if mutableGameState['nPlayers']!=2:
+                    mutableGameState['actionqueue'].append(('sound','nplayers'))
+                    mutableGameState['nPlayers']=2
             elif scEvent[1]=='c':
                 if mutableGameState['matchesToWinPlay']>1:
+                    mutableGameState['actionqueue'].append(('sound','n_matches_down'))
                     mutableGameState['matchesToWinPlay']-=1
             elif scEvent[1]=='v':
                 if mutableGameState['matchesToWinPlay']<maximumMatchesToWinAPlay:
+                    mutableGameState['actionqueue'].append(('sound','n_matches_up'))
                     mutableGameState['matchesToWinPlay']+=1
             elif scEvent[1]=='b':
                 mutableGameState['sound']['active']=not mutableGameState['sound']['active']
                 mutableGameState['sound']['sounder'].setActive(
                     mutableGameState['sound']['active']
                 )
+                if mutableGameState['sound']['active']:
+                    mutableGameState['actionqueue'].append(('sound','sound_on'))
             else:
                 raise NotImplementedError
         elif scEvent[0]=='ticker':
@@ -359,6 +367,8 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
     elif curState['name']=='prestarting':
         if scEvent[0]=='ticker':
             newState=gameStates['starting']
+            mutableGameState['actionqueue'].append(('sound','ct_3'))
+            mutableGameState['ctDisplay']=matchCountdownSteps
         else:
             raise NotImplementedError
     elif curState['name']=='initplay':
@@ -368,6 +378,12 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
         else:
             raise NotImplementedError
     elif curState['name']=='starting':
+        timeStep=(mutableGameState['currentTime']-mutableGameState['stateInitTime']) /\
+                (matchCountdownSpan)
+        newCtDisplay=max(1,matchCountdownSteps-int(timeStep))
+        if newCtDisplay!=mutableGameState['ctDisplay']:
+            mutableGameState['actionqueue'].append(('sound','ct_%i' % newCtDisplay))
+            mutableGameState['ctDisplay']=newCtDisplay
         if scEvent[0]=='ticker':
             elapsed=mutableGameState['currentTime']-mutableGameState['stateInitTime']
             if elapsed>= matchCountdownSteps*matchCountdownSpan:
@@ -511,11 +527,8 @@ def calculatePanelInfo(gState,mState):
         pnlInfo=[
             'Ready?'
         ]
-        timeStep=(mState['currentTime']-mState['stateInitTime']) /\
-                (matchCountdownSpan)
-        ctDisplay=max(1,matchCountdownSteps-int(timeStep))
         scnInfo=[
-            ('%i' % ctDisplay,True),
+            ('%i' % mState['ctDisplay'],True),
             ('match %i' % (1+len(
                 mState['playScores']['matchScores']
             )), False)

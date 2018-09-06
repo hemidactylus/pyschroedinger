@@ -20,6 +20,8 @@ symmetry of evolution: minor bias to the right remains (?),
 strips for winning-checks.
 It must all be symmetrical.
 
+Critical review of all sound effects and music
+
 ## Get it running
 
 __TO UPDATE HEAVILY__
