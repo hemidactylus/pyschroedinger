@@ -9,23 +9,23 @@ import random
 
 # directory settings
 musicDirs={
-    'game': 'music/game',
-    'menu': 'music/menu',
+    'game':                 'music/game',
+    'menu':                 'music/menu',
 }
 soundDirs={
-    'danger': 'sound/danger',
-    'victory': 'sound/victory',
-    'matchscore': 'sound/matchscore',
-    'quit': 'sound/quit',
-    'skewing_balance': 'sound/skewing_balance',
-    'restoring_balance': 'sound/restoring_balance',
-    'ct_1': 'sound/ct_1',
-    'ct_2': 'sound/ct_2',
-    'ct_3': 'sound/ct_3',
-    'nplayers': 'sound/nplayers',
-    'n_matches_up': 'sound/n_matches_up',
-    'n_matches_down': 'sound/n_matches_down',
-    'sound_on': 'sound/sound_on',
+    'danger':               'sound/danger',
+    'victory':              'sound/victory',
+    'matchscore':           'sound/matchscore',
+    'quit':                 'sound/quit',
+    'skewing_balance':      'sound/skewing_balance',
+    'restoring_balance':    'sound/restoring_balance',
+    'ct_1':                 'sound/ct_1',
+    'ct_2':                 'sound/ct_2',
+    'ct_3':                 'sound/ct_3',
+    'nplayers':             'sound/nplayers',
+    'n_matches_up':         'sound/n_matches_up',
+    'n_matches_down':       'sound/n_matches_down',
+    'sound_on':             'sound/sound_on',
 }
 
 class Sounder():
@@ -42,25 +42,52 @@ class Sounder():
         self.soundResources={
             'music': {
                 k: {
-                    'map': {
-                        fname: fname
-                        for fname in self.listMp3Files(os.path.join(self.resourcePath,v))
-                    },
+                    'map': self.prepareMusicMap(
+                        self.listMp3Files(os.path.join(self.resourcePath,v)),
+                        os.path.join(self.resourcePath,v)
+                    ),
                     'lastPlayed': None,
                 }
                 for k,v in musicDirs.items()
             },
             'sound': {
                 k: {
-                    'map': {
-                        fname: pygame.mixer.Sound(fname)
-                        for fname in self.listWavFiles(os.path.join(self.resourcePath,v))
-                    },
+                    'map': self.prepareSoundMap(
+                        self.listWavFiles(os.path.join(self.resourcePath,v)),
+                        os.path.join(self.resourcePath,v)
+                    ),
+                    # 'map': {
+                    #     fname: pygame.mixer.Sound(fname)
+                    #     for fname in self.listWavFiles(os.path.join(self.resourcePath,v))
+                    # },
                     'lastPlayed': None,
                 }
                 for k,v in soundDirs.items()
             },
         }
+
+    @staticmethod
+    def prepareMusicMap(fnameList,loadDir):
+        if len(fnameList)==0:
+            print('** Sounder warning: no music files found in "%s" **' % loadDir)
+        return {
+            fname: fname
+            for fname in fnameList
+        }
+
+    @staticmethod
+    def prepareSoundMap(fnameList,loadDir):
+        if len(fnameList)==0:
+            print('** Sounder warning: no sound files found in "%s" **' % loadDir)
+        sMap={}
+        for fname in fnameList:
+            try:
+                sMap[fname]=pygame.mixer.Sound(fname)
+            except:
+                print('** Sounder warning: cannot load sound effect "%s" **' % (
+                    fname,
+                )) 
+        return sMap
 
     @staticmethod
     def listFilesByExt(dir,ext):
@@ -125,9 +152,15 @@ class Sounder():
         if self.active:
             qFilename=self.getAMusic(mode)
             if qFilename is not None:
-                pygame.mixer.music.load(qFilename)
-                pygame.mixer.music.set_volume(0.3)
-                pygame.mixer.music.play(-1)
+                try:
+                    pygame.mixer.music.load(qFilename)
+                    pygame.mixer.music.set_volume(0.3)
+                    pygame.mixer.music.play(-1)
+                except:
+                    print('** Sounder warning: cannot play music file "%s/%s" **' % (
+                        mode,
+                        qFilename,
+                    ))
 
     def stopMusic(self):
         self.nominalMusicMode=None
