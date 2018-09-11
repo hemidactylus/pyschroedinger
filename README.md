@@ -7,15 +7,48 @@ quantum-mechanical wavefunction.
 
 ## The game
 
-STUFF TO PLAY, see below
+### How to play
+
+Clone this repository, create a Python 3
+virtual environment, e.g. called `qpong`,
+install in it the packages specified in `requirements.txt` with
+
+    pip install -r requirements.txt
+
+and set the repository's root directory
+in the virtual environment's import search path, e.g. with
+
+    add2virtualenv .
+
+In order to play the game, type
+
+    ./game.py
+
+and follow the on-screen instructions.
 
 ### Music and sound
 
-(pcm 16 bit and dir names)
+Music for several states (playing, menu) and sound effects
+for several events (victory, match-start countdown, etc...)
+is loaded at game start in the appropriate directories
+under `qpong/resources/music/*` and `qpong/resources/sound/*`.
 
-### Tweaking in-code settings
+Music must be in `mp3` format and sound in signed, PCM 16-bit `wav`
+format. One can place as many files as desired in the subfolders: they will
+all be used in the game, picking at random each time among the available choices.
 
-xxx
+### Changing in-code game settings
+
+The game settings reside in the subdirectory `qpong` and are:
+
+- `settings.py`, where the core physics is set;
+- `interactiveSettings.py`, where game-specific features that go beyond the core physics engine are set.
+
+Feel free to play with these two files.
+
+More advanced tweaks are possible, such as changing the shape of the player pad,
+the playing field base shape of the potential or the initial wavefunction configuration.
+These and similar changes require a bit of understanding of how the code is structured.
 
 ## The physics
 
@@ -30,7 +63,10 @@ to correct for effects that would make the game hardly playable (see below).
 
 One- and two-dimensional "playground" setups, aside from the game itself,
 are available to play and experiment with the core integrator engine, as
-illustrated in the examples below.
+illustrated in the examples below. To play with them, go to either directory
+`oneD` or `twoD` and, after playing with the directory's `settings.py`, type:
+
+    ./schroedinger.py
 
 ### Examples
 
@@ -105,45 +141,4 @@ It must all be symmetrical.
 
 Critical review of all sound effects and music
 
-```
-    ====
-```
-
-
-## Get it running
-
-__TO UPDATE HEAVILY__
-
-Clone the repo, create the virtualenv
-(with python3) and set the repo's root
-dir into the path of the virtualenv.
-
-Then, in order to play, go to the
-`qpong` directory and start
-
-    ./game.py
-
-(optionally passing the `-1` option to experiment with one-player)
-
-Alternatively, to have a look at the integrator
-in a non-interactive fashion,
-go to either `oneD` or `twoD` directories, start
-
-    ./schroedinger.py
-
-and enjoy the show (after tweaking the code and/or the parameters,
-if you feel so inclined).
-
-You can alter the initial wavefunction/potential by playing with the `initPhi`
-and `initPot` functions in `schroedinger.py`, and you can tweak more fundamental
-settings (time interval, grid size, boundary conditions, and so on) in `settings.py`;
-game-specific settings are in `twoD/interactiveSettings.py`.
-
-### Basic structure of the project
-
-The one- and two-dimensional cases are in two different subdirectories
-and share almost nothing.
-The dynamics (i.e. integrators) and the GUI reside in separate modules,
-and are used by the main driver and - in the case of two dimensions - 
-the game as well.
-
+A pool of initial wavefunction configurations at each match start?

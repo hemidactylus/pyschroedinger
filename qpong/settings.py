@@ -13,14 +13,11 @@ import pygame
 # Physical parameters
 LambdaX = 1
 LambdaY = 1
-Mu = 0.25#0.14
+Mu = 0.25
 
 # discretisation parameters
-# Nx=36
-# Ny=36
 Nx=65
 Ny=65
-# deltaTau = 0.000005
 deltaTau = 0.000003
 
 periodicBCX=False
@@ -32,12 +29,3 @@ deltaLambdaY=float(LambdaY)/float(Ny)
 deltaLambdaX2=deltaLambdaX**2
 deltaLambdaY2=deltaLambdaY**2
 waveNumber0=(2*math.pi/LambdaX,2*math.pi/LambdaY)
-
-# display parameters
-tileX=10
-tileY=10
-# drawFreq=50
-drawFreq=5
-framesToDraw=1000#None # None => forever
-
-potentialColor=[0,180,90]

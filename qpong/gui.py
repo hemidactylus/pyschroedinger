@@ -15,17 +15,17 @@ from pygame.locals import (
 from qpong.settings import (
     Nx,
     Ny,
-    tileX,
-    tileY,
-    potentialColor,
 )
 
 from qpong.interactiveSettings import (
+    tileX,
+    tileY,
     panelBackgroundColor,
     panelForegroundColor,
     screenForegroundColor,
     labelFontSize,
     titleFontSize,
+    potentialColor,
 )
 
 from twoD.tools import (

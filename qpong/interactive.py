@@ -14,11 +14,11 @@ from qpong.settings import (
     waveNumber0,
     periodicBCX,
     periodicBCY,
-    drawFreq,
     LambdaX,
     LambdaY,
 )
 from qpong.interactiveSettings import (
+    drawFreq,
     fullArrowKeyMap,
     fieldBevelX,
     fieldBevelY,

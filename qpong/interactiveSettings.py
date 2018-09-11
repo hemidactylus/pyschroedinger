@@ -48,7 +48,6 @@ fieldBevelY=0.02
 halfFieldArtifactWidth=0.05
 
 potWavefunctionDampingDivider=20000
-# potWavefunctionDampingDivider=420000
 potBorderWallHeight=8000
 potPlayerPadHeight=10000
 
@@ -57,6 +56,12 @@ intPlayerColors=[
     [240,70,70],
     [50,50,180],
 ]
+
+# display parameters
+tileX=10
+tileY=10
+drawFreq=5
+potentialColor=[0,180,90]
 
 labelFontSize=20
 titleFontSize=100

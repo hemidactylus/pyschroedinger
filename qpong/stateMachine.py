@@ -60,7 +60,7 @@ from qpong.settings import (
     deltaLambdaY,
     periodicBCX,
     periodicBCY,
-    drawFreq,
+    # drawFreq,
     LambdaX,
     LambdaY,
 )
