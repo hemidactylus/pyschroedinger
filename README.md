@@ -131,7 +131,7 @@ wavefunction push-forward? how?
 
 Deep refactoring of the qpong part: make it readable, more smaller modules!
 
-Credits/info page: (1) fill it
+Credits/info page: fill it
 
 symmetry of evolution: minor bias to the right remains (?),
 strips for winning-checks.
