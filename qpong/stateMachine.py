@@ -70,10 +70,21 @@ gameStates={
         'name': 'still',
         'integrate': False,
         'displaywf': False,
-        'keysToSend': {'g','i','1','2','c','v','b'},
+        'keysToSend': {'g','i','1','2','c','v','b','m'},
         'sleep': 0.05,
         'moveCursors': False,
         'limitFrameRate': False,
+        'musicMode': 'menu',
+    },
+    'info': {
+        'name': 'info',
+        'integrate': False,
+        'displaywf': False,
+        'keysToSend': {'i'},
+        'sleep': 0.05,
+        'moveCursors': False,
+        'limitFrameRate': False,
+        'musicMode': 'menu',
     },
     'play': {
         'name': 'play',
@@ -83,6 +94,7 @@ gameStates={
         'sleep': 0.0,
         'moveCursors': True,
         'limitFrameRate': True,
+        'musicMode': 'game',
     },
     'paused': {
         'name': 'paused',
@@ -92,6 +104,7 @@ gameStates={
         'sleep': 0.05,
         'moveCursors': False,
         'limitFrameRate': False,
+        'musicMode': 'game',
     },
     'showendmatch': {
         'name': 'showendmatch',
@@ -101,6 +114,7 @@ gameStates={
         'sleep': 0.05,
         'moveCursors': False,
         'limitFrameRate': False,
+        'musicMode': 'game',
     },
     'showendplay': {
         'name': 'showendplay',
@@ -110,6 +124,7 @@ gameStates={
         'sleep': 0.05,
         'moveCursors': False,
         'limitFrameRate': False,
+        'musicMode': None,
     },
     'quitting': {
         'name': 'quitting',
@@ -119,6 +134,7 @@ gameStates={
         'sleep': 0.05,
         'moveCursors': False,
         'limitFrameRate': False,
+        'musicMode': 'menu',
     },
     'prestarting': {
         'name': 'prestarting',
@@ -128,6 +144,7 @@ gameStates={
         'sleep': 0.01,
         'moveCursors': False,
         'limitFrameRate': False,
+        'musicMode': None,
     },
     'initplay': {
         'name': 'initplay',
@@ -137,6 +154,7 @@ gameStates={
         'sleep': 0.01,
         'moveCursors': False,
         'limitFrameRate': False,
+        'musicMode': 'game',
     },
     'starting': {
         'name': 'starting',
@@ -146,6 +164,7 @@ gameStates={
         'sleep': 0.005,
         'moveCursors': False,
         'limitFrameRate': False,
+        'musicMode': 'game',
     },
 }
 
@@ -263,6 +282,8 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
                 )
                 if mutableGameState['sound']['active']:
                     mutableGameState['actionqueue'].append(('sound','sound_on'))
+            elif scEvent[1]=='m':
+                newState=gameStates['info']
             else:
                 raise NotImplementedError
         elif scEvent[0]=='ticker':
@@ -391,6 +412,16 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
                 newState=gameStates['play']
         else:
             raise NotImplementedError
+    elif curState['name']=='info':
+        if scEvent[0]=='key':
+            if scEvent[1]=='i':
+                newState=gameStates['still']
+            else:
+                raise NotImplementedError
+        elif scEvent[0]=='ticker':
+            pass
+        else:
+            raise NotImplementedError
     else:
         raise NotImplementedError
 
@@ -400,16 +431,19 @@ def handleStateUpdate(curState, scEvent, mutableGameState):
     if newState is not None:
         mutableGameState['stateInitTime']=time.time()
         mutableGameState['currentTime']=mutableGameState['stateInitTime']
+        #
+        if newState['musicMode']!=mutableGameState['musicMode']:
+            if newState['musicMode'] is None:
+                mutableGameState['actionqueue'].append(('stopmusic',''))
+            else:
+                mutableGameState['actionqueue'].append(('music',newState['musicMode']))
+        mutableGameState['musicMode']=newState['musicMode']
+        #
         if newState['name']=='play':
             mutableGameState['lastFrameDrawTime']=time.time()
             mutableGameState['prevFrameDrawTime']=mutableGameState['lastFrameDrawTime']
             mutableGameState['integrateTime']=0.0
-        if newState['name']=='prestarting':
-            mutableGameState['actionqueue'].append(('music','game'))
-        if newState['name']=='still' and curState['name']!='quitting':
-            mutableGameState['actionqueue'].append(('music','menu'))
-        if newState['name']=='showendplay':
-            mutableGameState['actionqueue'].append(('stopmusic',''))
+        #
         if newState['name']=='quitting':
             mutableGameState['actionqueue'].append(('sound','quit'))
     else:
@@ -463,6 +497,8 @@ def calculatePanelInfo(gState,mState):
             ('',False),
             ('Sound is %s' % ['OFF','ON'][int(mState['sound']['active'])],False),
             ('(press "b" to toggle)',False),
+            ('',False),
+            ('Press "m" for game info/credits',False),
         ]
     elif gState['name']=='play':
         if 'iteration' in mState:
@@ -563,6 +599,25 @@ def calculatePanelInfo(gState,mState):
             ('Victory!', True),
             ('Player %i' % mState['playWinner']['winner'],True),
         ]
+    elif gState['name']=='info':
+        pnlInfo=[
+            'Game info and credits',
+        ]
+        scnInfo=[
+            ('Game info', True),
+            ('Quantum Pong',False),
+            ('written by Stefano',False),
+            ('www.salamandrina.net',False),
+            ('',False),
+            ('Credits', True),
+            ('Music by:',False),
+            ('1,2,3',False),
+            ('',False),
+            ('Special thanks to:',False),
+            ('a,b,c',False),
+            ('',False),
+            ('(press "i" to go back)',False),
+        ]
     else:
         raise NotImplementedError
 
@@ -630,7 +685,8 @@ def initMutableGameState(gState,sound):
             transparentKey=0,
         ),
         'arrowKeyMap':{},
-        'physics': {}
+        'physics': {},
+        'musicMode': gState['musicMode'],
     }
     (
         mutableGameState['panelInfo'],

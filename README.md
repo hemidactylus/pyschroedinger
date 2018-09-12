@@ -125,15 +125,13 @@ some way throughout the game.
 ## Todo
 
 Refactor documentation: main (game + physics), physics, demo animations.
-Pictures of equations -> locally stored.
-
 Restructure DOC/readme
 
 wavefunction push-forward? how?
 
 Deep refactoring of the qpong part: make it readable, more smaller modules!
 
-Credits/info page
+Credits/info page: (1) fill it
 
 symmetry of evolution: minor bias to the right remains (?),
 strips for winning-checks.
